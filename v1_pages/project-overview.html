@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>项目概览</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .project-detail-tab-panel {
+      display: none;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .project-detail-tab-panel.active {
+      display: flex;
+    }
+
+    .project-edit-modal {
+      width: min(1180px, calc(100vw - 48px));
+    }
+
+    .project-edit-layout {
+      display: grid;
+      grid-template-columns: minmax(300px, 0.92fr) minmax(0, 1.4fr);
+      gap: 20px;
+    }
+
+    .project-edit-side {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .project-edit-card {
+      padding: 20px;
+      border-radius: 24px;
+    }
+
+    .project-edit-card h3,
+    .project-edit-card p {
+      margin: 0;
+    }
+
+    .project-edit-kpis {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .project-edit-kpi {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.58);
+    }
+
+    .project-edit-kpi span,
+    .project-edit-kpi strong {
+      display: block;
+    }
+
+    .project-edit-kpi span {
+      font-size: 12px;
+      color: var(--color-text-tertiary);
+    }
+
+    .project-edit-kpi strong {
+      margin-top: 8px;
+      font-size: 18px;
+    }
+
+    .project-edit-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .project-edit-meta-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.58);
+    }
+
+    .project-edit-meta-row > div span,
+    .project-edit-meta-row > div strong {
+      display: block;
+    }
+
+    .project-edit-meta-row > div span {
+      font-size: 12px;
+      color: var(--color-text-tertiary);
+    }
+
+    .project-edit-meta-row > div strong {
+      font-size: 14px;
+      text-align: left;
+    }
+
+    .project-edit-member-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .project-edit-member {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 42px;
+      padding: 0 14px 0 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(216, 221, 232, 0.88);
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .project-edit-member img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.82);
+    }
+
+    .project-edit-progress {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .project-edit-progress .progress-track {
+      flex: 1;
+    }
+
+    .project-edit-progress strong {
+      min-width: 44px;
+      text-align: right;
+    }
+
+    .project-edit-note-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .project-edit-note {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.58);
+    }
+
+    .project-edit-note h4,
+    .project-edit-note p {
+      margin: 0;
+    }
+
+    .project-edit-note p {
+      margin-top: 8px;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .project-edit-main {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .project-edit-card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .project-edit-card-head h3,
+    .project-edit-card-head p {
+      margin: 0;
+    }
+
+    .project-edit-field-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .project-edit-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .project-edit-textarea .field-input {
+      align-items: flex-start;
+      min-height: 136px;
+    }
+
+    .project-edit-textarea textarea {
+      min-height: 108px;
+    }
+
+    @media (max-width: 1279px) {
+      .project-edit-layout,
+      .project-edit-field-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box">
+        <div class="brand-icon"><span class="material-symbols-outlined">science</span></div>
+        <div>
+          <h1 class="brand-title">R&D 系统</h1>
+          <p class="brand-subtitle">AI 驱动型协作平台</p>
+        </div>
+      </div>
+      <button class="sidebar-primary-cta" data-modal-open="edit-project-modal">
+        <span class="material-symbols-outlined">edit_square</span>
+        编辑项目
+      </button>
+      <nav class="sidebar-nav">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></a>
+        <a class="nav-item active" href="./projects.html"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></a>
+        <a class="nav-item" href="./workbench.html"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></a>
+        <a class="nav-item" href="./reports.html"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></a>
+        <a class="nav-item" href="./settings.html"><span class="material-symbols-outlined">settings</span><span>系统设置</span></a>
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></a>
+      </nav>
+    </aside>
+
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div>
+          <h2 class="topbar-title">项目详情</h2>
+          <div class="topbar-breadcrumb">
+            <span>项目</span>
+            <span>/</span>
+            <span>纳米晶体结构优化</span>
+            <span>/</span>
+            <span data-tab-crumb>概览</span>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <label class="search-shell">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" placeholder="搜索任务、里程碑或成员..." />
+        </label>
+        <a class="icon-btn notification-link" href="./notifications.html" aria-label="打开通知中心"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></a>
+        <button class="icon-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+        <div class="avatar-chip">
+          <img src="https://i.pravatar.cc/80?img=47" alt="王志强" />
+          <div>
+            <strong>王志强</strong>
+            <span>项目负责人</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <div class="page-stack">
+        <section class="summary-card glass-panel">
+          <div class="summary-content">
+            <div style="display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap;">
+              <div>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                  <span class="pill pill-success">进行中</span>
+                  <span class="pill pill-ai">需求迭代模板</span>
+                </div>
+                <h1 class="page-title" style="margin-top: 18px;">纳米晶体结构优化</h1>
+                <p class="page-subtitle" style="max-width: 880px;">聚焦晶体结构稳定性与模型预测精度提升，当前处于“联调验证”阶段。项目已建立最新计划基线，AI 判断存在轻度进度偏差，但整体健康可控。</p>
+              </div>
+              <div class="page-actions">
+                <button class="btn-secondary"><span class="material-symbols-outlined">archive</span>归档项目</button>
+                <button class="btn-primary"><span class="material-symbols-outlined">track_changes</span>设置基线</button>
+              </div>
+            </div>
+            <div class="summary-kpis">
+              <div class="summary-kpi">
+                <span>项目负责人</span>
+                <strong>王志强</strong>
+              </div>
+              <div class="summary-kpi">
+                <span>时间范围</span>
+                <strong>04/14 - 05/16</strong>
+              </div>
+              <div class="summary-kpi">
+                <span>项目进度</span>
+                <strong>72%</strong>
+              </div>
+              <div class="summary-kpi">
+                <span>健康度</span>
+                <strong style="color: var(--color-secondary-600);">良好</strong>
+              </div>
+              <div class="summary-kpi">
+                <span>成员数</span>
+                <strong>12 人</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <nav class="subnav-bar glass-panel">
+          <a class="subnav-link active" href="#overview" data-tab-trigger="overview">概览</a>
+          <a class="subnav-link" href="#members" data-tab-trigger="members">成员</a>
+          <a class="subnav-link" href="#kanban" data-tab-trigger="kanban">项目看板</a>
+          <a class="subnav-link" href="#gantt" data-tab-trigger="gantt">项目甘特图</a>
+          <a class="subnav-link" href="#risk" data-tab-trigger="risk">风险看板</a>
+          <a class="subnav-link" href="#reports" data-tab-trigger="reports">报表</a>
+          <a class="subnav-link" href="#docs" data-tab-trigger="docs">文档</a>
+        </nav>
+
+        <div class="project-detail-tab-panel active" data-tab-panel="overview">
+          <section class="grid-2-1">
+            <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; gap: 12px;">
+                <h2 class="section-title">里程碑与进展摘要</h2>
+                <button class="btn-chip active">查看全部</button>
+              </div>
+              <div class="timeline">
+                <div class="timeline-item">
+                  <span class="timeline-dot" style="background: var(--color-secondary-600);"></span>
+                  <div class="timeline-body">
+                    <h4>需求评审</h4>
+                    <p>已完成。需求评审结论与实验约束已沉淀到项目文档，关联任务已自动拆解。</p>
+                    <span>完成日期：04-18</span>
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <span class="timeline-dot" style="background: var(--color-secondary-600);"></span>
+                  <div class="timeline-body">
+                    <h4>开发实现</h4>
+                    <p>已完成 90%，剩余为性能对齐与异常样本校验，开发任务总体提前半天收敛。</p>
+                    <span>最新更新时间：昨天 21:18</span>
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <span class="timeline-dot" style="background: var(--color-warning-600);"></span>
+                  <div class="timeline-body">
+                    <h4>联调验证</h4>
+                    <p>相对基线延后 2 天。主要原因是数据回灌链路与测试环境准备时间重叠。</p>
+                    <span>偏差：+2 天</span>
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <span class="timeline-dot" style="background: rgba(114,119,133,0.7);"></span>
+                  <div class="timeline-body">
+                    <h4>上线验收</h4>
+                    <p>待开始。当前仍可通过提前释放算力与压缩联调窗口追回 0.8 天。</p>
+                    <span>计划开始：05-12</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+              <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+                <div style="display: flex; justify-content: space-between; gap: 12px; align-items: center;">
+                  <h2 class="section-title" style="font-size: 24px;">基线偏差预警</h2>
+                  <span class="pill pill-danger">需关注</span>
+                </div>
+                <p class="page-subtitle" style="font-size: 15px; margin-top: 14px;">当前实际进度较最新基线落后 6%，里程碑“联调验证”偏差 2 天；若周三前完成环境修复，整体交付仍可控制在基线范围内。</p>
+                <div class="summary-kpis" style="margin-top: 16px;">
+                  <div class="summary-kpi">
+                    <span>偏差里程碑</span>
+                    <strong style="color: var(--color-danger-600);">1 个</strong>
+                  </div>
+                  <div class="summary-kpi">
+                    <span>预计追回</span>
+                    <strong>0.8 天</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="glass-panel" style="padding: 24px; border-radius: 24px; background: linear-gradient(180deg, rgba(236,220,255,0.28), rgba(255,255,255,0.42));">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span class="material-symbols-outlined" style="color: var(--color-tertiary-600);">psychology</span>
+                  <h2 class="section-title" style="font-size: 24px;">AI 项目建议</h2>
+                </div>
+                <p class="page-subtitle" style="font-size: 15px; margin-top: 14px;">建议将“数据回灌校验”拆分为独立子任务，并从平台组借调 1 名 QA 参与联调，预计可将偏差从 2 天压缩至 1.2 天。</p>
+                <div class="ai-actions">
+                  <button class="btn-primary">一键采纳</button>
+                  <button class="btn-secondary">查看任务拆解</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="grid-3-2">
+            <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <h2 class="section-title">本周任务进展</h2>
+                <span class="section-caption">42 个任务 · 3 个阻塞</span>
+              </div>
+              <div class="task-list">
+                <div class="task-row">
+                  <div class="task-icon"><span class="material-symbols-outlined">lab_profile</span></div>
+                  <div style="flex: 1;">
+                    <p class="task-title">完成回归样本对齐与误差校验</p>
+                    <p class="task-note">负责人：韩诚 · 预计今天完成</p>
+                  </div>
+                  <span class="pill pill-warning">进行中</span>
+                </div>
+                <div class="task-row">
+                  <div class="task-icon pending"><span class="material-symbols-outlined">block</span></div>
+                  <div style="flex: 1;">
+                    <p class="task-title">联调环境参数回灌</p>
+                    <p class="task-note">阻塞原因：测试环境配置未完成</p>
+                  </div>
+                  <span class="pill pill-danger">已阻塞</span>
+                </div>
+                <div class="task-row">
+                  <div class="task-icon done"><span class="material-symbols-outlined">check</span></div>
+                  <div style="flex: 1;">
+                    <p class="task-title">完成晶格样本归一化策略更新</p>
+                    <p class="task-note">已同步至基线对比视图</p>
+                  </div>
+                  <span class="pill pill-success">已完成</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+              <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+                <h2 class="section-title">成员负载概览</h2>
+                <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 18px;">
+                  <div>
+                    <div style="display: flex; justify-content: space-between;"><strong>平台组</strong><span>86%</span></div>
+                    <div class="progress-track" style="margin-top: 8px;"><div class="progress-fill" style="width: 86%; background: linear-gradient(90deg, #f7c455, var(--color-warning-600));"></div></div>
+                  </div>
+                  <div>
+                    <div style="display: flex; justify-content: space-between;"><strong>材料组</strong><span>72%</span></div>
+                    <div class="progress-track" style="margin-top: 8px;"><div class="progress-fill" style="width: 72%; background: linear-gradient(90deg, var(--color-primary-400), var(--color-primary-700));"></div></div>
+                  </div>
+                  <div>
+                    <div style="display: flex; justify-content: space-between;"><strong>QA</strong><span>54%</span></div>
+                    <div class="progress-track" style="margin-top: 8px;"><div class="progress-fill" style="width: 54%; background: linear-gradient(90deg, #38c59b, var(--color-secondary-600));"></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+                <h2 class="section-title">风险摘要</h2>
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
+                  <span class="status-tag warning">资源调度冲突</span>
+                  <span class="status-tag danger">联调节点延后 2 天</span>
+                  <span class="status-tag success">需求评审与开发实现稳定</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="project-detail-tab-panel" data-tab-panel="members">
+          <section class="grid-3">
+            <div class="glass-panel metric-card">
+              <h3>项目成员</h3>
+              <div class="value">12</div>
+              <div class="trend" style="color: var(--color-primary-700);">2 位待接受</div>
+            </div>
+            <div class="glass-panel metric-card">
+              <h3>超阈值负载</h3>
+              <div class="value">3</div>
+              <div class="trend" style="color: var(--color-warning-600);">>80% 需调度</div>
+            </div>
+            <div class="glass-panel metric-card">
+              <h3>AI 推荐采纳率</h3>
+              <div class="value">67%</div>
+              <div class="trend" style="color: var(--color-secondary-600);">本周 6 次采纳</div>
+            </div>
+          </section>
+
+          <section class="grid-2-1">
+            <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+              <div class="chart-header">
+                <h2 class="section-title">成员列表</h2>
+                <div class="report-chip-group">
+                  <span class="pill pill-neutral">全部成员</span>
+                  <span class="pill pill-warning">待接受 2</span>
+                </div>
+              </div>
+              <div class="member-table">
+                <div class="member-row">
+                  <div class="member-ident"><img src="https://i.pravatar.cc/80?img=47" alt="王志强" /><div><strong>王志强</strong><p class="task-note">材料科学部 · 负责人</p></div></div>
+                  <div><span class="role-badge pm">PM</span></div>
+                  <div><span class="pill pill-success">已加入</span></div>
+                  <div><strong>当前任务 6</strong><p class="task-note">预估 5.5d</p></div>
+                  <div><span class="status-tag warning">82%</span></div>
+                  <button class="icon-btn"><span class="material-symbols-outlined">more_vert</span></button>
+                </div>
+                <div class="member-row">
+                  <div class="member-ident"><img src="https://i.pravatar.cc/80?img=22" alt="陈思远" /><div><strong>陈思远</strong><p class="task-note">平台组 · 联调负责人</p></div></div>
+                  <div><span class="role-badge dev">研发</span></div>
+                  <div><span class="pill pill-success">已加入</span></div>
+                  <div><strong>当前任务 7</strong><p class="task-note">预估 6.0d</p></div>
+                  <div><span class="status-tag danger">91%</span></div>
+                  <button class="icon-btn"><span class="material-symbols-outlined">more_vert</span></button>
+                </div>
+                <div class="member-row">
+                  <div class="member-ident"><img src="https://i.pravatar.cc/80?img=33" alt="王雅婷" /><div><strong>王雅婷</strong><p class="task-note">QA · 回归验证</p></div></div>
+                  <div><span class="role-badge qa">QA</span></div>
+                  <div><span class="pill pill-success">已加入</span></div>
+                  <div><strong>当前任务 4</strong><p class="task-note">预估 3.5d</p></div>
+                  <div><span class="status-tag success">58%</span></div>
+                  <button class="icon-btn"><span class="material-symbols-outlined">more_vert</span></button>
+                </div>
+                <div class="member-row">
+                  <div class="member-ident"><img src="https://i.pravatar.cc/80?img=12" alt="赵扬" /><div><strong>赵扬</strong><p class="task-note">平台组 · 配置维护</p></div></div>
+                  <div><span class="role-badge dev">研发</span></div>
+                  <div><span class="pill pill-warning">待接受</span></div>
+                  <div><strong>当前任务 2</strong><p class="task-note">预估 1.5d</p></div>
+                  <div><span class="status-tag neutral">35%</span></div>
+                  <button class="icon-btn"><span class="material-symbols-outlined">more_vert</span></button>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+              <div class="glass-panel" style="padding: 24px; border-radius: 24px; background: linear-gradient(180deg, rgba(236,220,255,0.32), rgba(255,255,255,0.42));">
+                <h2 class="section-title">AI 智能分配建议</h2>
+                <p class="page-subtitle" style="font-size: 14px; margin-top: 14px;">建议将“联调回灌日志补录”分配给 QA 成员王雅婷，置信度 91%；并将“测试环境参数冻结”交由赵扬处理，置信度 86%。</p>
+                <div class="ai-actions">
+                  <button class="btn-primary">一键采纳</button>
+                  <button class="btn-secondary">手动调整</button>
+                </div>
+              </div>
+              <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+                <h2 class="section-title">邀请流程</h2>
+                <div class="timeline" style="margin-top: 18px;">
+                  <div class="timeline-item">
+                    <span class="timeline-dot" style="background: var(--color-primary-600);"></span>
+                    <div class="timeline-body">
+                      <h4>选择成员</h4>
+                      <p>通过组织架构树或搜索选择要加入项目的成员。</p>
+                    </div>
+                  </div>
+                  <div class="timeline-item">
+                    <span class="timeline-dot" style="background: var(--color-warning-600);"></span>
+                    <div class="timeline-body">
+                      <h4>发送邀请</h4>
+                      <p>系统会同步站内消息与企微/钉钉通知。</p>
+                    </div>
+                  </div>
+                  <div class="timeline-item">
+                    <span class="timeline-dot" style="background: var(--color-secondary-600);"></span>
+                    <div class="timeline-body">
+                      <h4>接受并加入</h4>
+                      <p>成员接受邀请后自动加入项目权限组。</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="glass-panel" style="padding: 24px; border-radius: 24px;">
+            <div class="chart-header">
+              <h2 class="section-title">未来一周负载热力图</h2>
+              <span class="section-caption">颜色越深负载越高，超过 80% 显示预警。</span>
+            </div>
+            <div class="calendar-grid">
+              <div></div>
+              <div class="calendar-head">周一</div><div class="calendar-head">周二</div><div class="calendar-head">周三</div><div class="calendar-head">周四</div><div class="calendar-head">周五</div><div class="calendar-head">周六</div><div class="calendar-head">周日</div>
+              <div class="calendar-name">王志强</div><div class="load-2"></div><div class="load-4"></div><div class="load-5"></div><div class="load-4"></div><div class="load-3"></div><div class="load-1"></div><div class="load-0"></div>
+              <div class="calendar-name">陈思远</div><div class="load-3"></div><div class="load-5"></div><div class="load-5"></div><div class="load-4"></div><div class="load-3"></div><div class="load-1"></div><div class="load-0"></div>
+              <div class="calendar-name">王雅婷</div><div class="load-1"></div><div class="load-2"></div><div class="load-3"></div><div class="load-2"></div><div class="load-2"></div><div class="load-1"></div><div class="load-0"></div>
+              <div class="calendar-name">赵扬</div><div class="load-0"></div><div class="load-1"></div><div class="load-2"></div><div class="load-2"></div><div class="load-1"></div><div class="load-0"></div><div class="load-0"></div>
+            </div>
+          </section>
+        </div>
+
+        <div class="project-detail-tab-panel" data-tab-panel="kanban">
+          <section class="glass-panel filter-bar">
+            <button class="btn-chip active">全部状态</button>
+            <button class="btn-chip">P0 / P1</button>
+            <button class="btn-chip">本周截止</button>
+            <button class="btn-chip">仅阻塞</button>
+            <button class="btn-chip">关联里程碑</button>
+            <div class="report-chip-group" style="margin-left: auto;">
+              <span class="pill pill-neutral">任务总数 26</span>
+              <span class="pill pill-warning">阻塞 3</span>
+            </div>
+          </section>
+
+          <section class="kanban-5">
+            <div class="kanban-column glass-panel">
+              <div class="kanban-column-header">
+                <h3>待开始</h3>
+                <span class="pill pill-neutral">5</span>
+              </div>
+              <div class="kanban-card">
+                <h4>整理联调验证清单</h4>
+                <div class="kanban-meta"><span class="micro-tag p2">P2</span><span class="micro-tag">里程碑</span></div>
+                <p class="task-note">负责人：赵扬 · 预估工时 1.5d</p>
+              </div>
+              <div class="kanban-card">
+                <h4>补充异常样本说明</h4>
+                <div class="kanban-meta"><span class="micro-tag p3">P3</span></div>
+                <p class="task-note">负责人：韩诚 · 截止：周四</p>
+              </div>
+            </div>
+
+            <div class="kanban-column glass-panel">
+              <div class="kanban-column-header">
+                <h3>进行中</h3>
+                <span class="pill pill-neutral">7</span>
+              </div>
+              <div class="kanban-card">
+                <h4>联调环境参数回灌</h4>
+                <div class="kanban-meta"><span class="micro-tag p0">P0</span><span class="micro-tag">依赖平台组</span></div>
+                <p class="task-note">负责人：陈思远 · 进度 62%</p>
+              </div>
+              <div class="kanban-card">
+                <h4>样本误差回归验证</h4>
+                <div class="kanban-meta"><span class="micro-tag p1">P1</span><span class="micro-tag">PBC</span></div>
+                <p class="task-note">负责人：王雅婷 · 进度 48%</p>
+              </div>
+            </div>
+
+            <div class="kanban-column glass-panel">
+              <div class="kanban-column-header">
+                <h3>待评审</h3>
+                <span class="pill pill-neutral">4</span>
+              </div>
+              <div class="kanban-card">
+                <h4>晶格归一化策略更新</h4>
+                <div class="kanban-meta"><span class="micro-tag p1">P1</span><span class="micro-tag">需 QA 确认</span></div>
+                <p class="task-note">负责人：林初夏 · 截止 今天 18:00</p>
+              </div>
+              <div class="kanban-card">
+                <h4>模型输出字段映射表</h4>
+                <div class="kanban-meta"><span class="micro-tag p2">P2</span></div>
+                <p class="task-note">负责人：韩诚 · 进度 90%</p>
+              </div>
+            </div>
+
+            <div class="kanban-column glass-panel">
+              <div class="kanban-column-header">
+                <h3>已完成</h3>
+                <span class="pill pill-neutral">8</span>
+              </div>
+              <div class="kanban-card">
+                <h4>需求评审结论归档</h4>
+                <div class="kanban-meta"><span class="micro-tag p2">P2</span><span class="micro-tag">完成</span></div>
+                <p class="task-note">负责人：王志强 · 已自动同步日报</p>
+              </div>
+              <div class="kanban-card">
+                <h4>开发任务拆解确认</h4>
+                <div class="kanban-meta"><span class="micro-tag p3">P3</span></div>
+                <p class="task-note">负责人：陈思远 · 已绑定基线</p>
+              </div>
+            </div>
+
+            <div class="kanban-column glass-panel" style="background: rgba(255, 235, 233, 0.34); border-color: rgba(216,58,52,0.18);">
+              <div class="kanban-column-header">
+                <h3>已阻塞</h3>
+                <span class="pill pill-danger">3</span>
+              </div>
+              <div class="kanban-card">
+                <h4>测试环境参数冻结</h4>
+                <div class="kanban-meta"><span class="micro-tag p0">P0</span><span class="micro-tag" style="color: var(--color-danger-600); background: rgba(255,218,214,0.82);">阻塞</span></div>
+                <p class="task-note">阻塞原因：环境配置窗口未确认</p>
+              </div>
+              <div class="kanban-card">
+                <h4>联调回灌日志补录</h4>
+                <div class="kanban-meta"><span class="micro-tag p1">P1</span></div>
+                <p class="task-note">阻塞依赖：测试环境参数冻结</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="grid-2-1">
+            <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+              <div class="chart-header">
+                <h2 class="section-title">状态流转规则</h2>
+                <span class="section-caption">待开始 → 进行中 → 待评审 → 已完成 / 已阻塞</span>
+              </div>
+              <table class="data-table">
+                <thead>
+                  <tr><th>规则</th><th>说明</th><th>通知</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>待开始不可直接完成</td><td>必须先进入进行中或待评审</td><td>无</td></tr>
+                  <tr><td>标记阻塞需填写原因</td><td>必须补充阻塞文本，并可关联阻塞依赖任务</td><td>通知创建者与 PM</td></tr>
+                  <tr><td>任务完成通知</td><td>任务变更为已完成时自动触发</td><td>通知创建者</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="glass-panel" style="padding: 24px; border-radius: 24px; background: linear-gradient(180deg, rgba(236,220,255,0.28), rgba(255,255,255,0.42));">
+              <h2 class="section-title">AI 分配建议</h2>
+              <p class="page-subtitle" style="font-size: 14px; margin-top: 14px;">建议把“联调回灌日志补录”从平台组调整给 QA 协作者王雅婷，置信度 91%，预计可在不影响主路径的情况下减少 0.4 天等待。</p>
+              <div class="ai-actions">
+                <button class="btn-primary">一键采纳</button>
+                <button class="btn-secondary">手动调整</button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="project-detail-tab-panel" data-tab-panel="gantt">
+          <section class="glass-panel" style="padding: 20px 24px; border-radius: 24px;">
+            <div style="display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; align-items: center;">
+              <div>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                  <span class="pill pill-success">进行中</span>
+                  <span class="pill pill-warning">联调偏差 +2 天</span>
+                </div>
+                <h2 class="section-title" style="margin-top: 14px;">纳米晶体结构优化</h2>
+                <p class="page-subtitle" style="font-size: 15px; margin-top: 8px;">负责人：王志强 · 时间范围：04/14 - 05/16 · 当前进度：72%</p>
+              </div>
+              <div class="summary-kpis" style="margin-top: 0;">
+                <div class="summary-kpi">
+                  <span>关键路径</span>
+                  <strong>3 段</strong>
+                </div>
+                <div class="summary-kpi">
+                  <span>基线版本</span>
+                  <strong>V2</strong>
+                </div>
+                <div class="summary-kpi">
+                  <span>超期节点</span>
+                  <strong style="color: var(--color-danger-600);">1 个</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="grid-3-2">
+            <div class="gantt-shell glass-panel">
+              <div class="gantt-toolbar">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                  <button class="btn-chip active">按周</button>
+                  <button class="btn-chip">按日</button>
+                  <button class="btn-chip">按月</button>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                  <button class="btn-chip active" data-toggle-target="#gantt-stage" data-toggle-class="hide-baseline">显示基线</button>
+                  <button class="btn-chip"><span class="material-symbols-outlined">share</span>依赖关系</button>
+                  <button class="btn-chip"><span class="material-symbols-outlined">unfold_more</span>缩放</button>
+                </div>
+              </div>
+
+              <div class="gantt-layout">
+                <div class="gantt-side">
+                  <div class="gantt-head-row">
+                    <div>里程碑 / 任务</div>
+                    <div>负责人</div>
+                  </div>
+                  <div class="gantt-item-row">
+                    <div><strong>需求评审</strong></div>
+                    <div class="section-caption">王志强</div>
+                  </div>
+                  <div class="gantt-item-row">
+                    <div><strong>开发实现</strong></div>
+                    <div class="section-caption">韩诚</div>
+                  </div>
+                  <div class="gantt-item-row">
+                    <div><strong>联调验证</strong></div>
+                    <div class="section-caption">陈思远</div>
+                  </div>
+                  <div class="gantt-item-row">
+                    <div><strong>上线验收</strong></div>
+                    <div class="section-caption">周雅楠</div>
+                  </div>
+                </div>
+
+                <div class="gantt-stage" id="gantt-stage">
+                  <div class="gantt-head-row">
+                    <div>04/14</div><div>04/21</div><div>04/28</div><div>05/05</div><div>05/12</div><div>05/19</div><div>05/26</div><div>06/02</div><div>06/09</div><div>06/16</div><div>06/23</div><div>06/30</div>
+                  </div>
+
+                  <div class="gantt-item-row">
+                    <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                    <div class="gantt-bar-layer">
+                      <div class="gantt-baseline" style="left: 2%; width: 18%;"></div>
+                      <div class="gantt-bar blue" style="left: 2%; width: 18%;"></div>
+                    </div>
+                  </div>
+                  <div class="gantt-item-row">
+                    <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                    <div class="gantt-bar-layer">
+                      <div class="gantt-baseline" style="left: 20%; width: 26%;"></div>
+                      <div class="gantt-bar purple" style="left: 20%; width: 30%;"></div>
+                    </div>
+                  </div>
+                  <div class="gantt-item-row">
+                    <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                    <div class="gantt-bar-layer">
+                      <div class="gantt-baseline" style="left: 49%; width: 18%;"></div>
+                      <div class="gantt-bar red" style="left: 53%; width: 21%;"></div>
+                    </div>
+                  </div>
+                  <div class="gantt-item-row">
+                    <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                    <div class="gantt-bar-layer">
+                      <div class="gantt-baseline" style="left: 68%; width: 16%;"></div>
+                      <div class="gantt-bar green" style="left: 73%; width: 14%;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+              <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+                <h2 class="section-title">排期摘要</h2>
+                <div class="summary-kpis" style="margin-top: 16px;">
+                  <div class="summary-kpi">
+                    <span>关键路径</span>
+                    <strong>开发 → 联调 → 验收</strong>
+                  </div>
+                  <div class="summary-kpi">
+                    <span>偏差</span>
+                    <strong style="color: var(--color-danger-600);">+2 天</strong>
+                  </div>
+                </div>
+                <p class="page-subtitle" style="font-size: 14px; margin-top: 16px;">当前实际计划主要偏差集中在“联调验证”，其余里程碑仍在可控范围内。</p>
+              </div>
+
+              <div class="glass-panel" style="padding: 24px; border-radius: 24px; background: linear-gradient(180deg, rgba(236,220,255,0.28), rgba(255,255,255,0.42));">
+                <h2 class="section-title">AI 排期建议</h2>
+                <p class="page-subtitle" style="font-size: 14px; margin-top: 14px;">若将 QA 提前一周介入联调准备，并拆分“回灌验证”与“异常样本校正”两项任务，可追回 0.8 天，并降低关键路径波动。</p>
+                <div class="ai-actions">
+                  <button class="btn-primary">采纳建议</button>
+                  <button class="btn-secondary">生成任务</button>
+                </div>
+              </div>
+
+              <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+                <h2 class="section-title">图例</h2>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+                  <div class="gantt-flag"><span class="material-symbols-outlined" style="color: var(--color-primary-700);">timeline</span>当前计划</div>
+                  <div class="gantt-flag"><span class="material-symbols-outlined" style="color: var(--color-text-tertiary);">layers</span>基线计划</div>
+                  <div class="gantt-flag"><span class="material-symbols-outlined" style="color: var(--color-danger-600);">warning</span>偏差节点</div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="project-detail-tab-panel" data-tab-panel="risk">
+          <section class="grid-3">
+            <div class="glass-panel metric-card">
+              <span class="material-symbols-outlined watermark" style="color: var(--color-danger-600);">report</span>
+              <h3>高危任务</h3>
+              <div class="value">6</div>
+              <div class="trend" style="color: var(--color-danger-600);"><span class="material-symbols-outlined" style="font-size: 18px;">trending_up</span>+2 较上周</div>
+            </div>
+            <div class="glass-panel metric-card">
+              <span class="material-symbols-outlined watermark" style="color: var(--color-warning-600);">notification_important</span>
+              <h3>中度预警</h3>
+              <div class="value">11</div>
+              <div class="trend" style="color: var(--color-warning-600);"><span class="material-symbols-outlined" style="font-size: 18px;">trending_flat</span>持平</div>
+            </div>
+            <div class="glass-panel metric-card">
+              <span class="material-symbols-outlined watermark" style="color: var(--color-secondary-600);">verified</span>
+              <h3>整体稳定度</h3>
+              <div class="value">81%</div>
+              <div class="trend" style="color: var(--color-secondary-600);"><span class="material-symbols-outlined" style="font-size: 18px;">verified</span>仍可控</div>
+            </div>
+          </section>
+
+          <section class="grid-2-1">
+            <section class="glass-panel" style="padding: 24px; border-radius: 24px;">
+              <div class="chart-header">
+                <h2 class="section-title">核心风险任务列表</h2>
+                <div class="page-actions">
+                  <button class="btn-secondary">导出清单</button>
+                  <button class="btn-primary">一键处理</button>
+                </div>
+              </div>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>任务名称</th>
+                    <th>风险等级</th>
+                    <th>风险因子</th>
+                    <th>进度阻碍</th>
+                    <th>负责人</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>联调环境参数回灌</strong></td>
+                    <td><span class="pill pill-danger">极高</span></td>
+                    <td>环境准备冲突</td>
+                    <td><div class="progress-track"><div class="progress-fill" style="width: 68%; background: linear-gradient(90deg, #f36b63, var(--color-danger-600));"></div></div></td>
+                    <td>陈思远</td>
+                    <td><span class="material-symbols-outlined" style="color: var(--color-text-tertiary);">more_horiz</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>样本误差回归验证</strong></td>
+                    <td><span class="pill pill-warning">中等</span></td>
+                    <td>算力窗口拥堵</td>
+                    <td><div class="progress-track"><div class="progress-fill" style="width: 42%; background: linear-gradient(90deg, #f7c455, var(--color-warning-600));"></div></div></td>
+                    <td>王雅婷</td>
+                    <td><span class="material-symbols-outlined" style="color: var(--color-text-tertiary);">more_horiz</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>测试环境参数冻结</strong></td>
+                    <td><span class="pill pill-danger">高危</span></td>
+                    <td>阻塞依赖未解除</td>
+                    <td><div class="progress-track"><div class="progress-fill" style="width: 16%; background: linear-gradient(90deg, #f36b63, var(--color-danger-600));"></div></div></td>
+                    <td>赵扬</td>
+                    <td><span class="material-symbols-outlined" style="color: var(--color-text-tertiary);">more_horiz</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <div class="glass-panel" style="padding: 24px; border-radius: 24px; background: linear-gradient(180deg, rgba(236,220,255,0.32), rgba(255,255,255,0.42));">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="material-symbols-outlined" style="color: var(--color-tertiary-600);">psychology</span>
+                <h2 class="section-title">AI 深度洞察</h2>
+              </div>
+              <div class="ai-list" style="margin-top: 18px;">
+                <div class="ai-list-item">
+                  <h4>预测 · 概率 92%</h4>
+                  <p>由于“联调环境参数回灌”与“样本误差回归验证”共用同一测试窗口，周三将出现成员冲突，可能造成 0.6 天额外延迟。</p>
+                </div>
+                <div class="ai-list-item">
+                  <h4>建议 · 可一键采纳</h4>
+                  <p>建议将“日志补录”任务临时调配给 QA 协作成员，并提前冻结周三的联调资源窗口。</p>
+                </div>
+              </div>
+              <div class="ai-actions">
+                <button class="btn-primary">生成完整风险报告</button>
+                <button class="btn-secondary">点赞反馈</button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="project-detail-tab-panel" data-tab-panel="reports">
+          <section class="glass-panel filter-bar">
+            <button class="btn-chip active">最近 30 天</button>
+            <button class="btn-chip">本周</button>
+            <button class="btn-chip">全部成员</button>
+            <button class="btn-chip">进度报表</button>
+            <button class="btn-chip">工时报表</button>
+            <button class="btn-chip">质量报表</button>
+          </section>
+
+          <section class="summary-card glass-panel">
+            <div class="summary-content">
+              <span class="pill pill-ai"><span class="material-symbols-outlined">auto_awesome</span>AI 洞察卡片</span>
+              <h2 class="section-title" style="font-size: 32px; margin-top: 18px;">本周团队效率提升 12%，但联调节点仍是唯一主风险源。</h2>
+              <p class="page-subtitle" style="margin-top: 14px; max-width: 980px;">AI 综合燃尽图、成员负载与 Bug 趋势后判断：当前项目整体可控，主要问题集中在联调准备时间与测试环境冻结。建议下周优先协调平台组与 QA 的时间窗口，并提前生成周报草稿给相关成员确认。</p>
+              <div class="ai-actions" style="margin-top: 20px;">
+                <button class="btn-primary">一键导出 Markdown</button>
+                <button class="btn-secondary">点赞反馈</button>
+                <button class="btn-secondary">点踩反馈</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="grid-2">
+            <div class="chart-card glass-panel">
+              <div class="chart-header">
+                <h2 class="section-title">燃尽图</h2>
+                <span class="section-caption">剩余工作量趋势</span>
+              </div>
+              <div class="dual-line">
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 74%;"></span><span class="dot-b" style="bottom: 78%;"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 66%;"></span><span class="dot-b" style="bottom: 70%;"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 58%;"></span><span class="dot-b" style="bottom: 61%;"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 51%;"></span><span class="dot-b" style="bottom: 54%;"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 45%;"></span><span class="dot-b" style="bottom: 42%;"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 36%;"></span><span class="dot-b" style="bottom: 31%;"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 29%;"></span><span class="dot-b" style="bottom: 22%;"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 21%;"></span><span class="dot-b" style="bottom: 14%;"></span></div>
+              </div>
+              <div class="legend" style="margin-top: 16px;">
+                <span style="display:inline-flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background: var(--color-primary-700); display:inline-block;"></span>实际剩余</span>
+                <span style="display:inline-flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background: var(--color-secondary-600); display:inline-block;"></span>目标燃尽</span>
+              </div>
+            </div>
+
+            <div class="chart-card glass-panel">
+              <div class="chart-header">
+                <h2 class="section-title">计划 vs 实际工时</h2>
+                <span class="section-caption">按成员对比</span>
+              </div>
+              <div class="bar-chart">
+                <div class="bar-item"><div class="bar-track"><div class="bar-fill" style="height: 82%; background: linear-gradient(180deg, var(--color-primary-400), var(--color-primary-700));"></div></div><span>王志强</span></div>
+                <div class="bar-item"><div class="bar-track"><div class="bar-fill" style="height: 92%; background: linear-gradient(180deg, #f7c455, var(--color-warning-600));"></div></div><span>陈思远</span></div>
+                <div class="bar-item"><div class="bar-track"><div class="bar-fill" style="height: 58%; background: linear-gradient(180deg, #38c59b, var(--color-secondary-600));"></div></div><span>王雅婷</span></div>
+                <div class="bar-item"><div class="bar-track"><div class="bar-fill" style="height: 36%; background: linear-gradient(180deg, #a871ff, var(--color-tertiary-600));"></div></div><span>赵扬</span></div>
+              </div>
+            </div>
+
+            <div class="chart-card glass-panel">
+              <div class="chart-header">
+                <h2 class="section-title">Bug 趋势</h2>
+                <span class="section-caption">新增 / 关闭</span>
+              </div>
+              <div class="dual-line">
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 48%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 18%; background: var(--color-secondary-600);"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 58%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 25%; background: var(--color-secondary-600);"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 44%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 36%; background: var(--color-secondary-600);"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 39%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 42%; background: var(--color-secondary-600);"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 31%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 46%; background: var(--color-secondary-600);"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 22%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 41%; background: var(--color-secondary-600);"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 18%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 33%; background: var(--color-secondary-600);"></span></div>
+                <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 13%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 28%; background: var(--color-secondary-600);"></span></div>
+              </div>
+            </div>
+
+            <div class="chart-card glass-panel">
+              <div class="chart-header">
+                <h2 class="section-title">阻塞时长与负载分布</h2>
+                <span class="section-caption">小时 / 人员</span>
+              </div>
+              <div class="mini-bars">
+                <div class="mini-bar-row"><span>联调环境</span><div class="progress-track"><div class="progress-fill" style="width: 78%; background: linear-gradient(90deg, #f36b63, var(--color-danger-600));"></div></div><strong>31h</strong></div>
+                <div class="mini-bar-row"><span>样本验证</span><div class="progress-track"><div class="progress-fill" style="width: 52%; background: linear-gradient(90deg, #f7c455, var(--color-warning-600));"></div></div><strong>19h</strong></div>
+                <div class="mini-bar-row"><span>平台组负载</span><div class="progress-track"><div class="progress-fill" style="width: 91%; background: linear-gradient(90deg, #a871ff, var(--color-tertiary-600));"></div></div><strong>91%</strong></div>
+                <div class="mini-bar-row"><span>QA 负载</span><div class="progress-track"><div class="progress-fill" style="width: 58%; background: linear-gradient(90deg, #38c59b, var(--color-secondary-600));"></div></div><strong>58%</strong></div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="project-detail-tab-panel" data-tab-panel="docs">
+          <section class="doc-grid">
+            <article class="doc-card glass-panel">
+              <span class="pill pill-success">最新版本</span>
+              <h3 style="margin-top:14px; font-size:20px;">需求评审纪要</h3>
+              <p>记录需求边界、时间计划和依赖说明，供 PM、研发与 QA 对齐使用。</p>
+              <div class="summary-kpis"><div class="summary-kpi"><span>更新时间</span><strong>今天 10:40</strong></div></div>
+            </article>
+            <article class="doc-card glass-panel">
+              <span class="pill pill-ai">AI 摘要</span>
+              <h3 style="margin-top:14px; font-size:20px;">联调验证说明</h3>
+              <p>包含当前联调阶段的前置条件、关键风险和任务引用，可自动生成摘要。</p>
+              <div class="summary-kpis"><div class="summary-kpi"><span>标签</span><strong>联调 / 风险</strong></div></div>
+            </article>
+            <article class="doc-card glass-panel">
+              <span class="pill pill-warning">待补充</span>
+              <h3 style="margin-top:14px; font-size:20px;">回归样本池说明</h3>
+              <p>当前文档仅存在占位，建议下一轮把样本来源、版本和映射关系整理进来。</p>
+              <div class="summary-kpis"><div class="summary-kpi"><span>责任人</span><strong>QA 组</strong></div></div>
+            </article>
+          </section>
+          <section class="empty-card glass-panel">
+            <span class="material-symbols-outlined" style="font-size:56px; color: var(--color-primary-700);">folder_open</span>
+            <h3 style="margin-top:18px; font-size:26px;">文档页首版以风格基线为主</h3>
+            <p>当前已保留列表卡、版本、AI 摘要和空状态表达，后续可继续扩展为真实文档中心。</p>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-shell" data-modal-id="edit-project-modal">
+    <div class="modal-backdrop" data-modal-close></div>
+    <section class="modal-panel glass-panel-strong project-edit-modal">
+      <div class="modal-header">
+        <div>
+          <span class="pill pill-ai">项目编辑</span>
+          <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">编辑项目基础信息</h2>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">延续当前项目详情页的玻璃拟态风格，左侧显示项目快照与编辑提示，右侧承载可编辑表单，作为后续真实化前的弹窗参考。</p>
+        </div>
+        <button class="icon-btn" data-modal-close><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <div class="project-edit-layout">
+        <aside class="project-edit-side">
+          <article class="glass-panel project-edit-card">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <span class="pill pill-success">进行中</span>
+              <span class="pill pill-ai">需求迭代模板</span>
+            </div>
+            <h3 class="section-title" style="font-size: 26px; margin-top: 16px;">纳米晶体结构优化</h3>
+            <p class="page-subtitle" style="font-size: 14px; margin-top: 12px;">聚焦晶体结构稳定性与模型预测精度提升，当前处于联调验证阶段，后续将继续围绕基线偏差与资源窗口做细化调整。</p>
+
+            <div class="project-edit-progress">
+              <div class="progress-track"><div class="progress-fill" style="width: 72%; background: linear-gradient(90deg, var(--color-primary-400), var(--color-primary-700));"></div></div>
+              <strong>72%</strong>
+            </div>
+
+            <div class="project-edit-kpis">
+              <div class="project-edit-kpi">
+                <span>项目负责人</span>
+                <strong>王志强</strong>
+              </div>
+              <div class="project-edit-kpi">
+                <span>成员数</span>
+                <strong>12 人</strong>
+              </div>
+              <div class="project-edit-kpi">
+                <span>基线版本</span>
+                <strong>V2</strong>
+              </div>
+              <div class="project-edit-kpi">
+                <span>健康度</span>
+                <strong style="color: var(--color-secondary-600);">良好</strong>
+              </div>
+            </div>
+
+            <div class="project-edit-meta">
+              <div class="project-edit-meta-row">
+                <div>
+                  <span>时间范围</span>
+                  <strong>2026-04-14 至 2026-05-16</strong>
+                </div>
+                <span class="status-tag warning">联调偏差 +2 天</span>
+              </div>
+              <div class="project-edit-meta-row">
+                <div>
+                  <span>当前阶段</span>
+                  <strong>联调验证</strong>
+                </div>
+                <span class="status-tag success">整体可控</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="glass-panel project-edit-card" style="background: linear-gradient(180deg, rgba(236,220,255,0.32), rgba(255,255,255,0.42));">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="material-symbols-outlined" style="color: var(--color-tertiary-600);">psychology</span>
+              <h3 class="section-title" style="font-size: 22px;">本次编辑建议</h3>
+            </div>
+            <div class="project-edit-note-list">
+              <div class="project-edit-note">
+                <h4>优先同步基线与时间窗</h4>
+                <p>建议将联调验证的偏差说明写入项目摘要，避免首页卡片、甘特页和风险页的信息口径不一致。</p>
+              </div>
+              <div class="project-edit-note">
+                <h4>成员信息建议一起维护</h4>
+                <p>若项目负责人或核心成员发生变化，建议同时调整成员页和报告订阅人，减少后续样式与文案返工。</p>
+              </div>
+            </div>
+            <div class="project-edit-member-grid">
+              <span class="project-edit-member"><img src="https://i.pravatar.cc/80?img=47" alt="王志强" />王志强</span>
+              <span class="project-edit-member"><img src="https://i.pravatar.cc/80?img=22" alt="陈思远" />陈思远</span>
+              <span class="project-edit-member"><img src="https://i.pravatar.cc/80?img=33" alt="王雅婷" />王雅婷</span>
+            </div>
+          </article>
+        </aside>
+
+        <div class="project-edit-main">
+          <article class="glass-panel project-edit-card">
+            <div class="project-edit-card-head">
+              <div>
+                <h3 class="section-title" style="font-size: 22px;">基础信息</h3>
+                <p class="section-caption" style="margin-top: 6px;">项目名称、编号、负责人和模板等基础字段</p>
+              </div>
+              <span class="pill pill-neutral">基础字段</span>
+            </div>
+
+            <div class="field-inline">
+              <div class="field-stack">
+                <label class="field-label">项目名称</label>
+                <div class="field-input">
+                  <span class="material-symbols-outlined">title</span>
+                  <input type="text" value="纳米晶体结构优化" />
+                </div>
+              </div>
+              <div class="field-stack">
+                <label class="field-label">项目编号</label>
+                <div class="field-input">
+                  <span class="material-symbols-outlined">tag</span>
+                  <input type="text" value="MAT-2026-0414" />
+                </div>
+              </div>
+            </div>
+
+            <div class="project-edit-field-grid" style="margin-top: 16px;">
+              <div class="field-stack">
+                <label class="field-label">项目模板</label>
+                <div class="field-input">
+                  <span class="material-symbols-outlined">dashboard_customize</span>
+                  <select>
+                    <option>需求迭代模板</option>
+                    <option>平台交付模板</option>
+                    <option>联合实验模板</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field-stack">
+                <label class="field-label">项目负责人</label>
+                <div class="field-input">
+                  <span class="material-symbols-outlined">person</span>
+                  <select>
+                    <option>王志强</option>
+                    <option>陈思远</option>
+                    <option>王雅婷</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field-stack">
+                <label class="field-label">归属团队</label>
+                <div class="field-input">
+                  <span class="material-symbols-outlined">groups</span>
+                  <select>
+                    <option>材料科学部</option>
+                    <option>平台组</option>
+                    <option>联合项目组</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="glass-panel project-edit-card">
+            <div class="project-edit-card-head">
+              <div>
+                <h3 class="section-title" style="font-size: 22px;">计划与状态</h3>
+                <p class="section-caption" style="margin-top: 6px;">统一维护时间、阶段、健康度和可见标签</p>
+              </div>
+              <span class="pill pill-warning">需要同步</span>
+            </div>
+
+            <div class="field-inline">
+              <div class="field-stack">
+                <label class="field-label">开始日期</label>
+                <div class="field-input">
+                  <span class="material-symbols-outlined">calendar_today</span>
+                  <input type="text" value="2026-04-14" />
+                </div>
+              </div>
+              <div class="field-stack">
+                <label class="field-label">结束日期</label>
+                <div class="field-input">
+                  <span class="material-symbols-outlined">event</span>
+                  <input type="text" value="2026-05-16" />
+                </div>
+              </div>
+            </div>
+
+            <div class="project-edit-field-grid" style="margin-top: 16px;">
+              <div class="field-stack">
+                <label class="field-label">当前阶段</label>
+                <div class="field-input">
+                  <span class="material-symbols-outlined">conversion_path</span>
+                  <select>
+                    <option>联调验证</option>
+                    <option>开发实现</option>
+                    <option>上线验收</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field-stack">
+                <label class="field-label">健康度</label>
+                <div class="field-input">
+                  <span class="material-symbols-outlined">favorite</span>
+                  <select>
+                    <option>良好</option>
+                    <option>需关注</option>
+                    <option>高风险</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field-stack">
+                <label class="field-label">进度百分比</label>
+                <div class="field-input">
+                  <span class="material-symbols-outlined">progress_activity</span>
+                  <input type="text" value="72%" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field-stack project-edit-textarea" style="margin-top: 16px;">
+              <label class="field-label">阶段说明</label>
+              <div class="field-input">
+                <span class="material-symbols-outlined" style="margin-top: 16px;">notes</span>
+                <textarea>当前阶段集中处理联调验证中的时间偏差与资源窗口冲突，目标是在保持健康度稳定的前提下追回 0.8 天进度。</textarea>
+              </div>
+            </div>
+
+            <div class="project-edit-chip-row">
+              <button class="permission-chip on" type="button">概览页高亮</button>
+              <button class="permission-chip on" type="button">风险页提醒</button>
+              <button class="permission-chip on" type="button">报表订阅</button>
+              <button class="permission-chip" type="button">归档状态</button>
+            </div>
+          </article>
+
+          <article class="glass-panel project-edit-card">
+            <div class="project-edit-card-head">
+              <div>
+                <h3 class="section-title" style="font-size: 22px;">成员与项目说明</h3>
+                <p class="section-caption" style="margin-top: 6px;">补齐参与成员、协作角色和项目简介区块</p>
+              </div>
+              <span class="pill pill-success">协作信息</span>
+            </div>
+
+            <div class="field-inline">
+              <div class="field-stack">
+                <label class="field-label">核心成员</label>
+                <div class="field-input">
+                  <span class="material-symbols-outlined">group</span>
+                  <input type="text" value="王志强、陈思远、王雅婷、赵扬" />
+                </div>
+              </div>
+              <div class="field-stack">
+                <label class="field-label">报告订阅人</label>
+                <div class="field-input">
+                  <span class="material-symbols-outlined">forward_to_inbox</span>
+                  <input type="text" value="PM、QA、平台主管" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field-stack project-edit-textarea" style="margin-top: 16px;">
+              <label class="field-label">项目简介</label>
+              <div class="field-input">
+                <span class="material-symbols-outlined" style="margin-top: 16px;">article</span>
+                <textarea>聚焦晶体结构稳定性与模型预测精度提升，当前项目以需求迭代模板推进，覆盖概览、成员、看板、甘特、风险与报表多个展示页。</textarea>
+              </div>
+            </div>
+
+            <div class="project-edit-chip-row">
+              <button class="permission-chip on" type="button">同步项目看板</button>
+              <button class="permission-chip on" type="button">同步甘特页</button>
+              <button class="permission-chip on" type="button">同步风险页</button>
+              <button class="permission-chip" type="button">生成变更摘要</button>
+              <button class="permission-chip" type="button">通知协作成员</button>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="modal-status">
+          <span class="material-symbols-outlined">edit_note</span>
+          当前为样式参考弹窗，字段与交互可在后续真实化时接入。
+        </div>
+        <div class="modal-footer-actions">
+          <button class="btn-secondary" data-modal-close><span class="material-symbols-outlined">close</span>取消</button>
+          <button class="btn-secondary" data-action-toast data-action-title="项目草稿已保存" data-action-message="编辑项目弹窗中的当前内容已保存为样式草稿，可继续调整布局与字段。" data-action-icon="draft"><span class="material-symbols-outlined">draft</span>保存草稿</button>
+          <button class="btn-primary" data-action-toast data-action-title="项目配置已更新" data-action-message="项目基础信息、阶段说明和成员配置已同步为当前参考版本。" data-action-icon="task_alt"><span class="material-symbols-outlined">save</span>保存变更</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <button class="floating-ai-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+  <div class="ai-overlay" data-ai-overlay></div>
+  <aside class="ai-drawer" data-ai-drawer>
+    <div class="ai-header">
+      <div>
+        <h3>AI 助手</h3>
+        <p class="section-caption" data-ai-context>当前上下文：项目概览</p>
+      </div>
+      <button class="icon-btn" data-ai-close><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="ai-card">
+      <h4>根因分析</h4>
+      <p>联调验证延期的主要原因不是开发落后，而是测试环境准备与数据回灌窗口重叠。建议优先拆出“环境参数回灌”子任务并指定单独负责人。</p>
+      <div class="ai-actions">
+        <button class="btn-primary">生成子任务</button>
+        <button class="btn-secondary">查看基线对比</button>
+      </div>
+    </div>
+    <div class="ai-list">
+      <div class="ai-list-item">
+        <h4>项目健康预测 · 88% 置信度</h4>
+        <p>若本周三前恢复联调，项目整体健康度仍可维持“良好”。</p>
+      </div>
+      <div class="ai-list-item">
+        <h4>成员建议</h4>
+        <p>平台组负载已超过阈值，建议将两项回归校验转交给 QA 协作成员处理。</p>
+      </div>
+    </div>
+  </aside>
+
+  <script src="./shared.js"></script>
+  <script>
+    (function () {
+      const tabLinks = document.querySelectorAll("[data-tab-trigger]");
+      const tabPanels = document.querySelectorAll("[data-tab-panel]");
+      const breadcrumbNode = document.querySelector("[data-tab-crumb]");
+      const aiContextNode = document.querySelector("[data-ai-context]");
+      const labels = {
+        overview: "概览",
+        members: "成员",
+        kanban: "项目看板",
+        gantt: "项目甘特图",
+        risk: "风险看板",
+        reports: "报表",
+        docs: "文档"
+      };
+      const aiContexts = {
+        overview: "当前上下文：项目概览",
+        members: "当前上下文：成员",
+        kanban: "当前上下文：项目看板",
+        gantt: "当前上下文：项目甘特图",
+        risk: "当前上下文：风险看板",
+        reports: "当前上下文：项目报表",
+        docs: "当前上下文：项目文档"
+      };
+
+      function switchTab(tabKey, syncHash) {
+        const hasPanel = document.querySelector('[data-tab-panel="' + tabKey + '"]');
+        if (!hasPanel) {
+          return;
+        }
+
+        tabLinks.forEach(function (link) {
+          link.classList.toggle("active", link.getAttribute("data-tab-trigger") === tabKey);
+        });
+
+        tabPanels.forEach(function (panel) {
+          panel.classList.toggle("active", panel.getAttribute("data-tab-panel") === tabKey);
+        });
+
+        if (breadcrumbNode && labels[tabKey]) {
+          breadcrumbNode.textContent = labels[tabKey];
+        }
+
+        if (aiContextNode && aiContexts[tabKey]) {
+          aiContextNode.textContent = aiContexts[tabKey];
+        }
+
+        if (syncHash) {
+          history.replaceState(null, "", "#" + tabKey);
+        }
+      }
+
+      tabLinks.forEach(function (link) {
+        link.addEventListener("click", function (event) {
+          event.preventDefault();
+          switchTab(link.getAttribute("data-tab-trigger"), true);
+        });
+      });
+
+      const initialTab = window.location.hash.replace("#", "");
+      if (initialTab) {
+        switchTab(initialTab, false);
+      }
+    })();
+  </script>
+</body>
+</html>

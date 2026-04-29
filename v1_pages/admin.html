@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>后台管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box">
+        <div class="brand-icon"><span class="material-symbols-outlined">admin_panel_settings</span></div>
+        <div>
+          <h1 class="brand-title">Admin Console</h1>
+          <p class="brand-subtitle">系统管理入口</p>
+        </div>
+      </div>
+      <button class="sidebar-primary-cta" data-modal-open="create-template-modal">
+        <span class="material-symbols-outlined">manage_accounts</span>
+        新增角色模板
+      </button>
+      <nav class="sidebar-nav">
+        <a class="nav-item active" href="./admin.html"><span class="material-symbols-outlined">grid_view</span><span>管理首页</span></a>
+        <a class="nav-item" href="./admin-users.html"><span class="material-symbols-outlined">group</span><span>用户管理</span></a>
+        <a class="nav-item" href="./admin-roles.html"><span class="material-symbols-outlined">badge</span><span>角色管理</span></a>
+        <a class="nav-item" href="./admin-logs.html"><span class="material-symbols-outlined">receipt_long</span><span>审计日志</span></a>
+        <a class="nav-item" href="./admin-system.html"><span class="material-symbols-outlined">settings</span><span>系统配置</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">arrow_back</span><span>返回主系统</span></a>
+      </div>
+    </aside>
+
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div>
+          <h2 class="topbar-title">后台管理</h2>
+          <div class="topbar-breadcrumb">
+            <span>管理后台</span><span>/</span><span>首页</span>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <label class="search-shell">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" placeholder="搜索用户、角色、日志..." />
+        </label>
+        <a class="icon-btn notification-link" href="./notifications.html" aria-label="打开通知中心"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></a>
+        <button class="icon-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+        <div class="avatar-chip">
+          <img src="https://i.pravatar.cc/80?img=5" alt="管理员" />
+          <div><strong>系统管理员</strong><span>平台角色：Admin</span></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <div class="page-stack">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">后台管理首页</h1>
+            <p class="page-subtitle">统一处理用户、角色模板、系统配置与审计日志，同时保持与主业务系统一致的玻璃拟态风格。</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn-secondary" onclick="openMatrixModal()"><span class="material-symbols-outlined">shield</span>权限矩阵</button>
+            <a href="./admin-system.html" class="btn-primary"><span class="material-symbols-outlined">settings</span>系统配置</a>
+          </div>
+        </div>
+
+        <section class="admin-grid">
+          <div class="admin-card glass-panel" style="min-height: 184px; display: flex; flex-direction: column; justify-content: space-between;">
+            <span class="pill pill-success">正常</span>
+            <h3 style="font-size: 28px; margin-top: 14px;">1,284</h3>
+            <p>活跃账号数</p>
+          </div>
+          <div class="admin-card glass-panel" style="min-height: 184px; display: flex; flex-direction: column; justify-content: space-between;">
+            <span class="pill pill-warning">待处理</span>
+            <h3 style="font-size: 28px; margin-top: 14px;">12</h3>
+            <p>角色模板变更申请</p>
+          </div>
+          <div class="admin-card glass-panel" style="min-height: 184px; display: flex; flex-direction: column; justify-content: space-between;">
+            <span class="pill pill-danger">关注</span>
+            <h3 style="font-size: 28px; margin-top: 14px;">4</h3>
+            <p>异常审计事件</p>
+          </div>
+          <div class="admin-card glass-panel" style="min-height: 184px; display: flex; flex-direction: column; justify-content: space-between;">
+            <span class="pill pill-ai">AI</span>
+            <h3 style="font-size: 28px; margin-top: 14px;">67%</h3>
+            <p>推荐规则采纳率</p>
+          </div>
+        </section>
+
+        <section class="grid-2-1">
+          <div class="glass-panel chart-card" style="min-height: 560px;">
+            <div class="chart-header">
+              <h2 class="section-title">角色模板使用分布</h2>
+              <span class="section-caption">按项目内身份统计</span>
+            </div>
+            <div class="bar-chart">
+              <div class="bar-item"><div class="bar-track"><div class="bar-fill" style="height: 88%; background: linear-gradient(180deg, var(--color-primary-400), var(--color-primary-700));"></div></div><span>PM</span></div>
+              <div class="bar-item"><div class="bar-track"><div class="bar-fill" style="height: 96%; background: linear-gradient(180deg, #a871ff, var(--color-tertiary-600));"></div></div><span>研发</span></div>
+              <div class="bar-item"><div class="bar-track"><div class="bar-fill" style="height: 58%; background: linear-gradient(180deg, #38c59b, var(--color-secondary-600));"></div></div><span>QA</span></div>
+              <div class="bar-item"><div class="bar-track"><div class="bar-fill" style="height: 42%; background: linear-gradient(180deg, #f7c455, var(--color-warning-600));"></div></div><span>产品</span></div>
+            </div>
+
+            <div style="height: 1px; margin: 24px 0; background: rgba(216, 221, 232, 0.58);"></div>
+
+            <div class="chart-header" style="margin-bottom: 14px;">
+              <h2 class="section-title">最近系统配置改动</h2>
+              <span class="section-caption">按影响范围排序</span>
+            </div>
+            <div class="mini-bars">
+              <div class="mini-bar-row"><span>通知偏好规则</span><div class="progress-track"><div class="progress-fill" style="width: 44%; background: linear-gradient(90deg, var(--color-primary-400), var(--color-primary-700));"></div></div><strong>低</strong></div>
+              <div class="mini-bar-row"><span>项目归档权限</span><div class="progress-track"><div class="progress-fill" style="width: 68%; background: linear-gradient(90deg, #f7c455, var(--color-warning-600));"></div></div><strong>中</strong></div>
+              <div class="mini-bar-row"><span>权限变更操作</span><div class="progress-track"><div class="progress-fill" style="width: 84%; background: linear-gradient(90deg, #f36b63, var(--color-danger-600));"></div></div><strong>高</strong></div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <div class="glass-panel" style="padding: 24px; min-height: 248px; border-radius: 24px; background: linear-gradient(180deg, rgba(236,220,255,0.32), rgba(255,255,255,0.42));">
+              <h2 class="section-title">AI 管理建议</h2>
+              <p class="page-subtitle" style="font-size: 14px; margin-top: 14px;">本周审计日志中有 4 条高频权限变更操作，建议检查是否存在角色边界过宽的问题；同时建议收紧“项目归档恢复”权限，仅保留管理员与 PM。</p>
+              <div class="ai-actions">
+                <button class="btn-primary">应用建议</button>
+                <a href="./admin-logs.html" class="btn-secondary">查看日志</a>
+              </div>
+            </div>
+            <div class="glass-panel" style="padding: 24px; min-height: 288px; border-radius: 24px;">
+              <h2 class="section-title">最近审计事件</h2>
+              <div class="timeline" style="margin-top: 18px;">
+                <div class="timeline-item">
+                  <span class="timeline-dot" style="background: var(--color-danger-600);"></span>
+                  <div class="timeline-body">
+                    <h4>修改系统配置</h4>
+                    <p>管理员李工更新了通知通道策略，已生成审计记录。</p>
+                    <span>今天 10:43</span>
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <span class="timeline-dot" style="background: var(--color-primary-600);"></span>
+                  <div class="timeline-body">
+                    <h4>更新角色矩阵</h4>
+                    <p>PM 的“项目归档恢复”权限已调整为仅限本人负责项目。</p>
+                    <span>今天 09:28</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <button class="floating-ai-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+  <div class="ai-overlay" data-ai-overlay></div>
+  <aside class="ai-drawer" data-ai-drawer>
+    <div class="ai-header">
+      <div><h3>AI 助手</h3><p class="section-caption">当前上下文：后台管理</p></div>
+      <button class="icon-btn" data-ai-close><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="ai-card">
+      <h4>权限建议</h4>
+      <p>建议把高风险权限变更操作增加二次确认和审计级别标记，同时默认开启操作日志导出提醒。</p>
+      <div class="ai-actions">
+        <button class="btn-primary">应用策略</button>
+        <button class="btn-secondary">稍后处理</button>
+      </div>
+    </div>
+  </aside>
+  <!-- 权限矩阵弹窗 -->
+  <div id="matrixModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="modal-content" style="width: 900px; max-width: 95%; max-height: 90vh; overflow-y: auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+      <div style="padding: 24px 28px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px 20px 0 0;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span class="material-symbols-outlined" style="color: white; background: rgba(255,255,255,0.2); padding: 8px; border-radius: 8px;">verified</span>
+          <div>
+            <h3 style="font-size: 18px; font-weight: 600; color: white; margin: 0;">角色功能矩阵</h3>
+            <p style="font-size: 12px; color: rgba(255,255,255,0.8); margin: 4px 0 0 0;">按平台角色与项目角色双层查看页面、按钮、路由和数据范围能力</p>
+          </div>
+        </div>
+        <button onclick="closeMatrixModal()" style="background: none; border: none; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s;">
+          <span class="material-symbols-outlined" style="color: white;">close</span>
+        </button>
+      </div>
+      
+      <div style="padding: 24px 28px;">
+        <!-- 平台角色矩阵 -->
+        <div style="margin-bottom: 32px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h4 style="font-size: 16px; font-weight: 600; color: #1f2937; margin: 0;">平台角色矩阵</h4>
+            <span style="font-size: 12px; color: #6b7280;">后台访问与全局管理能力</span>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background: #f9fafb;">
+                <th style="padding: 12px 16px; text-align: left; font-weight: 500; color: #374151; border-bottom: 1px solid #e5e7eb;">角色</th>
+                <th style="padding: 12px 16px; text-align: center; font-weight: 500; color: #374151; border-bottom: 1px solid #e5e7eb;">访问后台</th>
+                <th style="padding: 12px 16px; text-align: center; font-weight: 500; color: #374151; border-bottom: 1px solid #e5e7eb;">用户管理</th>
+                <th style="padding: 12px 16px; text-align: center; font-weight: 500; color: #374151; border-bottom: 1px solid #e5e7eb;">角色管理</th>
+                <th style="padding: 12px 16px; text-align: center; font-weight: 500; color: #374151; border-bottom: 1px solid #e5e7eb;">审计日志</th>
+                <th style="padding: 12px 16px; text-align: center; font-weight: 500; color: #374151; border-bottom: 1px solid #e5e7eb;">系统配置</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; font-weight: 500; color: #1f2937;">超级管理员</td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+              </tr>
+              <tr>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; font-weight: 500; color: #1f2937;">系统管理员</td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+              </tr>
+              <tr>
+                <td style="padding: 14px 16px; font-weight: 500; color: #1f2937;">普通用户</td>
+                <td style="padding: 14px 16px; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+                <td style="padding: 14px 16px; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+                <td style="padding: 14px 16px; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+                <td style="padding: 14px 16px; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+                <td style="padding: 14px 16px; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 项目角色矩阵 -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h4 style="font-size: 16px; font-weight: 600; color: #1f2937; margin: 0;">项目角色矩阵</h4>
+            <span style="font-size: 12px; color: #6b7280;">项目内默认权限集合</span>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background: #f9fafb;">
+                <th style="padding: 12px 16px; text-align: left; font-weight: 500; color: #374151; border-bottom: 1px solid #e5e7eb;">角色</th>
+                <th style="padding: 12px 16px; text-align: center; font-weight: 500; color: #374151; border-bottom: 1px solid #e5e7eb;">创建任务</th>
+                <th style="padding: 12px 16px; text-align: center; font-weight: 500; color: #374151; border-bottom: 1px solid #e5e7eb;">分配负责人</th>
+                <th style="padding: 12px 16px; text-align: center; font-weight: 500; color: #374151; border-bottom: 1px solid #e5e7eb;">变更状态</th>
+                <th style="padding: 12px 16px; text-align: center; font-weight: 500; color: #374151; border-bottom: 1px solid #e5e7eb;">查看报表</th>
+                <th style="padding: 12px 16px; text-align: center; font-weight: 500; color: #374151; border-bottom: 1px solid #e5e7eb;">导出报表</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; font-weight: 500; color: #1f2937;">PM</td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+              </tr>
+              <tr>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; font-weight: 500; color: #1f2937;">研发</td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #3b82f6; font-weight: 500;">自己/下属</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #3b82f6; font-weight: 500;">自己</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #3b82f6; font-weight: 500;">自己相关</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+              </tr>
+              <tr>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; font-weight: 500; color: #1f2937;">QA</td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #3b82f6; font-weight: 500;">Bug</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #3b82f6; font-weight: 500;">自己</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #3b82f6; font-weight: 500;">自己相关</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+              </tr>
+              <tr>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; font-weight: 500; color: #1f2937;">产品</td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #3b82f6; font-weight: 500;">自己</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #10b981; font-weight: 500;">✓ 允许</span></td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid #f3f4f6; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+              </tr>
+              <tr>
+                <td style="padding: 14px 16px; font-weight: 500; color: #1f2937;">协作者</td>
+                <td style="padding: 14px 16px; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+                <td style="padding: 14px 16px; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+                <td style="padding: 14px 16px; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+                <td style="padding: 14px 16px; text-align: center;"><span style="color: #3b82f6; font-weight: 500;">只读</span></td>
+                <td style="padding: 14px 16px; text-align: center;"><span style="color: #ef4444; font-weight: 500;">✗ 禁止</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="padding: 16px 28px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #f9fafb; border-radius: 0 0 20px 20px;">
+        <div style="font-size: 12px; color: #6b7280; display: flex; align-items: center; gap: 6px;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">schedule</span>
+          当前矩阵基于 2026-04-26 的权限草稿
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <button onclick="closeMatrixModal()" class="btn-secondary" style="padding: 10px 20px;">
+            <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">close</span>
+            关闭
+          </button>
+          <button onclick="exportMatrix()" class="btn-primary" style="padding: 10px 20px;">
+            <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle; margin-right: 4px;">download</span>
+            导出矩阵
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-shell" data-modal-id="create-template-modal">
+    <div class="modal-backdrop" data-modal-close></div>
+    <section class="modal-panel glass-panel-strong">
+      <div class="modal-header">
+        <div>
+          <span class="pill pill-success">模板编辑</span>
+          <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">新建项目角色模板</h2>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">模拟后台内对项目角色模板的配置面板，保持高可读性和玻璃层级，不退回默认表单风格。</p>
+        </div>
+        <button class="icon-btn" data-modal-close><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <div class="modal-grid">
+        <aside class="modal-side">
+          <div class="template-item" data-template-key="pm">
+            <h4>PM 模板</h4>
+            <p>项目负责人，拥有项目级编辑、分配、导出与成员管理能力。</p>
+          </div>
+          <div class="template-item" data-template-key="dev">
+            <h4>研发模板</h4>
+            <p>面向执行角色，强调任务创建、状态流转和个人工作台协同。</p>
+          </div>
+          <div class="template-item" data-template-key="qa">
+            <h4>QA 模板</h4>
+            <p>关注缺陷创建、验证流转和质量报表查看。</p>
+          </div>
+          <div class="template-item" data-template-key="collab">
+            <h4>协作者模板</h4>
+            <p>默认只读，适用于跨团队旁路协同。</p>
+          </div>
+        </aside>
+
+        <div class="modal-main">
+          <article class="glass-panel" style="padding: 20px; border-radius: 22px;">
+            <div class="field-inline">
+              <div class="field-stack">
+                <label class="field-label">模板名称</label>
+                <div class="field-input"><input id="create-template-name" placeholder="请输入模板名称" /></div>
+              </div>
+              <div class="field-stack">
+                <label class="field-label">适用范围</label>
+                <div class="field-input"><input id="create-template-scope" placeholder="请输入适用范围" /></div>
+              </div>
+            </div>
+            <div class="field-stack" style="margin-top: 16px;">
+              <label class="field-label">模板说明</label>
+              <div class="field-input"><textarea id="create-template-desc" placeholder="请输入模板说明"></textarea></div>
+            </div>
+          </article>
+
+          <article class="glass-panel" style="padding: 20px; border-radius: 22px;">
+            <div class="chart-header" style="margin-bottom: 14px;">
+              <h3 class="section-title" style="font-size: 20px;">页面可见性</h3>
+              <span class="section-caption">控制主页面和项目内页面是否可见</span>
+            </div>
+            <div class="permission-chip-grid">
+              <button class="permission-chip on" type="button" data-chip-group="create-visible" data-chip-key="overview">项目详情</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-visible" data-chip-key="kanban">项目看板</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-visible" data-chip-key="gantt">项目甘特图</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-visible" data-chip-key="risk">风险看板</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-visible" data-chip-key="members">成员管理</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-visible" data-chip-key="reports">项目报表</button>
+              <button class="permission-chip" type="button" data-chip-group="create-visible" data-chip-key="admin">后台管理</button>
+            </div>
+          </article>
+
+          <article class="glass-panel" style="padding: 20px; border-radius: 22px;">
+            <div class="chart-header" style="margin-bottom: 14px;">
+              <h3 class="section-title" style="font-size: 20px;">操作权限</h3>
+              <span class="section-caption">按钮、状态流转与导出能力</span>
+            </div>
+            <div class="permission-chip-grid">
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="create-task">创建任务</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="assign-owner">分配负责人</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="edit-milestone">编辑里程碑</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="set-baseline">设置基线</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="drag-gantt">拖拽甘特条</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="invite-member">邀请成员</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="export-report">导出报表</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="schedule-report">定时订阅</button>
+              <button class="permission-chip" type="button" data-chip-group="create-action" data-chip-key="delete-template">删除角色模板</button>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="modal-status">
+          <span class="material-symbols-outlined">cloud_upload</span>
+          当前模板未保存
+        </div>
+        <div class="modal-footer-actions">
+          <button class="btn-secondary" data-modal-close><span class="material-symbols-outlined">close</span>取消</button>
+          <button class="btn-secondary" data-create-template-save-as><span class="material-symbols-outlined">content_copy</span>另存为新模板</button>
+          <button class="btn-primary" data-create-template-save><span class="material-symbols-outlined">save</span>保存模板</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function openMatrixModal() {
+      document.getElementById('matrixModal').style.display = 'flex';
+    }
+    function closeMatrixModal() {
+      document.getElementById('matrixModal').style.display = 'none';
+    }
+    function exportMatrix() {
+      alert('权限矩阵导出成功！');
+    }
+    document.getElementById('matrixModal').addEventListener('click', function(e) {
+      if (e.target === this) closeMatrixModal();
+    });
+  </script>
+  <script src="./shared.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const createModal = document.querySelector('[data-modal-id="create-template-modal"]');
+      
+      if (createModal) {
+        createModal.querySelectorAll('[data-chip-group^="create-"]').forEach(chip => {
+          chip.addEventListener('click', function() {
+            this.classList.toggle('on');
+          });
+        });
+
+        createModal.querySelectorAll('.modal-side .template-item').forEach(item => {
+          item.addEventListener('click', function() {
+            createModal.querySelectorAll('.modal-side .template-item').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+          });
+        });
+
+        const saveButton = createModal.querySelector('[data-create-template-save]');
+        const saveAsButton = createModal.querySelector('[data-create-template-save-as]');
+        const nameInput = createModal.querySelector('#create-template-name');
+        const scopeInput = createModal.querySelector('#create-template-scope');
+        const descInput = createModal.querySelector('#create-template-desc');
+
+        const resetForm = () => {
+          if (nameInput) nameInput.value = '';
+          if (scopeInput) scopeInput.value = '';
+          if (descInput) descInput.value = '';
+          createModal.querySelectorAll('[data-chip-group^="create-"]').forEach(chip => {
+            if (chip.getAttribute('data-chip-key') === 'admin' || chip.getAttribute('data-chip-key') === 'delete-template') {
+              chip.classList.remove('on');
+            } else {
+              chip.classList.add('on');
+            }
+          });
+        };
+
+        document.querySelector('[data-modal-open="create-template-modal"]')?.addEventListener('click', resetForm);
+
+        if (saveButton) {
+          saveButton.addEventListener('click', function() {
+            const name = nameInput?.value;
+            if (!name) {
+              showToast({
+                title: '请输入模板名称',
+                message: '模板名称不能为空，请填写后重试。',
+                icon: 'error'
+              });
+              return;
+            }
+            showToast({
+              title: '模板已保存',
+              message: `${name} 已添加到角色配置草稿。`,
+              icon: 'task_alt'
+            });
+            const shell = this.closest('[data-modal-id]');
+            if (shell) shell.classList.remove('open');
+          });
+        }
+
+        if (saveAsButton) {
+          saveAsButton.addEventListener('click', function() {
+            const name = nameInput?.value;
+            if (!name) {
+              showToast({
+                title: '请输入模板名称',
+                message: '模板名称不能为空，请填写后重试。',
+                icon: 'error'
+              });
+              return;
+            }
+            showToast({
+              title: '已另存为新模板',
+              message: `${name} 副本已生成，可继续修改。`,
+              icon: 'content_copy'
+            });
+            const shell = this.closest('[data-modal-id]');
+            if (shell) shell.classList.remove('open');
+          });
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>通知中心</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .notification-stream-card,
+    .notification-side-card {
+      padding: 24px;
+      border-radius: 24px;
+    }
+
+    .notification-stream-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .notification-chip-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .notification-stream-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .notification-entry {
+      display: flex;
+      gap: 16px;
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.24);
+      border: 1px solid rgba(255, 255, 255, 0.58);
+    }
+
+    .notification-entry-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: white;
+      flex: 0 0 auto;
+      box-shadow: 0 12px 28px rgba(41, 72, 152, 0.16);
+    }
+
+    .notification-entry-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .notification-entry-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .notification-entry-title {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .notification-entry-title h3,
+    .notification-entry p,
+    .notification-side-item h4,
+    .notification-side-item p {
+      margin: 0;
+    }
+
+    .notification-entry-title h3 {
+      font-size: 16px;
+    }
+
+    .notification-entry-time {
+      color: var(--color-text-tertiary);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .notification-entry p {
+      margin-top: 10px;
+      color: var(--color-text-secondary);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .notification-entry-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .notification-entry-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .notification-unread-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-danger-600);
+      box-shadow: 0 0 0 6px rgba(216, 58, 52, 0.12);
+    }
+
+    .notification-side-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .notification-side-item {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.58);
+    }
+
+    .notification-side-item p {
+      margin-top: 8px;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .notification-side-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 1279px) {
+      .notification-entry-head {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box">
+        <div class="brand-icon"><span class="material-symbols-outlined">science</span></div>
+        <div>
+          <h1 class="brand-title">R&D 系统</h1>
+          <p class="brand-subtitle">AI 驱动型协作平台</p>
+        </div>
+      </div>
+      <a class="sidebar-primary-cta" href="./projects.html">
+        <span class="material-symbols-outlined">add_circle</span>
+        进入项目矩阵
+      </a>
+      <nav class="sidebar-nav">
+        <a class="nav-item active" href="./dashboard.html"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></a>
+        <a class="nav-item" href="./projects.html"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></a>
+        <a class="nav-item" href="./workbench.html"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></a>
+        <a class="nav-item" href="./reports.html"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></a>
+        <a class="nav-item" href="./settings.html"><span class="material-symbols-outlined">settings</span><span>系统设置</span></a>
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></a>
+      </nav>
+    </aside>
+
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div>
+          <h2 class="topbar-title">通知中心</h2>
+          <div class="topbar-breadcrumb">
+            <span>全局</span>
+            <span>/</span>
+            <span>通知中心</span>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <label class="search-shell">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" placeholder="搜索通知、来源或处理对象..." />
+        </label>
+        <a class="icon-btn notification-link active" href="./notifications.html" aria-label="当前位于通知中心"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></a>
+        <button class="icon-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+        <div class="avatar-chip">
+          <img src="https://i.pravatar.cc/80?img=12" alt="张工" />
+          <div>
+            <strong>张工</strong>
+            <span>研发总监</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <div class="page-stack">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">通知中心</h1>
+            <p class="page-subtitle">统一承接标题栏通知入口，替代原有通知弹窗；按优先级处理待办事项、系统变更与 AI 提醒。</p>
+          </div>
+          <div class="page-actions">
+            <a class="btn-secondary" href="./dashboard.html"><span class="material-symbols-outlined">arrow_back</span>返回工作台</a>
+            <a class="btn-primary" href="./settings.html"><span class="material-symbols-outlined">tune</span>管理通知偏好</a>
+          </div>
+        </div>
+
+        <section class="grid-3">
+          <div class="glass-panel metric-card">
+            <span class="material-symbols-outlined watermark">mark_chat_unread</span>
+            <h3>未读通知</h3>
+            <div class="value compact-value">5 条</div>
+            <p class="page-subtitle metric-description">标题栏通知统一进入本页查看，不再弹出临时浮层。</p>
+          </div>
+          <div class="glass-panel metric-card">
+            <span class="material-symbols-outlined watermark">priority_high</span>
+            <h3>高优先级</h3>
+            <div class="value compact-value">2 条</div>
+            <p class="page-subtitle metric-description">涉及权限审计和角色变更，建议今天内完成处理闭环。</p>
+          </div>
+          <div class="glass-panel metric-card">
+            <span class="material-symbols-outlined watermark">check_circle</span>
+            <h3>今日已处理</h3>
+            <div class="value compact-value">8 条</div>
+            <p class="page-subtitle metric-description">系统更新、AI 摘要和协作反馈都已在此汇总，便于统一追踪。</p>
+          </div>
+        </section>
+
+        <section class="grid-2-1">
+          <article class="glass-panel notification-stream-card">
+            <div class="notification-stream-head">
+              <div>
+                <h2 class="section-title">最新通知</h2>
+                <p class="section-caption" style="margin-top: 6px;">保留项目既有玻璃拟态卡片风格，只调整通知入口和详情承载方式。</p>
+              </div>
+              <div class="notification-chip-group">
+                <button class="btn-chip active" type="button">全部 5</button>
+                <button class="btn-chip" type="button">待处理 3</button>
+                <button class="btn-chip" type="button">系统更新 1</button>
+                <button class="btn-chip" type="button">AI 提醒 1</button>
+              </div>
+            </div>
+
+            <div class="notification-stream-list">
+              <div class="notification-entry">
+                <div class="notification-entry-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                  <span class="material-symbols-outlined">warning</span>
+                </div>
+                <div class="notification-entry-content">
+                  <div class="notification-entry-head">
+                    <div class="notification-entry-title">
+                      <span class="pill pill-warning">待处理</span>
+                      <h3>角色模板变更申请</h3>
+                      <span class="notification-unread-dot"></span>
+                    </div>
+                    <span class="notification-entry-time">10 分钟前</span>
+                  </div>
+                  <p>用户「张三」申请将项目角色从「研发」调整为「PM」，需要在角色管理页确认权限边界与成员分配策略。</p>
+                  <div class="notification-entry-meta">
+                    <div class="notification-entry-tags">
+                      <span class="micro-tag p1">后台管理</span>
+                      <span class="micro-tag" style="color: var(--color-text-secondary); background: rgba(255,255,255,0.62);">角色变更</span>
+                    </div>
+                    <a class="btn-chip active" href="./admin-roles.html">查看角色管理</a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="notification-entry">
+                <div class="notification-entry-icon" style="background: linear-gradient(135deg, #f36b63, #d83a34);">
+                  <span class="material-symbols-outlined">report</span>
+                </div>
+                <div class="notification-entry-content">
+                  <div class="notification-entry-head">
+                    <div class="notification-entry-title">
+                      <span class="pill pill-danger">高优先级</span>
+                      <h3>审计日志异常</h3>
+                      <span class="notification-unread-dot"></span>
+                    </div>
+                    <span class="notification-entry-time">30 分钟前</span>
+                  </div>
+                  <p>检测到 4 条高风险权限变更操作，建议优先回到审计日志页核对责任人、影响范围和审批链记录。</p>
+                  <div class="notification-entry-meta">
+                    <div class="notification-entry-tags">
+                      <span class="micro-tag p0">权限审计</span>
+                      <span class="micro-tag" style="color: var(--color-text-secondary); background: rgba(255,255,255,0.62);">需复核</span>
+                    </div>
+                    <a class="btn-chip active" href="./admin-logs.html">查看审计日志</a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="notification-entry">
+                <div class="notification-entry-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                  <span class="material-symbols-outlined">check_circle</span>
+                </div>
+                <div class="notification-entry-content">
+                  <div class="notification-entry-head">
+                    <div class="notification-entry-title">
+                      <span class="pill pill-success">已完成</span>
+                      <h3>系统配置已更新</h3>
+                      <span class="notification-unread-dot"></span>
+                    </div>
+                    <span class="notification-entry-time">1 小时前</span>
+                  </div>
+                  <p>管理员李四已更新通知通道配置，站内通知已启用，邮件与企微同步策略也已同步到系统设置页。</p>
+                  <div class="notification-entry-meta">
+                    <div class="notification-entry-tags">
+                      <span class="micro-tag" style="color: var(--color-secondary-600); background: rgba(156,239,219,0.72);">系统设置</span>
+                      <span class="micro-tag" style="color: var(--color-text-secondary); background: rgba(255,255,255,0.62);">通道同步</span>
+                    </div>
+                    <a class="btn-chip active" href="./admin-system.html">查看系统配置</a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="notification-entry">
+                <div class="notification-entry-icon" style="background: linear-gradient(135deg, #4f8ff6, #1468c7);">
+                  <span class="material-symbols-outlined">auto_awesome</span>
+                </div>
+                <div class="notification-entry-content">
+                  <div class="notification-entry-head">
+                    <div class="notification-entry-title">
+                      <span class="pill pill-ai">AI 提醒</span>
+                      <h3>晨报摘要可导出</h3>
+                      <span class="notification-unread-dot"></span>
+                    </div>
+                    <span class="notification-entry-time">今天 09:30</span>
+                  </div>
+                  <p>AI 已根据今日日志、联调风险和资源冲突生成晨报摘要。你可以回到全局工作台继续补充重点风险后导出。</p>
+                  <div class="notification-entry-meta">
+                    <div class="notification-entry-tags">
+                      <span class="micro-tag p2">全局工作台</span>
+                      <span class="micro-tag" style="color: var(--color-text-secondary); background: rgba(255,255,255,0.62);">日报生成</span>
+                    </div>
+                    <a class="btn-chip active" href="./dashboard.html">回到工作台</a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="notification-entry">
+                <div class="notification-entry-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                  <span class="material-symbols-outlined">forum</span>
+                </div>
+                <div class="notification-entry-content">
+                  <div class="notification-entry-head">
+                    <div class="notification-entry-title">
+                      <span class="pill pill-neutral">协作反馈</span>
+                      <h3>个人日志收到新评论</h3>
+                      <span class="notification-unread-dot"></span>
+                    </div>
+                    <span class="notification-entry-time">2 小时前</span>
+                  </div>
+                  <p>陈思远在你的今日日志下补充了 QA 确认时间点，建议回到个人工作台同步明日计划与 PBC 绑定关系。</p>
+                  <div class="notification-entry-meta">
+                    <div class="notification-entry-tags">
+                      <span class="micro-tag" style="color: var(--color-tertiary-600); background: rgba(236,220,255,0.72);">个人工作台</span>
+                      <span class="micro-tag" style="color: var(--color-text-secondary); background: rgba(255,255,255,0.62);">日志互动</span>
+                    </div>
+                    <a class="btn-chip active" href="./workbench.html">查看个人工作台</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <article class="glass-panel notification-side-card">
+              <h2 class="section-title">处理建议</h2>
+              <div class="notification-side-list">
+                <div class="notification-side-item">
+                  <h4>先处理权限和角色类通知</h4>
+                  <p>这两类通知会直接影响后台配置与项目权限边界，优先级高于一般系统更新和信息提醒。</p>
+                </div>
+                <div class="notification-side-item">
+                  <h4>AI 摘要类通知适合批量收尾</h4>
+                  <p>晨报、日志草稿和任务补录等内容可以在回到工作台后集中处理，不需要在多个弹层间切换。</p>
+                </div>
+                <div class="notification-side-item">
+                  <h4>协作反馈统一回工作台闭环</h4>
+                  <p>涉及评论、待评审和 PBC 绑定的提醒，建议在个人工作台完成同步，减少重复维护字段。</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="glass-panel notification-side-card" style="background: linear-gradient(180deg, rgba(236,220,255,0.28), rgba(255,255,255,0.42));">
+              <h2 class="section-title">入口说明</h2>
+              <div class="notification-side-list">
+                <div class="notification-side-item">
+                  <h4>标题栏统一跳转</h4>
+                  <p>所有页面顶部的通知按钮现在统一进入本页，不再使用旧的通知弹窗。</p>
+                </div>
+                <div class="notification-side-item">
+                  <h4>工作台不重复加按钮</h4>
+                  <p>个人工作台保留标题栏通知入口，不再额外在内容区新增通知按钮，避免打断原有卡片布局。</p>
+                </div>
+                <div class="notification-side-item">
+                  <h4>通知偏好集中配置</h4>
+                  <p>如需调整站内、邮件或企微规则，直接前往系统设置页统一维护通知偏好与通道策略。</p>
+                </div>
+              </div>
+              <div class="notification-side-actions">
+                <a class="btn-primary" href="./settings.html"><span class="material-symbols-outlined">tune</span>通知偏好</a>
+                <a class="btn-secondary" href="./admin-system.html"><span class="material-symbols-outlined">settings</span>通道配置</a>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <button class="floating-ai-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+  <div class="ai-overlay" data-ai-overlay></div>
+  <aside class="ai-drawer" data-ai-drawer>
+    <div class="ai-header">
+      <div>
+        <h3>AI 助手</h3>
+        <p class="section-caption">当前上下文：通知中心</p>
+      </div>
+      <button class="icon-btn" data-ai-close><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="ai-card">
+      <h4>通知处理建议</h4>
+      <p>建议先完成高优先级权限审计，再处理角色模板申请；AI 晨报和日志评论类通知可回到工作台集中收尾。</p>
+      <div class="ai-actions">
+        <button class="btn-primary">采纳建议</button>
+        <button class="btn-secondary">稍后处理</button>
+      </div>
+    </div>
+    <div class="ai-list">
+      <div class="ai-list-item">
+        <h4>统一入口已生效</h4>
+        <p>通知详情现在承载在独立页面中，标题栏按钮不再打开旧弹窗，便于查看更多上下文。</p>
+      </div>
+      <div class="ai-list-item">
+        <h4>可继续扩展筛选</h4>
+        <p>后续如果需要状态筛选、已读管理或批量操作，可以在本页继续扩展，不会影响现有工作台卡片布局。</p>
+      </div>
+    </div>
+  </aside>
+
+  <script src="./shared.js"></script>
+</body>
+</html>

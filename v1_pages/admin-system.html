@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>系统配置</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box"><div class="brand-icon"><span class="material-symbols-outlined">admin_panel_settings</span></div><div><h1 class="brand-title">Admin Console</h1><p class="brand-subtitle">系统管理入口</p></div></div>
+      <button class="sidebar-primary-cta" onclick="saveConfig()"><span class="material-symbols-outlined">save</span>保存配置</button>
+      <nav class="sidebar-nav" style="margin-top:20px;">
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">grid_view</span><span>管理首页</span></a>
+        <a class="nav-item" href="./admin-users.html"><span class="material-symbols-outlined">group</span><span>用户管理</span></a>
+        <a class="nav-item" href="./admin-roles.html"><span class="material-symbols-outlined">badge</span><span>角色管理</span></a>
+        <a class="nav-item" href="./admin-logs.html"><span class="material-symbols-outlined">receipt_long</span><span>审计日志</span></a>
+        <a class="nav-item active" href="./admin-system.html"><span class="material-symbols-outlined">settings</span><span>系统配置</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">arrow_back</span><span>返回主系统</span></a>
+      </div>
+    </aside>
+    <header class="app-topbar"><div class="topbar-left"><div><h2 class="topbar-title">系统配置</h2><div class="topbar-breadcrumb"><span>后台管理</span><span>/</span><span>系统配置</span></div></div></div></header>
+    <main class="app-content">
+      <div class="page-stack">
+        <div class="page-header"><div><h1 class="page-title">系统配置</h1><p class="page-subtitle">系统全局配置页延续设置页模式，但信息更偏平台规则、通知通道和安全策略。</p></div><div class="page-actions"><button class="btn-secondary" onclick="resetToDefault()"><span class="material-symbols-outlined">restart_alt</span>恢复默认</button><button class="btn-primary" onclick="saveConfig()"><span class="material-symbols-outlined">save</span>保存配置</button></div></div>
+        <section class="settings-panel">
+          <article class="settings-card glass-panel">
+            <div class="settings-card-head"><h2 class="section-title">通知通道</h2><span class="section-caption">站内 / 邮件 / 企微 / 钉钉</span></div>
+            <div class="settings-list">
+              <div class="settings-row"><div><strong>站内通知</strong><span>全局默认开启</span></div><button class="toggle on" type="button" aria-pressed="true" data-switch-control data-switch-group="admin-system" data-default-on="true" data-switch-label="站内通知"></button></div>
+              <div class="settings-row"><div><strong>企微推送</strong><span>任务阻塞、评论、报表订阅</span></div><button class="toggle on" type="button" aria-pressed="true" data-switch-control data-switch-group="admin-system" data-default-on="true" data-switch-label="企微推送"></button></div>
+              <div class="settings-row"><div><strong>邮件订阅</strong><span>周报、导出报表、审计告警</span></div><button class="toggle" type="button" aria-pressed="false" data-switch-control data-switch-group="admin-system" data-default-on="false" data-switch-label="邮件订阅"></button></div>
+            </div>
+          </article>
+          <article class="settings-card glass-panel">
+            <div class="settings-card-head"><h2 class="section-title">安全策略</h2><span class="section-caption">CSRF / 审计 / 脱敏</span></div>
+            <div class="settings-list">
+              <div class="settings-row"><div><strong>敏感操作审计</strong><span>删除、归档、角色变更、模板修改</span></div><button class="toggle on" type="button" aria-pressed="true" data-switch-control data-switch-group="admin-system" data-default-on="true" data-switch-label="敏感操作审计"></button></div>
+              <div class="settings-row"><div><strong>敏感数据脱敏显示</strong><span>手机号、邮箱默认部分隐藏</span></div><button class="toggle on" type="button" aria-pressed="true" data-switch-control data-switch-group="admin-system" data-default-on="true" data-switch-label="敏感数据脱敏显示"></button></div>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- 成功提示弹窗 -->
+  <div id="successToast" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000; font-size: 14px; font-weight: 500;">
+    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">check_circle</span>
+    配置成功
+  </div>
+
+  <script>
+    // 页面加载时读取保存的配置
+    function loadConfig() {
+      const savedConfig = localStorage.getItem('systemConfig');
+      if (savedConfig) {
+        const config = JSON.parse(savedConfig);
+        document.querySelectorAll('[data-switch-control]').forEach(toggle => {
+          const label = toggle.getAttribute('data-switch-label');
+          if (config[label] !== undefined) {
+            if (config[label]) {
+              toggle.classList.add('on');
+              toggle.setAttribute('aria-pressed', 'true');
+            } else {
+              toggle.classList.remove('on');
+              toggle.setAttribute('aria-pressed', 'false');
+            }
+          }
+        });
+      }
+    }
+
+    // 保存配置
+    function saveConfig() {
+      const config = {};
+      document.querySelectorAll('[data-switch-control]').forEach(toggle => {
+        const label = toggle.getAttribute('data-switch-label');
+        config[label] = toggle.classList.contains('on');
+      });
+      localStorage.setItem('systemConfig', JSON.stringify(config));
+      showSuccessToast();
+    }
+
+    // 显示成功提示
+    function showSuccessToast() {
+      const toast = document.getElementById('successToast');
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 2000);
+    }
+
+    // 开关按钮切换功能
+    document.querySelectorAll('[data-switch-control]').forEach(toggle => {
+      toggle.addEventListener('click', function() {
+        const isOn = this.classList.contains('on');
+        if (isOn) {
+          this.classList.remove('on');
+          this.setAttribute('aria-pressed', 'false');
+        } else {
+          this.classList.add('on');
+          this.setAttribute('aria-pressed', 'true');
+        }
+      });
+    });
+
+    // 恢复默认设置
+    function resetToDefault() {
+      document.querySelectorAll('[data-switch-control]').forEach(toggle => {
+        const label = toggle.getAttribute('data-switch-label');
+        // 站内通知和敏感操作审计开启，其他关闭
+        if (label === '站内通知' || label === '敏感操作审计') {
+          toggle.classList.add('on');
+          toggle.setAttribute('aria-pressed', 'true');
+        } else {
+          toggle.classList.remove('on');
+          toggle.setAttribute('aria-pressed', 'false');
+        }
+      });
+      // 自动保存配置
+      saveConfig();
+    }
+
+    // 页面加载时读取配置
+    loadConfig();
+  </script>
+</body>
+</html>

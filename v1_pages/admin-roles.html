@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>角色管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box"><div class="brand-icon"><span class="material-symbols-outlined">admin_panel_settings</span></div><div><h1 class="brand-title">Admin Console</h1><p class="brand-subtitle">系统管理入口</p></div></div>
+      <button class="sidebar-primary-cta" data-modal-open="create-template-modal"><span class="material-symbols-outlined">badge</span>新建角色模板</button>
+      <nav class="sidebar-nav">
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">grid_view</span><span>管理首页</span></a>
+        <a class="nav-item" href="./admin-users.html"><span class="material-symbols-outlined">group</span><span>用户管理</span></a>
+        <a class="nav-item active" href="./admin-roles.html"><span class="material-symbols-outlined">badge</span><span>角色管理</span></a>
+        <a class="nav-item" href="./admin-logs.html"><span class="material-symbols-outlined">receipt_long</span><span>审计日志</span></a>
+        <a class="nav-item" href="./admin-system.html"><span class="material-symbols-outlined">settings</span><span>系统配置</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">arrow_back</span><span>返回主系统</span></a>
+      </div>
+    </aside>
+    <header class="app-topbar"><div class="topbar-left"><div><h2 class="topbar-title">角色管理</h2><div class="topbar-breadcrumb"><span>后台管理</span><span>/</span><span>角色管理</span></div></div></div></header>
+    <main class="app-content">
+      <div class="page-stack">
+        <div class="page-header"><div><h1 class="page-title">角色模板管理</h1><p class="page-subtitle">平台角色、项目角色模板和权限矩阵在同一页表达，方便你检查结构与视觉层级。</p></div></div>
+        <section class="grid-2">
+          <article class="glass-panel admin-card"><h3>平台角色</h3><p>超级管理员、系统管理员、普通用户。用于控制是否可进入后台管理。</p><div class="ai-actions"><button class="btn-chip active" data-modal-open="role-matrix-modal"><span class="material-symbols-outlined">table_chart</span>查看矩阵</button></div></article>
+          <article class="glass-panel admin-card"><h3>项目角色模板</h3><p>PM、研发、QA、产品、协作者。可在后台创建与编辑默认权限集合。</p><div class="ai-actions"><button class="btn-chip active" data-modal-open="edit-template-modal"><span class="material-symbols-outlined">edit_note</span>编辑模板</button></div></article>
+        </section>
+        <section class="admin-table-card glass-panel">
+          <div class="admin-toolbar"><h2 class="section-title">权限矩阵摘要</h2><span class="section-caption">按钮、路由、Tab 级权限</span></div>
+          <table class="data-table">
+            <thead><tr><th>角色</th><th>创建项目</th><th>编辑里程碑</th><th>导出报表</th><th>后台管理</th></tr></thead>
+            <tbody>
+              <tr><td>PM</td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td></tr>
+              <tr><td>研发</td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td></tr>
+              <tr><td>系统管理员</td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-shell" data-modal-id="role-matrix-modal">
+    <div class="modal-backdrop" data-modal-close></div>
+    <section class="modal-panel glass-panel-strong">
+      <div class="modal-header">
+        <div>
+          <span class="pill pill-ai">权限矩阵</span>
+          <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">角色功能矩阵</h2>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">按平台角色与项目角色双层查看页面、按钮、路由和数据范围能力，保持与后台其他界面的玻璃拟态层级一致。</p>
+        </div>
+        <button class="icon-btn" data-modal-close><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <div class="matrix-section">
+        <div class="chart-header" style="margin-bottom: 0;">
+          <h3 class="section-title" style="font-size: 22px;">平台角色矩阵</h3>
+          <span class="section-caption">后台访问与全局管理能力</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>角色</th><th>访问后台</th><th>用户管理</th><th>角色管理</th><th>审计日志</th><th>系统配置</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>超级管理员</td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td></tr>
+            <tr><td>系统管理员</td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td></tr>
+            <tr><td>普通用户</td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="matrix-section">
+        <div class="chart-header" style="margin-bottom: 0;">
+          <h3 class="section-title" style="font-size: 22px;">项目角色矩阵</h3>
+          <span class="section-caption">项目内默认权限集合</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>角色</th><th>创建任务</th><th>分配负责人</th><th>变更状态</th><th>查看报表</th><th>导出报表</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>PM</td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td></tr>
+            <tr><td>研发</td><td><span class="perm-state limited"><span class="material-symbols-outlined">tune</span>自己/下属</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td><td><span class="perm-state limited"><span class="material-symbols-outlined">tune</span>自己</span></td><td><span class="perm-state limited"><span class="material-symbols-outlined">visibility</span>自己相关</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td></tr>
+            <tr><td>QA</td><td><span class="perm-state limited"><span class="material-symbols-outlined">bug_report</span>Bug</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td><td><span class="perm-state limited"><span class="material-symbols-outlined">tune</span>自己</span></td><td><span class="perm-state limited"><span class="material-symbols-outlined">visibility</span>自己相关</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td></tr>
+            <tr><td>产品</td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td><td><span class="perm-state limited"><span class="material-symbols-outlined">tune</span>自己</span></td><td><span class="perm-state allow"><span class="material-symbols-outlined">check_circle</span>允许</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td></tr>
+            <tr><td>协作者</td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td><td><span class="perm-state limited"><span class="material-symbols-outlined">visibility</span>只读</span></td><td><span class="perm-state deny"><span class="material-symbols-outlined">do_not_disturb_on</span>禁止</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="modal-footer">
+        <div class="modal-status">
+          <span class="material-symbols-outlined">table_chart</span>
+          当前矩阵基于 2026-04-26 的权限草稿
+        </div>
+        <div class="modal-footer-actions">
+          <button class="btn-secondary" data-modal-close><span class="material-symbols-outlined">close</span>关闭</button>
+          <button class="btn-primary" data-matrix-export><span class="material-symbols-outlined">download</span>导出矩阵</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-shell" data-modal-id="edit-template-modal">
+    <div class="modal-backdrop" data-modal-close></div>
+    <section class="modal-panel glass-panel-strong">
+      <div class="modal-header">
+        <div>
+          <span class="pill pill-success">模板编辑</span>
+          <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">编辑项目角色模板</h2>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">模拟后台内对项目角色模板的配置面板，保持高可读性和玻璃层级，不退回默认表单风格。</p>
+        </div>
+        <button class="icon-btn" data-modal-close><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <div class="modal-grid">
+        <aside class="modal-side">
+          <div class="template-item active" data-template-key="pm">
+            <h4>PM 模板</h4>
+            <p>项目负责人，拥有项目级编辑、分配、导出与成员管理能力。</p>
+          </div>
+          <div class="template-item" data-template-key="dev">
+            <h4>研发模板</h4>
+            <p>面向执行角色，强调任务创建、状态流转和个人工作台协同。</p>
+          </div>
+          <div class="template-item" data-template-key="qa">
+            <h4>QA 模板</h4>
+            <p>关注缺陷创建、验证流转和质量报表查看。</p>
+          </div>
+          <div class="template-item" data-template-key="collab">
+            <h4>协作者模板</h4>
+            <p>默认只读，适用于跨团队旁路协同。</p>
+          </div>
+        </aside>
+
+        <div class="modal-main">
+          <article class="glass-panel" style="padding: 20px; border-radius: 22px;">
+            <div class="field-inline">
+              <div class="field-stack">
+                <label class="field-label">模板名称</label>
+                <div class="field-input"><input value="PM 模板" data-template-name /></div>
+              </div>
+              <div class="field-stack">
+                <label class="field-label">适用范围</label>
+                <div class="field-input"><input value="项目内身份" data-template-scope /></div>
+              </div>
+            </div>
+            <div class="field-stack" style="margin-top: 16px;">
+              <label class="field-label">模板说明</label>
+              <div class="field-input"><textarea data-template-desc>默认用于项目负责人。允许创建项目、编辑里程碑、设置基线、导出项目报表，并可管理成员与角色分配。</textarea></div>
+            </div>
+          </article>
+
+          <article class="glass-panel" style="padding: 20px; border-radius: 22px;">
+            <div class="chart-header" style="margin-bottom: 14px;">
+              <h3 class="section-title" style="font-size: 20px;">页面可见性</h3>
+              <span class="section-caption">控制主页面和项目内页面是否可见</span>
+            </div>
+            <div class="permission-chip-grid">
+              <button class="permission-chip on" type="button" data-chip-group="visible" data-chip-key="overview">项目详情</button>
+              <button class="permission-chip on" type="button" data-chip-group="visible" data-chip-key="kanban">项目看板</button>
+              <button class="permission-chip on" type="button" data-chip-group="visible" data-chip-key="gantt">项目甘特图</button>
+              <button class="permission-chip on" type="button" data-chip-group="visible" data-chip-key="risk">风险看板</button>
+              <button class="permission-chip on" type="button" data-chip-group="visible" data-chip-key="members">成员管理</button>
+              <button class="permission-chip on" type="button" data-chip-group="visible" data-chip-key="reports">项目报表</button>
+              <button class="permission-chip" type="button" data-chip-group="visible" data-chip-key="admin">后台管理</button>
+            </div>
+          </article>
+
+          <article class="glass-panel" style="padding: 20px; border-radius: 22px;">
+            <div class="chart-header" style="margin-bottom: 14px;">
+              <h3 class="section-title" style="font-size: 20px;">操作权限</h3>
+              <span class="section-caption">按钮、状态流转与导出能力</span>
+            </div>
+            <div class="permission-chip-grid">
+              <button class="permission-chip on" type="button" data-chip-group="action" data-chip-key="create-task">创建任务</button>
+              <button class="permission-chip on" type="button" data-chip-group="action" data-chip-key="assign-owner">分配负责人</button>
+              <button class="permission-chip on" type="button" data-chip-group="action" data-chip-key="edit-milestone">编辑里程碑</button>
+              <button class="permission-chip on" type="button" data-chip-group="action" data-chip-key="set-baseline">设置基线</button>
+              <button class="permission-chip on" type="button" data-chip-group="action" data-chip-key="drag-gantt">拖拽甘特条</button>
+              <button class="permission-chip on" type="button" data-chip-group="action" data-chip-key="invite-member">邀请成员</button>
+              <button class="permission-chip on" type="button" data-chip-group="action" data-chip-key="export-report">导出报表</button>
+              <button class="permission-chip on" type="button" data-chip-group="action" data-chip-key="schedule-report">定时订阅</button>
+              <button class="permission-chip" type="button" data-chip-group="action" data-chip-key="delete-template">删除角色模板</button>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="modal-status" data-template-status>
+          <span class="material-symbols-outlined">verified</span>
+          当前模板已同步
+        </div>
+        <div class="modal-footer-actions">
+          <button class="btn-secondary" data-modal-close><span class="material-symbols-outlined">close</span>取消</button>
+          <button class="btn-secondary" data-template-save-as><span class="material-symbols-outlined">content_copy</span>另存为新模板</button>
+          <button class="btn-primary" data-template-save><span class="material-symbols-outlined">save</span>保存模板</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-shell" data-modal-id="create-template-modal">
+    <div class="modal-backdrop" data-modal-close></div>
+    <section class="modal-panel glass-panel-strong">
+      <div class="modal-header">
+        <div>
+          <span class="pill pill-success">模板编辑</span>
+          <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">新建项目角色模板</h2>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">模拟后台内对项目角色模板的配置面板，保持高可读性和玻璃层级，不退回默认表单风格。</p>
+        </div>
+        <button class="icon-btn" data-modal-close><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <div class="modal-grid">
+        <aside class="modal-side">
+          <div class="template-item" data-template-key="pm">
+            <h4>PM 模板</h4>
+            <p>项目负责人，拥有项目级编辑、分配、导出与成员管理能力。</p>
+          </div>
+          <div class="template-item" data-template-key="dev">
+            <h4>研发模板</h4>
+            <p>面向执行角色，强调任务创建、状态流转和个人工作台协同。</p>
+          </div>
+          <div class="template-item" data-template-key="qa">
+            <h4>QA 模板</h4>
+            <p>关注缺陷创建、验证流转和质量报表查看。</p>
+          </div>
+          <div class="template-item" data-template-key="collab">
+            <h4>协作者模板</h4>
+            <p>默认只读，适用于跨团队旁路协同。</p>
+          </div>
+        </aside>
+
+        <div class="modal-main">
+          <article class="glass-panel" style="padding: 20px; border-radius: 22px;">
+            <div class="field-inline">
+              <div class="field-stack">
+                <label class="field-label">模板名称</label>
+                <div class="field-input"><input id="create-template-name" placeholder="请输入模板名称" /></div>
+              </div>
+              <div class="field-stack">
+                <label class="field-label">适用范围</label>
+                <div class="field-input"><input id="create-template-scope" placeholder="请输入适用范围" /></div>
+              </div>
+            </div>
+            <div class="field-stack" style="margin-top: 16px;">
+              <label class="field-label">模板说明</label>
+              <div class="field-input"><textarea id="create-template-desc" placeholder="请输入模板说明"></textarea></div>
+            </div>
+          </article>
+
+          <article class="glass-panel" style="padding: 20px; border-radius: 22px;">
+            <div class="chart-header" style="margin-bottom: 14px;">
+              <h3 class="section-title" style="font-size: 20px;">页面可见性</h3>
+              <span class="section-caption">控制主页面和项目内页面是否可见</span>
+            </div>
+            <div class="permission-chip-grid">
+              <button class="permission-chip on" type="button" data-chip-group="create-visible" data-chip-key="overview">项目详情</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-visible" data-chip-key="kanban">项目看板</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-visible" data-chip-key="gantt">项目甘特图</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-visible" data-chip-key="risk">风险看板</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-visible" data-chip-key="members">成员管理</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-visible" data-chip-key="reports">项目报表</button>
+              <button class="permission-chip" type="button" data-chip-group="create-visible" data-chip-key="admin">后台管理</button>
+            </div>
+          </article>
+
+          <article class="glass-panel" style="padding: 20px; border-radius: 22px;">
+            <div class="chart-header" style="margin-bottom: 14px;">
+              <h3 class="section-title" style="font-size: 20px;">操作权限</h3>
+              <span class="section-caption">按钮、状态流转与导出能力</span>
+            </div>
+            <div class="permission-chip-grid">
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="create-task">创建任务</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="assign-owner">分配负责人</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="edit-milestone">编辑里程碑</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="set-baseline">设置基线</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="drag-gantt">拖拽甘特条</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="invite-member">邀请成员</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="export-report">导出报表</button>
+              <button class="permission-chip on" type="button" data-chip-group="create-action" data-chip-key="schedule-report">定时订阅</button>
+              <button class="permission-chip" type="button" data-chip-group="create-action" data-chip-key="delete-template">删除角色模板</button>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="modal-status">
+          <span class="material-symbols-outlined">cloud_upload</span>
+          当前模板未保存
+        </div>
+        <div class="modal-footer-actions">
+          <button class="btn-secondary" data-modal-close><span class="material-symbols-outlined">close</span>取消</button>
+          <button class="btn-secondary" data-create-template-save-as><span class="material-symbols-outlined">content_copy</span>另存为新模板</button>
+          <button class="btn-primary" data-create-template-save><span class="material-symbols-outlined">save</span>保存模板</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="./shared.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const createModal = document.querySelector('[data-modal-id="create-template-modal"]');
+      
+      if (createModal) {
+        createModal.querySelectorAll('[data-chip-group^="create-"]').forEach(chip => {
+          chip.addEventListener('click', function() {
+            this.classList.toggle('on');
+          });
+        });
+
+        createModal.querySelectorAll('.modal-side .template-item').forEach(item => {
+          item.addEventListener('click', function() {
+            createModal.querySelectorAll('.modal-side .template-item').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+          });
+        });
+
+        const saveButton = createModal.querySelector('[data-create-template-save]');
+        const saveAsButton = createModal.querySelector('[data-create-template-save-as]');
+        const nameInput = createModal.querySelector('#create-template-name');
+        const scopeInput = createModal.querySelector('#create-template-scope');
+        const descInput = createModal.querySelector('#create-template-desc');
+
+        const resetForm = () => {
+          if (nameInput) nameInput.value = '';
+          if (scopeInput) scopeInput.value = '';
+          if (descInput) descInput.value = '';
+          createModal.querySelectorAll('[data-chip-group^="create-"]').forEach(chip => {
+            if (chip.getAttribute('data-chip-key') === 'admin' || chip.getAttribute('data-chip-key') === 'delete-template') {
+              chip.classList.remove('on');
+            } else {
+              chip.classList.add('on');
+            }
+          });
+        };
+
+        const openHandler = () => {
+          resetForm();
+        };
+
+        document.querySelector('[data-modal-open="create-template-modal"]')?.addEventListener('click', openHandler);
+
+        if (saveButton) {
+          saveButton.addEventListener('click', function() {
+            const name = nameInput?.value;
+            if (!name) {
+              showToast({
+                title: '请输入模板名称',
+                message: '模板名称不能为空，请填写后重试。',
+                icon: 'error'
+              });
+              return;
+            }
+            showToast({
+              title: '模板已保存',
+              message: `${name} 已添加到角色配置草稿。`,
+              icon: 'task_alt'
+            });
+            const shell = this.closest('[data-modal-id]');
+            if (shell) shell.classList.remove('open');
+          });
+        }
+
+        if (saveAsButton) {
+          saveAsButton.addEventListener('click', function() {
+            const name = nameInput?.value;
+            if (!name) {
+              showToast({
+                title: '请输入模板名称',
+                message: '模板名称不能为空，请填写后重试。',
+                icon: 'error'
+              });
+              return;
+            }
+            showToast({
+              title: '已另存为新模板',
+              message: `${name} 副本已生成，可继续修改。`,
+              icon: 'content_copy'
+            });
+            const shell = this.closest('[data-modal-id]');
+            if (shell) shell.classList.remove('open');
+          });
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>项目风险看板</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box">
+        <div class="brand-icon"><span class="material-symbols-outlined">science</span></div>
+        <div>
+          <h1 class="brand-title">R&D 系统</h1>
+          <p class="brand-subtitle">AI 驱动型协作平台</p>
+        </div>
+      </div>
+      <button class="sidebar-primary-cta">
+        <span class="material-symbols-outlined">warning</span>
+        生成风险报告
+      </button>
+      <nav class="sidebar-nav">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></a>
+        <a class="nav-item active" href="./projects.html"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></a>
+        <a class="nav-item" href="./workbench.html"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></a>
+        <a class="nav-item" href="./reports.html"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></a>
+        <a class="nav-item" href="./settings.html"><span class="material-symbols-outlined">settings</span><span>系统设置</span></a>
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></a>
+      </nav>
+    </aside>
+
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div>
+          <h2 class="topbar-title">项目风险看板</h2>
+          <div class="topbar-breadcrumb">
+            <span>项目</span><span>/</span><span>纳米晶体结构优化</span><span>/</span><span>风险看板</span>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <label class="search-shell">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" placeholder="搜索风险任务、里程碑或原因..." />
+        </label>
+        <button class="icon-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+        <div class="avatar-chip">
+          <img src="https://i.pravatar.cc/80?img=47" alt="王志强" />
+          <div><strong>王志强</strong><span>项目负责人</span></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <div class="page-stack">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">风险看板</h1>
+            <p class="page-subtitle">聚合项目的里程碑偏差、资源冲突与阻塞任务，保持与现有风险原型一致的排布方式。</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn-chip active">最近 7 天</button>
+            <button class="btn-chip">最近 30 天</button>
+            <button class="btn-primary"><span class="material-symbols-outlined">picture_as_pdf</span>导出风险报告</button>
+          </div>
+        </div>
+
+        <nav class="subnav-bar glass-panel">
+          <a class="subnav-link" href="./project-overview.html">概览</a>
+          <a class="subnav-link" href="./project-kanban.html">项目看板</a>
+          <a class="subnav-link" href="./project-gantt.html">项目甘特图</a>
+          <a class="subnav-link active" href="./project-risk.html">风险看板</a>
+          <a class="subnav-link" href="./project-members.html">成员管理</a>
+          <a class="subnav-link" href="./project-reports.html">报表</a>
+          <a class="subnav-link" href="./project-docs.html">文档</a>
+        </nav>
+
+        <section class="grid-3">
+          <div class="glass-panel metric-card">
+            <span class="material-symbols-outlined watermark" style="color: var(--color-danger-600);">report</span>
+            <h3>高危任务</h3>
+            <div class="value">6</div>
+            <div class="trend" style="color: var(--color-danger-600);"><span class="material-symbols-outlined" style="font-size: 18px;">trending_up</span>+2 较上周</div>
+          </div>
+          <div class="glass-panel metric-card">
+            <span class="material-symbols-outlined watermark" style="color: var(--color-warning-600);">notification_important</span>
+            <h3>中度预警</h3>
+            <div class="value">11</div>
+            <div class="trend" style="color: var(--color-warning-600);"><span class="material-symbols-outlined" style="font-size: 18px;">trending_flat</span>持平</div>
+          </div>
+          <div class="glass-panel metric-card">
+            <span class="material-symbols-outlined watermark" style="color: var(--color-secondary-600);">verified</span>
+            <h3>整体稳定度</h3>
+            <div class="value">81%</div>
+            <div class="trend" style="color: var(--color-secondary-600);"><span class="material-symbols-outlined" style="font-size: 18px;">verified</span>仍可控</div>
+          </div>
+        </section>
+
+        <section class="grid-2-1">
+          <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+            <div class="chart-header">
+              <h2 class="section-title">资源冲突预警热力图</h2>
+              <div class="legend">
+                <span>低负载</span>
+                <div class="legend-scale">
+                  <span style="background: rgba(173,198,255,0.24);"></span>
+                  <span style="background: rgba(79,143,246,0.38);"></span>
+                  <span style="background: rgba(20,104,199,0.58);"></span>
+                  <span style="background: rgba(20,104,199,0.78);"></span>
+                  <span style="background: rgba(10,48,124,0.88);"></span>
+                </div>
+                <span>冲突高发</span>
+              </div>
+            </div>
+            <div class="heatmap-grid" style="margin-bottom: 12px;">
+              <div class="calendar-head">周一</div><div class="calendar-head">周二</div><div class="calendar-head">周三</div><div class="calendar-head">周四</div><div class="calendar-head">周五</div><div class="calendar-head">周六</div><div class="calendar-head">周日</div>
+            </div>
+            <div class="heatmap-grid">
+              <div class="heat-block" style="background: rgba(173,198,255,0.18);"></div>
+              <div class="heat-block" style="background: rgba(173,198,255,0.34);"></div>
+              <div class="heat-block" style="background: rgba(79,143,246,0.86); box-shadow: 0 14px 28px rgba(79,143,246,0.28);"></div>
+              <div class="heat-block" style="background: rgba(173,198,255,0.30);"></div>
+              <div class="heat-block" style="background: rgba(10,48,124,0.86); box-shadow: 0 14px 28px rgba(10,48,124,0.24);"></div>
+              <div class="heat-block" style="background: rgba(173,198,255,0.20);"></div>
+              <div class="heat-block" style="background: rgba(173,198,255,0.18);"></div>
+              <div class="heat-block" style="background: rgba(79,143,246,0.36);"></div>
+              <div class="heat-block" style="background: rgba(10,48,124,0.86); box-shadow: 0 14px 28px rgba(10,48,124,0.24);"></div>
+              <div class="heat-block" style="background: rgba(79,143,246,0.42);"></div>
+              <div class="heat-block" style="background: rgba(173,198,255,0.26);"></div>
+              <div class="heat-block" style="background: rgba(79,143,246,0.34);"></div>
+              <div class="heat-block" style="background: rgba(173,198,255,0.16);"></div>
+              <div class="heat-block" style="background: rgba(173,198,255,0.18);"></div>
+              <div class="heat-block" style="background: rgba(173,198,255,0.30);"></div>
+              <div class="heat-block" style="background: rgba(79,143,246,0.46);"></div>
+              <div class="heat-block" style="background: rgba(35,82,207,0.92); box-shadow: 0 14px 28px rgba(35,82,207,0.22);"></div>
+              <div class="heat-block" style="background: rgba(173,198,255,0.24);"></div>
+              <div class="heat-block" style="background: rgba(79,143,246,0.36);"></div>
+              <div class="heat-block" style="background: rgba(173,198,255,0.16);"></div>
+              <div class="heat-block" style="background: rgba(173,198,255,0.18);"></div>
+            </div>
+          </div>
+
+          <div class="glass-panel" style="padding: 24px; border-radius: 24px; background: linear-gradient(180deg, rgba(236,220,255,0.32), rgba(255,255,255,0.42));">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="material-symbols-outlined" style="color: var(--color-tertiary-600);">psychology</span>
+              <h2 class="section-title">AI 深度洞察</h2>
+            </div>
+            <div class="ai-list" style="margin-top: 18px;">
+              <div class="ai-list-item">
+                <h4>预测 · 概率 92%</h4>
+                <p>由于“联调环境参数回灌”与“样本误差回归验证”共用同一测试窗口，周三将出现成员冲突，可能造成 0.6 天额外延迟。</p>
+              </div>
+              <div class="ai-list-item">
+                <h4>建议 · 可一键采纳</h4>
+                <p>建议将“日志补录”任务临时调配给 QA 协作成员，并提前冻结周三的联调资源窗口。</p>
+              </div>
+            </div>
+            <div class="ai-actions">
+              <button class="btn-primary">生成完整风险报告</button>
+              <button class="btn-secondary">点赞反馈</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="glass-panel" style="padding: 24px; border-radius: 24px;">
+          <div class="chart-header">
+            <h2 class="section-title">核心风险任务列表</h2>
+            <div class="page-actions">
+              <button class="btn-secondary">导出清单</button>
+              <button class="btn-primary">一键处理</button>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>任务名称</th>
+                <th>风险等级</th>
+                <th>风险因子</th>
+                <th>进度阻碍</th>
+                <th>负责人</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>联调环境参数回灌</strong></td>
+                <td><span class="pill pill-danger">极高</span></td>
+                <td>环境准备冲突</td>
+                <td><div class="progress-track"><div class="progress-fill" style="width: 68%; background: linear-gradient(90deg, #f36b63, var(--color-danger-600));"></div></div></td>
+                <td>陈思远</td>
+                <td><span class="material-symbols-outlined" style="color: var(--color-text-tertiary);">more_horiz</span></td>
+              </tr>
+              <tr>
+                <td><strong>样本误差回归验证</strong></td>
+                <td><span class="pill pill-warning">中等</span></td>
+                <td>算力窗口拥堵</td>
+                <td><div class="progress-track"><div class="progress-fill" style="width: 42%; background: linear-gradient(90deg, #f7c455, var(--color-warning-600));"></div></div></td>
+                <td>王雅婷</td>
+                <td><span class="material-symbols-outlined" style="color: var(--color-text-tertiary);">more_horiz</span></td>
+              </tr>
+              <tr>
+                <td><strong>测试环境参数冻结</strong></td>
+                <td><span class="pill pill-danger">高危</span></td>
+                <td>阻塞依赖未解除</td>
+                <td><div class="progress-track"><div class="progress-fill" style="width: 16%; background: linear-gradient(90deg, #f36b63, var(--color-danger-600));"></div></div></td>
+                <td>赵扬</td>
+                <td><span class="material-symbols-outlined" style="color: var(--color-text-tertiary);">more_horiz</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <button class="floating-ai-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+  <div class="ai-overlay" data-ai-overlay></div>
+  <aside class="ai-drawer" data-ai-drawer>
+    <div class="ai-header">
+      <div><h3>AI 助手</h3><p class="section-caption">当前上下文：风险看板</p></div>
+      <button class="icon-btn" data-ai-close><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="ai-card">
+      <h4>根因分析浮窗</h4>
+      <p>根因不在开发速度，而在资源调度。风险在于多个任务争抢同一测试窗口，建议先调度再追赶计划。</p>
+      <div class="ai-actions">
+        <button class="btn-primary">一键协调资源</button>
+        <button class="btn-secondary">仅生成说明</button>
+      </div>
+    </div>
+  </aside>
+  <script src="./shared.js"></script>
+</body>
+</html>

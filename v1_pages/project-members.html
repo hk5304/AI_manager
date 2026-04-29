@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>项目成员管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box">
+        <div class="brand-icon"><span class="material-symbols-outlined">science</span></div>
+        <div>
+          <h1 class="brand-title">R&D 系统</h1>
+          <p class="brand-subtitle">AI 驱动型协作平台</p>
+        </div>
+      </div>
+      <button class="sidebar-primary-cta">
+        <span class="material-symbols-outlined">person_add</span>
+        添加成员
+      </button>
+      <nav class="sidebar-nav">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></a>
+        <a class="nav-item active" href="./projects.html"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></a>
+        <a class="nav-item" href="./workbench.html"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></a>
+        <a class="nav-item" href="./reports.html"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></a>
+        <a class="nav-item" href="./settings.html"><span class="material-symbols-outlined">settings</span><span>系统设置</span></a>
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></a>
+      </nav>
+    </aside>
+
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div>
+          <h2 class="topbar-title">项目成员管理</h2>
+          <div class="topbar-breadcrumb">
+            <span>项目</span><span>/</span><span>纳米晶体结构优化</span><span>/</span><span>成员管理</span>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <label class="search-shell">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" placeholder="搜索成员、角色或状态..." />
+        </label>
+        <button class="icon-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+        <div class="avatar-chip">
+          <img src="https://i.pravatar.cc/80?img=47" alt="王志强" />
+          <div><strong>王志强</strong><span>项目负责人</span></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <div class="page-stack">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">成员管理</h1>
+            <p class="page-subtitle">维护项目内身份、邀请状态、任务负载与智能分配建议，服务 PM 的团队组建和调度视角。</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn-secondary"><span class="material-symbols-outlined">account_tree</span>组织架构树</button>
+            <button class="btn-primary"><span class="material-symbols-outlined">mail</span>邀请成员</button>
+          </div>
+        </div>
+
+        <nav class="subnav-bar glass-panel">
+          <a class="subnav-link" href="./project-overview.html">概览</a>
+          <a class="subnav-link" href="./project-kanban.html">项目看板</a>
+          <a class="subnav-link" href="./project-gantt.html">项目甘特图</a>
+          <a class="subnav-link" href="./project-risk.html">风险看板</a>
+          <a class="subnav-link active" href="./project-members.html">成员管理</a>
+          <a class="subnav-link" href="./project-reports.html">报表</a>
+          <a class="subnav-link" href="./project-docs.html">文档</a>
+        </nav>
+
+        <section class="grid-3">
+          <div class="glass-panel metric-card">
+            <h3>项目成员</h3>
+            <div class="value">12</div>
+            <div class="trend" style="color: var(--color-primary-700);">2 位待接受</div>
+          </div>
+          <div class="glass-panel metric-card">
+            <h3>超阈值负载</h3>
+            <div class="value">3</div>
+            <div class="trend" style="color: var(--color-warning-600);">>80% 需调度</div>
+          </div>
+          <div class="glass-panel metric-card">
+            <h3>AI 推荐采纳率</h3>
+            <div class="value">67%</div>
+            <div class="trend" style="color: var(--color-secondary-600);">本周 6 次采纳</div>
+          </div>
+        </section>
+
+        <section class="grid-2-1">
+          <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+            <div class="chart-header">
+              <h2 class="section-title">成员列表</h2>
+              <div class="report-chip-group">
+                <span class="pill pill-neutral">全部成员</span>
+                <span class="pill pill-warning">待接受 2</span>
+              </div>
+            </div>
+            <div class="member-table">
+              <div class="member-row">
+                <div class="member-ident"><img src="https://i.pravatar.cc/80?img=47" alt="王志强" /><div><strong>王志强</strong><p class="task-note">材料科学部 · 负责人</p></div></div>
+                <div><span class="role-badge pm">PM</span></div>
+                <div><span class="pill pill-success">已加入</span></div>
+                <div><strong>当前任务 6</strong><p class="task-note">预估 5.5d</p></div>
+                <div><span class="status-tag warning">82%</span></div>
+                <button class="icon-btn"><span class="material-symbols-outlined">more_vert</span></button>
+              </div>
+              <div class="member-row">
+                <div class="member-ident"><img src="https://i.pravatar.cc/80?img=22" alt="陈思远" /><div><strong>陈思远</strong><p class="task-note">平台组 · 联调负责人</p></div></div>
+                <div><span class="role-badge dev">研发</span></div>
+                <div><span class="pill pill-success">已加入</span></div>
+                <div><strong>当前任务 7</strong><p class="task-note">预估 6.0d</p></div>
+                <div><span class="status-tag danger">91%</span></div>
+                <button class="icon-btn"><span class="material-symbols-outlined">more_vert</span></button>
+              </div>
+              <div class="member-row">
+                <div class="member-ident"><img src="https://i.pravatar.cc/80?img=33" alt="王雅婷" /><div><strong>王雅婷</strong><p class="task-note">QA · 回归验证</p></div></div>
+                <div><span class="role-badge qa">QA</span></div>
+                <div><span class="pill pill-success">已加入</span></div>
+                <div><strong>当前任务 4</strong><p class="task-note">预估 3.5d</p></div>
+                <div><span class="status-tag success">58%</span></div>
+                <button class="icon-btn"><span class="material-symbols-outlined">more_vert</span></button>
+              </div>
+              <div class="member-row">
+                <div class="member-ident"><img src="https://i.pravatar.cc/80?img=12" alt="赵扬" /><div><strong>赵扬</strong><p class="task-note">平台组 · 配置维护</p></div></div>
+                <div><span class="role-badge dev">研发</span></div>
+                <div><span class="pill pill-warning">待接受</span></div>
+                <div><strong>当前任务 2</strong><p class="task-note">预估 1.5d</p></div>
+                <div><span class="status-tag neutral">35%</span></div>
+                <button class="icon-btn"><span class="material-symbols-outlined">more_vert</span></button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <div class="glass-panel" style="padding: 24px; border-radius: 24px; background: linear-gradient(180deg, rgba(236,220,255,0.32), rgba(255,255,255,0.42));">
+              <h2 class="section-title">AI 智能分配建议</h2>
+              <p class="page-subtitle" style="font-size: 14px; margin-top: 14px;">建议将“联调回灌日志补录”分配给 QA 成员王雅婷，置信度 91%；并将“测试环境参数冻结”交由赵扬处理，置信度 86%。</p>
+              <div class="ai-actions">
+                <button class="btn-primary">一键采纳</button>
+                <button class="btn-secondary">手动调整</button>
+              </div>
+            </div>
+            <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+              <h2 class="section-title">邀请流程</h2>
+              <div class="timeline" style="margin-top: 18px;">
+                <div class="timeline-item">
+                  <span class="timeline-dot" style="background: var(--color-primary-600);"></span>
+                  <div class="timeline-body">
+                    <h4>选择成员</h4>
+                    <p>通过组织架构树或搜索选择要加入项目的成员。</p>
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <span class="timeline-dot" style="background: var(--color-warning-600);"></span>
+                  <div class="timeline-body">
+                    <h4>发送邀请</h4>
+                    <p>系统会同步站内消息与企微/钉钉通知。</p>
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <span class="timeline-dot" style="background: var(--color-secondary-600);"></span>
+                  <div class="timeline-body">
+                    <h4>接受并加入</h4>
+                    <p>成员接受邀请后自动加入项目权限组。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="glass-panel" style="padding: 24px; border-radius: 24px;">
+          <div class="chart-header">
+            <h2 class="section-title">未来一周负载热力图</h2>
+            <span class="section-caption">颜色越深负载越高，超过 80% 显示预警。</span>
+          </div>
+          <div class="calendar-grid">
+            <div></div>
+            <div class="calendar-head">周一</div><div class="calendar-head">周二</div><div class="calendar-head">周三</div><div class="calendar-head">周四</div><div class="calendar-head">周五</div><div class="calendar-head">周六</div><div class="calendar-head">周日</div>
+            <div class="calendar-name">王志强</div><div class="load-2"></div><div class="load-4"></div><div class="load-5"></div><div class="load-4"></div><div class="load-3"></div><div class="load-1"></div><div class="load-0"></div>
+            <div class="calendar-name">陈思远</div><div class="load-3"></div><div class="load-5"></div><div class="load-5"></div><div class="load-4"></div><div class="load-3"></div><div class="load-1"></div><div class="load-0"></div>
+            <div class="calendar-name">王雅婷</div><div class="load-1"></div><div class="load-2"></div><div class="load-3"></div><div class="load-2"></div><div class="load-2"></div><div class="load-1"></div><div class="load-0"></div>
+            <div class="calendar-name">赵扬</div><div class="load-0"></div><div class="load-1"></div><div class="load-2"></div><div class="load-2"></div><div class="load-1"></div><div class="load-0"></div><div class="load-0"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <button class="floating-ai-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+  <div class="ai-overlay" data-ai-overlay></div>
+  <aside class="ai-drawer" data-ai-drawer>
+    <div class="ai-header">
+      <div><h3>AI 助手</h3><p class="section-caption">当前上下文：成员管理</p></div>
+      <button class="icon-btn" data-ai-close><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="ai-card">
+      <h4>负载平衡建议</h4>
+      <p>当前平台组与 PM 均超过 80% 负载，建议先把回灌日志与回归验证说明拆给 QA 处理，再安排赵扬接手环境冻结任务。</p>
+      <div class="ai-actions">
+        <button class="btn-primary">采纳分配</button>
+        <button class="btn-secondary">只生成通知</button>
+      </div>
+    </div>
+  </aside>
+  <script src="./shared.js"></script>
+</body>
+</html>

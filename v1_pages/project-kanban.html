@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>项目看板</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box">
+        <div class="brand-icon"><span class="material-symbols-outlined">science</span></div>
+        <div>
+          <h1 class="brand-title">R&D 系统</h1>
+          <p class="brand-subtitle">AI 驱动型协作平台</p>
+        </div>
+      </div>
+      <button class="sidebar-primary-cta">
+        <span class="material-symbols-outlined">add_task</span>
+        新建任务
+      </button>
+      <nav class="sidebar-nav">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></a>
+        <a class="nav-item active" href="./projects.html"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></a>
+        <a class="nav-item" href="./workbench.html"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></a>
+        <a class="nav-item" href="./reports.html"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></a>
+        <a class="nav-item" href="./settings.html"><span class="material-symbols-outlined">settings</span><span>系统设置</span></a>
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></a>
+      </nav>
+    </aside>
+
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div>
+          <h2 class="topbar-title">项目看板</h2>
+          <div class="topbar-breadcrumb">
+            <span>项目</span><span>/</span><span>纳米晶体结构优化</span><span>/</span><span>项目看板</span>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <label class="search-shell">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" placeholder="搜索项目任务、Bug、里程碑..." />
+        </label>
+        <a class="icon-btn notification-link" href="./notifications.html" aria-label="打开通知中心"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></a>
+        <button class="icon-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+        <div class="avatar-chip">
+          <img src="https://i.pravatar.cc/80?img=47" alt="王志强" />
+          <div><strong>王志强</strong><span>项目负责人</span></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <div class="page-stack">
+        <section class="glass-panel" style="padding: 20px 24px; border-radius: 24px;">
+          <div style="display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; align-items: center;">
+            <div>
+              <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <span class="pill pill-success">进行中</span>
+                <span class="pill pill-ai">联调阶段</span>
+              </div>
+              <h1 class="page-title" style="font-size: 34px; margin-top: 14px;">纳米晶体结构优化</h1>
+              <p class="page-subtitle" style="font-size: 15px; margin-top: 8px;">聚焦任务状态流转和阻塞处理，支持在看板内直接创建、编辑和变更状态。</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn-secondary"><span class="material-symbols-outlined">filter_list</span>筛选器</button>
+              <button class="btn-primary"><span class="material-symbols-outlined">add</span>创建任务</button>
+            </div>
+          </div>
+        </section>
+
+        <nav class="subnav-bar glass-panel">
+          <a class="subnav-link" href="./project-overview.html">概览</a>
+          <a class="subnav-link active" href="./project-kanban.html">项目看板</a>
+          <a class="subnav-link" href="./project-gantt.html">项目甘特图</a>
+          <a class="subnav-link" href="./project-risk.html">风险看板</a>
+          <a class="subnav-link" href="./project-members.html">成员管理</a>
+          <a class="subnav-link" href="./project-reports.html">报表</a>
+          <a class="subnav-link" href="./project-docs.html">文档</a>
+        </nav>
+
+        <section class="glass-panel filter-bar">
+          <button class="btn-chip active">全部状态</button>
+          <button class="btn-chip">P0 / P1</button>
+          <button class="btn-chip">本周截止</button>
+          <button class="btn-chip">仅阻塞</button>
+          <button class="btn-chip">关联里程碑</button>
+          <div class="report-chip-group" style="margin-left: auto;">
+            <span class="pill pill-neutral">任务总数 26</span>
+            <span class="pill pill-warning">阻塞 3</span>
+          </div>
+        </section>
+
+        <section class="kanban-5">
+          <div class="kanban-column glass-panel">
+            <div class="kanban-column-header">
+              <h3>待开始</h3>
+              <span class="pill pill-neutral">5</span>
+            </div>
+            <div class="kanban-card">
+              <h4>整理联调验证清单</h4>
+              <div class="kanban-meta"><span class="micro-tag p2">P2</span><span class="micro-tag">里程碑</span></div>
+              <p class="task-note">负责人：赵扬 · 预估工时 1.5d</p>
+            </div>
+            <div class="kanban-card">
+              <h4>补充异常样本说明</h4>
+              <div class="kanban-meta"><span class="micro-tag p3">P3</span></div>
+              <p class="task-note">负责人：韩诚 · 截止：周四</p>
+            </div>
+          </div>
+
+          <div class="kanban-column glass-panel">
+            <div class="kanban-column-header">
+              <h3>进行中</h3>
+              <span class="pill pill-neutral">7</span>
+            </div>
+            <div class="kanban-card">
+              <h4>联调环境参数回灌</h4>
+              <div class="kanban-meta"><span class="micro-tag p0">P0</span><span class="micro-tag">依赖平台组</span></div>
+              <p class="task-note">负责人：陈思远 · 进度 62%</p>
+            </div>
+            <div class="kanban-card">
+              <h4>样本误差回归验证</h4>
+              <div class="kanban-meta"><span class="micro-tag p1">P1</span><span class="micro-tag">PBC</span></div>
+              <p class="task-note">负责人：王雅婷 · 进度 48%</p>
+            </div>
+          </div>
+
+          <div class="kanban-column glass-panel">
+            <div class="kanban-column-header">
+              <h3>待评审</h3>
+              <span class="pill pill-neutral">4</span>
+            </div>
+            <div class="kanban-card">
+              <h4>晶格归一化策略更新</h4>
+              <div class="kanban-meta"><span class="micro-tag p1">P1</span><span class="micro-tag">需 QA 确认</span></div>
+              <p class="task-note">负责人：林初夏 · 截止 今天 18:00</p>
+            </div>
+            <div class="kanban-card">
+              <h4>模型输出字段映射表</h4>
+              <div class="kanban-meta"><span class="micro-tag p2">P2</span></div>
+              <p class="task-note">负责人：韩诚 · 进度 90%</p>
+            </div>
+          </div>
+
+          <div class="kanban-column glass-panel">
+            <div class="kanban-column-header">
+              <h3>已完成</h3>
+              <span class="pill pill-neutral">8</span>
+            </div>
+            <div class="kanban-card">
+              <h4>需求评审结论归档</h4>
+              <div class="kanban-meta"><span class="micro-tag p2">P2</span><span class="micro-tag">完成</span></div>
+              <p class="task-note">负责人：王志强 · 已自动同步日报</p>
+            </div>
+            <div class="kanban-card">
+              <h4>开发任务拆解确认</h4>
+              <div class="kanban-meta"><span class="micro-tag p3">P3</span></div>
+              <p class="task-note">负责人：陈思远 · 已绑定基线</p>
+            </div>
+          </div>
+
+          <div class="kanban-column glass-panel" style="background: rgba(255, 235, 233, 0.34); border-color: rgba(216,58,52,0.18);">
+            <div class="kanban-column-header">
+              <h3>已阻塞</h3>
+              <span class="pill pill-danger">3</span>
+            </div>
+            <div class="kanban-card">
+              <h4>测试环境参数冻结</h4>
+              <div class="kanban-meta"><span class="micro-tag p0">P0</span><span class="micro-tag" style="color: var(--color-danger-600); background: rgba(255,218,214,0.82);">阻塞</span></div>
+              <p class="task-note">阻塞原因：环境配置窗口未确认</p>
+            </div>
+            <div class="kanban-card">
+              <h4>联调回灌日志补录</h4>
+              <div class="kanban-meta"><span class="micro-tag p1">P1</span></div>
+              <p class="task-note">阻塞依赖：测试环境参数冻结</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid-2-1">
+          <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+            <div class="chart-header">
+              <h2 class="section-title">状态流转规则</h2>
+              <span class="section-caption">待开始 → 进行中 → 待评审 → 已完成 / 已阻塞</span>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr><th>规则</th><th>说明</th><th>通知</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>待开始不可直接完成</td><td>必须先进入进行中或待评审</td><td>无</td></tr>
+                <tr><td>标记阻塞需填写原因</td><td>必须补充阻塞文本，并可关联阻塞依赖任务</td><td>通知创建者与 PM</td></tr>
+                <tr><td>任务完成通知</td><td>任务变更为已完成时自动触发</td><td>通知创建者</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="glass-panel" style="padding: 24px; border-radius: 24px; background: linear-gradient(180deg, rgba(236,220,255,0.28), rgba(255,255,255,0.42));">
+            <h2 class="section-title">AI 分配建议</h2>
+            <p class="page-subtitle" style="font-size: 14px; margin-top: 14px;">建议把“联调回灌日志补录”从平台组调整给 QA 协作者王雅婷，置信度 91%，预计可在不影响主路径的情况下减少 0.4 天等待。</p>
+            <div class="ai-actions">
+              <button class="btn-primary">一键采纳</button>
+              <button class="btn-secondary">手动调整</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <button class="floating-ai-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+  <div class="ai-overlay" data-ai-overlay></div>
+  <aside class="ai-drawer" data-ai-drawer>
+    <div class="ai-header">
+      <div>
+        <h3>AI 助手</h3>
+        <p class="section-caption">当前上下文：项目看板</p>
+      </div>
+      <button class="icon-btn" data-ai-close><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="ai-card">
+      <h4>阻塞处理建议</h4>
+      <p>当前 3 个阻塞任务中，有 2 个都依赖“测试环境参数冻结”。优先处理该任务将直接释放下游 2 条任务链。</p>
+      <div class="ai-actions">
+        <button class="btn-primary">设为最高优先级</button>
+        <button class="btn-secondary">生成提醒</button>
+      </div>
+    </div>
+  </aside>
+  <script src="./shared.js"></script>
+</body>
+</html>

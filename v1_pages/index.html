@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V1 页面导航</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <main class="app-content" style="margin-left: 0; min-height: 100vh; display: flex; align-items: center;">
+    <div class="page-stack" style="width: 100%;">
+      <section class="summary-card glass-panel-strong">
+        <div class="summary-content">
+          <span class="pill pill-ai"><span class="material-symbols-outlined">auto_awesome</span>V1 原型导航</span>
+          <h1 class="page-title" style="margin-top: 18px;">AI 驱动型内部研发项目协作管理系统</h1>
+          <p class="page-subtitle">第一版页面原型已按前端设计文档落为可打开的静态页面，整体风格保持与现有 stitch_ai 图片一致。</p>
+          <div class="summary-kpis">
+            <div class="summary-kpi">
+              <span>页面范围</span>
+              <strong>5 个核心页</strong>
+            </div>
+            <div class="summary-kpi">
+              <span>设计基线</span>
+              <strong>玻璃拟态</strong>
+            </div>
+            <div class="summary-kpi">
+              <span>后续形态</span>
+              <strong>可迁移到 Vue</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid-3">
+        <a class="glass-panel metric-card" href="./login.html">
+          <span class="pill pill-neutral">认证</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">登录页</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">沿用现有登录原型的单卡片布局与玻璃表单风格。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./register.html">
+          <span class="pill pill-neutral">认证</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">注册页</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">与登录页统一视觉，用于检查注册表单和认证页面一致性。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./dashboard.html">
+          <span class="pill pill-success">核心入口</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">全局工作台</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">AI 智能简报、待办、动态、健康度与运营指标。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./projects.html">
+          <span class="pill pill-success">项目中心</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">项目矩阵</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">保持参考图排布，增强筛选、状态、成员和新建入口。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./project-overview.html">
+          <span class="pill pill-ai">项目首页</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">项目概览</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">里程碑、基线偏差、风险摘要、成员负载与 AI 建议。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./project-gantt.html">
+          <span class="pill pill-warning">排期管理</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">项目甘特图</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">基线开关、关键路径、依赖关系和排期偏差可视化。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./workbench.html">
+          <span class="pill pill-success">个人视角</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">个人工作台</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">日志、看板、PBC 三 Tab 结构，按设计文档完整落位。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./project-kanban.html">
+          <span class="pill pill-warning">任务协同</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">项目看板</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">5 状态列任务流转，阻塞态和 AI 分配建议已补齐。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./project-risk.html">
+          <span class="pill pill-danger">风险中心</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">项目风险看板</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">延续现有风险原型的热力图、AI 洞察和任务表排布。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./project-members.html">
+          <span class="pill pill-ai">成员调度</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">成员管理</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">成员身份、邀请流程、负载热力图和智能分配建议。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./project-reports.html">
+          <span class="pill pill-success">数据分析</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">项目报表</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">进度、工时、质量图表与 AI 周报洞察卡已补齐。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./admin.html">
+          <span class="pill pill-neutral">管理入口</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">后台管理</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">管理员首页已落，后续可继续展开用户、角色和审计日志页面。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./task-detail.html">
+          <span class="pill pill-warning">任务协同</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">任务详情</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">左主右辅结构，阻塞原因、评论和 AI 助手已补齐。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./project-docs.html">
+          <span class="pill pill-ai">项目文档</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">项目文档页</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">保留统一空态和文档卡片，用于检查文档模块的样式方向。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./reports.html">
+          <span class="pill pill-success">全局视角</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">全局报表</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">用于检查跨项目报表与项目级报表的视觉区别。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./settings.html">
+          <span class="pill pill-neutral">个人设置</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">系统设置</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">分组设置卡与开关组件已补齐，便于检查表单清晰度。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./admin-users.html">
+          <span class="pill pill-neutral">后台子页</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">用户管理</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">后台列表页风格基线，后续用户、角色、日志都沿用同层级样式。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./admin-roles.html">
+          <span class="pill pill-neutral">后台子页</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">角色管理</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">权限矩阵和模板卡片的第一版结构已经具备。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./admin-logs.html">
+          <span class="pill pill-neutral">后台子页</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">审计日志</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">高可读性表格与管理筛选栏已补齐。</p>
+        </a>
+        <a class="glass-panel metric-card" href="./admin-system.html">
+          <span class="pill pill-neutral">后台子页</span>
+          <div class="value" style="font-size: 28px; margin-top: 20px;">系统配置</div>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">用于检查后台设置页与个人设置页的差异化处理。</p>
+        </a>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

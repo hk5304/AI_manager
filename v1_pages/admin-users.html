@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>用户管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .user-row-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .user-modal {
+      width: min(920px, calc(100vw - 48px));
+    }
+
+    .user-modal-main {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .user-form-card,
+    .user-note-card,
+    .import-upload-card,
+    .import-preview-card {
+      padding: 20px;
+      border-radius: 24px;
+    }
+
+    .user-form-card-head,
+    .import-card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .user-form-card-head h3,
+    .user-form-card-head p,
+    .user-note-card h3,
+    .user-note-card p,
+    .import-card-head h3,
+    .import-card-head p,
+    .import-preview-card h4,
+    .import-preview-card p {
+      margin: 0;
+    }
+
+    .user-modal-grid {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.88fr) minmax(0, 1.18fr);
+      gap: 20px;
+    }
+
+    .user-modal-side {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .user-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .user-kpi {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.58);
+    }
+
+    .user-kpi span,
+    .user-kpi strong {
+      display: block;
+    }
+
+    .user-kpi span {
+      font-size: 12px;
+      color: var(--color-text-tertiary);
+    }
+
+    .user-kpi strong {
+      margin-top: 8px;
+      font-size: 18px;
+    }
+
+    .user-note-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .user-note-item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.58);
+    }
+
+    .user-note-item h4,
+    .user-note-item p {
+      margin: 0;
+    }
+
+    .user-note-item p {
+      margin-top: 8px;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .user-modal .field-inline {
+      margin-top: 16px;
+    }
+
+    .upload-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 32px 24px;
+      border-radius: 22px;
+      border: 2px dashed rgba(20, 104, 199, 0.16);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.34));
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 180ms ease, transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: rgba(20, 104, 199, 0.32);
+      background: linear-gradient(180deg, rgba(173, 198, 255, 0.18), rgba(255, 255, 255, 0.44));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+      transform: translateY(-1px);
+    }
+
+    .upload-zone-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      color: var(--color-primary-700);
+      background: rgba(20, 104, 199, 0.12);
+      border: 1px solid rgba(20, 104, 199, 0.16);
+    }
+
+    .upload-zone-icon .material-symbols-outlined {
+      font-size: 34px;
+    }
+
+    .upload-zone p {
+      margin: 0;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .upload-zone-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .import-preview-wrap {
+      margin-top: 18px;
+      display: none;
+    }
+
+    .import-preview-wrap.active {
+      display: block;
+    }
+
+    .import-preview-card {
+      background: rgba(255, 255, 255, 0.36);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    .import-preview-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .import-preview-card p {
+      margin-top: 6px;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .import-table {
+      margin-top: 12px;
+    }
+
+    .import-helper {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--color-text-secondary);
+    }
+
+    .btn-primary:disabled,
+    .btn-secondary:disabled,
+    .btn-chip:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    @media (max-width: 1279px) {
+      .user-modal-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box">
+        <div class="brand-icon"><span class="material-symbols-outlined">admin_panel_settings</span></div>
+        <div>
+          <h1 class="brand-title">Admin Console</h1>
+          <p class="brand-subtitle">系统管理入口</p>
+        </div>
+      </div>
+      <button class="sidebar-primary-cta" data-modal-open="create-user-modal"><span class="material-symbols-outlined">person_add</span>新增用户</button>
+      <nav class="sidebar-nav">
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">grid_view</span><span>管理首页</span></a>
+        <a class="nav-item active" href="./admin-users.html"><span class="material-symbols-outlined">group</span><span>用户管理</span></a>
+        <a class="nav-item" href="./admin-roles.html"><span class="material-symbols-outlined">badge</span><span>角色管理</span></a>
+        <a class="nav-item" href="./admin-logs.html"><span class="material-symbols-outlined">receipt_long</span><span>审计日志</span></a>
+        <a class="nav-item" href="./admin-system.html"><span class="material-symbols-outlined">settings</span><span>系统配置</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">arrow_back</span><span>返回主系统</span></a>
+      </div>
+    </aside>
+
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div>
+          <h2 class="topbar-title">用户管理</h2>
+          <div class="topbar-breadcrumb"><span>后台管理</span><span>/</span><span>用户管理</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <a class="icon-btn notification-link" href="./notifications.html" aria-label="打开通知中心"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></a>
+        <div class="avatar-chip">
+          <img src="https://i.pravatar.cc/80?img=5" alt="系统管理员" />
+          <div><strong>系统管理员</strong><span>平台角色：Admin</span></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <div class="page-stack">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">用户管理</h1>
+            <p class="page-subtitle">用户增删改查页采用玻璃表格容器，但新增与导入操作也需要保持和后台其他页面一致的层级、表单与反馈风格。</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn-secondary" data-modal-open="import-users-modal"><span class="material-symbols-outlined">upload_file</span>导入用户</button>
+            <button class="btn-primary" data-modal-open="create-user-modal"><span class="material-symbols-outlined">person_add</span>新增用户</button>
+          </div>
+        </div>
+
+        <section class="admin-table-card glass-panel">
+          <div class="admin-toolbar">
+            <label class="search-shell">
+              <span class="material-symbols-outlined">search</span>
+              <input type="text" placeholder="搜索姓名、部门、邮箱..." />
+            </label>
+            <div class="table-chip-group">
+              <button class="btn-chip active" type="button" onclick="filterUsers('all')">全部</button>
+              <button class="btn-chip" type="button" onclick="filterUsers('admin')">管理员</button>
+              <button class="btn-chip" type="button" onclick="filterUsers('user')">普通用户</button>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>姓名</th><th>邮箱</th><th>部门</th><th>平台角色</th><th>状态</th><th>加入时间</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr data-role="user">
+                <td>张工</td>
+                <td>zhang@example.com</td>
+                <td>研发中心</td>
+                <td>普通用户</td>
+                <td><span class="pill pill-success">正常</span></td>
+                <td>2026-04-01</td>
+                <td><div class="user-row-actions"><button class="btn-chip" type="button">编辑</button><button class="btn-chip" type="button">停用</button></div></td>
+              </tr>
+              <tr data-role="admin">
+                <td>系统管理员</td>
+                <td>admin@example.com</td>
+                <td>平台组</td>
+                <td>管理员</td>
+                <td><span class="pill pill-success">正常</span></td>
+                <td>2026-01-01</td>
+                <td><div class="user-row-actions"><button class="btn-chip" type="button">编辑</button></div></td>
+              </tr>
+              <tr data-role="user">
+                <td>李技术员</td>
+                <td>li@example.com</td>
+                <td>测试组</td>
+                <td>普通用户</td>
+                <td><span class="pill pill-warning">待激活</span></td>
+                <td>2026-04-15</td>
+                <td><div class="user-row-actions"><button class="btn-chip active" type="button">激活</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-shell" data-modal-id="create-user-modal">
+    <div class="modal-backdrop" data-modal-close></div>
+    <section class="modal-panel glass-panel-strong user-modal">
+      <div class="modal-header">
+        <div>
+          <span class="pill pill-success">账户创建</span>
+          <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">新增用户</h2>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">沿用后台模块的玻璃层级和统一表单风格，先完成基础账户信息，再决定平台角色和初始激活状态。</p>
+        </div>
+        <button class="icon-btn" data-modal-close><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <div class="user-modal-grid">
+        <aside class="user-modal-side">
+          <article class="glass-panel user-note-card">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <span class="pill pill-ai">快速配置</span>
+              <span class="pill pill-neutral">管理员入口</span>
+            </div>
+            <h3 class="section-title" style="font-size: 24px; margin-top: 16px;">新用户创建草稿</h3>
+            <p class="page-subtitle" style="font-size: 14px; margin-top: 12px;">创建后可继续在角色管理、系统配置和通知中心中扩展权限、启用状态与通知策略。</p>
+            <div class="user-kpi-grid">
+              <div class="user-kpi"><span>默认状态</span><strong>待激活</strong></div>
+              <div class="user-kpi"><span>角色粒度</span><strong>平台级</strong></div>
+              <div class="user-kpi"><span>建议校验</span><strong>邮箱必填</strong></div>
+              <div class="user-kpi"><span>后续动作</span><strong>发送邀请</strong></div>
+            </div>
+          </article>
+
+          <article class="glass-panel user-note-card" style="background: linear-gradient(180deg, rgba(236,220,255,0.32), rgba(255,255,255,0.42));">
+            <h3 class="section-title" style="font-size: 22px;">填写建议</h3>
+            <div class="user-note-list">
+              <div class="user-note-item">
+                <h4>优先保证邮箱与部门准确</h4>
+                <p>这两个字段会直接影响后续邀请通知、组织筛选与导入校验结果。</p>
+              </div>
+              <div class="user-note-item">
+                <h4>管理员角色谨慎授予</h4>
+                <p>平台管理员默认拥有后台访问能力，建议仅在确有需要时开启。</p>
+              </div>
+              <div class="user-note-item">
+                <h4>待激活状态更适合批量入场</h4>
+                <p>如果需要和导入用户一起统一开通，可先保留待激活，后续批量发送邀请。</p>
+              </div>
+            </div>
+          </article>
+        </aside>
+
+        <div class="user-modal-main">
+          <article class="glass-panel user-form-card">
+            <div class="user-form-card-head">
+              <div>
+                <h3 class="section-title" style="font-size: 22px;">基础信息</h3>
+                <p class="section-caption" style="margin-top: 6px;">对应用户列表的主要展示字段和检索字段</p>
+              </div>
+              <span class="pill pill-neutral">主字段</span>
+            </div>
+            <form id="userForm">
+              <div class="field-inline" style="margin-top: 0;">
+                <div class="field-stack">
+                  <label class="field-label">姓名</label>
+                  <div class="field-input">
+                    <span class="material-symbols-outlined">person</span>
+                    <input type="text" name="name" placeholder="请输入姓名" required />
+                  </div>
+                </div>
+                <div class="field-stack">
+                  <label class="field-label">邮箱</label>
+                  <div class="field-input">
+                    <span class="material-symbols-outlined">mail</span>
+                    <input type="email" name="email" placeholder="请输入邮箱" required />
+                  </div>
+                </div>
+              </div>
+
+              <div class="field-inline">
+                <div class="field-stack">
+                  <label class="field-label">部门</label>
+                  <div class="field-input">
+                    <span class="material-symbols-outlined">apartment</span>
+                    <input type="text" name="department" placeholder="请输入部门" />
+                  </div>
+                </div>
+                <div class="field-stack">
+                  <label class="field-label">加入日期</label>
+                  <div class="field-input">
+                    <span class="material-symbols-outlined">calendar_today</span>
+                    <input type="text" name="joinDate" value="2026-04-28" />
+                  </div>
+                </div>
+              </div>
+
+              <article class="glass-soft user-form-card" style="padding: 18px; margin-top: 18px;">
+                <div class="user-form-card-head" style="margin-bottom: 0;">
+                  <div>
+                    <h3 class="section-title" style="font-size: 20px;">账户配置</h3>
+                    <p class="section-caption" style="margin-top: 6px;">决定后台访问范围与初始启用状态</p>
+                  </div>
+                  <span class="pill pill-warning">权限配置</span>
+                </div>
+                <div class="field-inline">
+                  <div class="field-stack">
+                    <label class="field-label">平台角色</label>
+                    <div class="field-input">
+                      <span class="material-symbols-outlined">badge</span>
+                      <select name="role">
+                        <option value="user">普通用户</option>
+                        <option value="admin">管理员</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="field-stack">
+                    <label class="field-label">状态</label>
+                    <div class="field-input">
+                      <span class="material-symbols-outlined">toggle_on</span>
+                      <select name="status">
+                        <option value="待激活">待激活</option>
+                        <option value="正常">正常</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field-stack" style="margin-top: 16px;">
+                  <label class="field-label">说明备注</label>
+                  <div class="field-input">
+                    <span class="material-symbols-outlined">notes</span>
+                    <input type="text" name="note" placeholder="可选：记录来源、协作组或分配说明" />
+                  </div>
+                </div>
+              </article>
+
+              <div class="modal-footer">
+                <div class="modal-status">
+                  <span class="material-symbols-outlined">person_add</span>
+                  新增用户会保留为后台草稿，可继续在角色与通知配置中补齐后续信息。
+                </div>
+                <div class="modal-footer-actions">
+                  <button class="btn-secondary" type="button" data-modal-close><span class="material-symbols-outlined">close</span>取消</button>
+                  <button class="btn-primary" type="submit"><span class="material-symbols-outlined">task_alt</span>确认添加</button>
+                </div>
+              </div>
+            </form>
+          </article>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-shell" data-modal-id="import-users-modal">
+    <div class="modal-backdrop" data-modal-close></div>
+    <section class="modal-panel glass-panel-strong user-modal">
+      <div class="modal-header">
+        <div>
+          <span class="pill pill-success">批量导入</span>
+          <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">导入用户</h2>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">批量导入改成与后台其他弹窗一致的上传、预览和确认结构，避免出现单页外观割裂。</p>
+        </div>
+        <button class="icon-btn" data-modal-close><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <div class="user-modal-grid">
+        <aside class="user-modal-side">
+          <article class="glass-panel user-note-card">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <span class="pill pill-ai">导入流程</span>
+              <span class="pill pill-neutral">Excel</span>
+            </div>
+            <h3 class="section-title" style="font-size: 24px; margin-top: 16px;">批量导入说明</h3>
+            <p class="page-subtitle" style="font-size: 14px; margin-top: 12px;">支持 Excel 拖拽上传、预览检查和统一确认；完成导入后可继续在用户列表中逐条编辑。</p>
+            <div class="user-note-list">
+              <div class="user-note-item">
+                <h4>支持文件类型</h4>
+                <p>仅支持 `.xlsx` 与 `.xls`，建议按模板字段顺序准备数据。</p>
+              </div>
+              <div class="user-note-item">
+                <h4>预览后再确认</h4>
+                <p>预览区会先展示解析结果，确认无误后再执行导入，减少后台脏数据。</p>
+              </div>
+              <div class="user-note-item">
+                <h4>建议统一待激活</h4>
+                <p>如果是批量导入新同事，建议先设置为待激活，再分批发出通知。</p>
+              </div>
+            </div>
+          </article>
+        </aside>
+
+        <div class="user-modal-main">
+          <article class="glass-panel import-upload-card">
+            <div class="import-card-head">
+              <div>
+                <h3 class="section-title" style="font-size: 22px;">上传文件</h3>
+                <p class="section-caption" style="margin-top: 6px;">与项目其他表单保持统一玻璃容器和操作按钮层级</p>
+              </div>
+              <span class="pill pill-neutral">步骤 1 / 2</span>
+            </div>
+
+            <div id="drop-zone" class="upload-zone">
+              <div class="upload-zone-icon"><span class="material-symbols-outlined">upload_file</span></div>
+              <div>
+                <h4 style="font-size: 16px; margin: 0;">点击或拖拽上传 Excel 文件</h4>
+                <p style="margin-top: 8px;">支持 `.xlsx` 和 `.xls` 格式，建议单次导入不超过 1000 条数据。</p>
+              </div>
+              <div class="upload-zone-actions">
+                <button class="btn-primary" id="import-file-trigger" type="button"><span class="material-symbols-outlined">upload</span>选择文件</button>
+                <button class="btn-chip active" id="download-template" type="button"><span class="material-symbols-outlined">download</span>下载导入模板</button>
+              </div>
+              <input type="file" id="import-file-input" accept=".xlsx,.xls" hidden />
+            </div>
+
+            <div id="import-preview" class="import-preview-wrap"></div>
+          </article>
+
+          <div class="modal-footer">
+            <div class="import-helper">
+              <span class="material-symbols-outlined">info</span>
+              导入前请确认姓名、邮箱、部门和平台角色字段格式正确。
+            </div>
+            <div class="modal-footer-actions">
+              <button class="btn-secondary" type="button" data-modal-close><span class="material-symbols-outlined">close</span>取消</button>
+              <button class="btn-primary" id="import-submit" type="button" disabled><span class="material-symbols-outlined">upload</span>导入用户</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="./shared.js"></script>
+  <script>
+    function filterUsers(role) {
+      const rows = document.querySelectorAll('.data-table tbody tr');
+      const buttons = document.querySelectorAll('.table-chip-group .btn-chip');
+
+      buttons.forEach((btn, index) => {
+        btn.classList.remove('active');
+        if (
+          (role === 'all' && index === 0) ||
+          (role === 'admin' && index === 1) ||
+          (role === 'user' && index === 2)
+        ) {
+          btn.classList.add('active');
+        }
+      });
+
+      rows.forEach((row) => {
+        if (role === 'all') {
+          row.style.display = '';
+        } else {
+          row.style.display = row.dataset.role === role ? '' : 'none';
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const createUserModal = document.querySelector('[data-modal-id="create-user-modal"]');
+      const importModal = document.querySelector('[data-modal-id="import-users-modal"]');
+      const userForm = document.getElementById('userForm');
+      const fileInput = document.getElementById('import-file-input');
+      const fileTrigger = document.getElementById('import-file-trigger');
+      const templateButton = document.getElementById('download-template');
+      const dropZone = document.getElementById('drop-zone');
+      const previewContainer = document.getElementById('import-preview');
+      const importButton = document.getElementById('import-submit');
+
+      const closeModalShell = (shell) => {
+        if (shell) shell.classList.remove('open');
+      };
+
+      const resetImportState = () => {
+        if (fileInput) fileInput.value = '';
+        if (previewContainer) {
+          previewContainer.classList.remove('active');
+          previewContainer.innerHTML = '';
+        }
+        if (importButton) importButton.disabled = true;
+        dropZone?.classList.remove('drag-over');
+      };
+
+      document.querySelectorAll('[data-modal-open="create-user-modal"]').forEach((button) => {
+        button.addEventListener('click', () => {
+          userForm?.reset();
+        });
+      });
+
+      document.querySelectorAll('[data-modal-open="import-users-modal"]').forEach((button) => {
+        button.addEventListener('click', resetImportState);
+      });
+
+      userForm?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        window.showToast?.({
+          title: '用户添加成功',
+          message: '新用户草稿已创建，可继续在用户列表中编辑角色与状态。',
+          icon: 'task_alt'
+        });
+        closeModalShell(createUserModal);
+        this.reset();
+      });
+
+      fileTrigger?.addEventListener('click', () => {
+        fileInput?.click();
+      });
+
+      templateButton?.addEventListener('click', () => {
+        window.showToast?.({
+          title: '模板下载任务已创建',
+          message: '导入模板将按当前字段结构导出，请稍后查看下载记录。',
+          icon: 'download'
+        });
+      });
+
+      const showPreview = (fileName) => {
+        if (!previewContainer) return;
+        previewContainer.classList.add('active');
+        previewContainer.innerHTML = `
+          <article class="glass-panel import-preview-card">
+            <div class="import-preview-head">
+              <div>
+                <h4>导入预览</h4>
+                <p>文件：${fileName} · 共 3 条数据，确认无误后再执行导入。</p>
+              </div>
+              <span class="pill pill-success">步骤 2 / 2</span>
+            </div>
+            <table class="data-table import-table">
+              <thead>
+                <tr><th>姓名</th><th>邮箱</th><th>部门</th><th>平台角色</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>赵经理</td><td>zhao@example.com</td><td>产品部</td><td>普通用户</td></tr>
+                <tr><td>钱工程师</td><td>qian@example.com</td><td>研发中心</td><td>管理员</td></tr>
+                <tr><td>孙测试</td><td>sun@example.com</td><td>测试组</td><td>普通用户</td></tr>
+              </tbody>
+            </table>
+          </article>
+        `;
+        if (importButton) importButton.disabled = false;
+      };
+
+      const handleFile = (file) => {
+        if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+          window.showToast?.({
+            title: '文件格式错误',
+            message: '请上传 Excel 文件（.xlsx 或 .xls）。',
+            icon: 'error'
+          });
+          resetImportState();
+          return;
+        }
+
+        showPreview(file.name);
+      };
+
+      dropZone?.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      });
+
+      dropZone?.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+      });
+
+      dropZone?.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) handleFile(files[0]);
+      });
+
+      dropZone?.addEventListener('click', (e) => {
+        if (e.target.closest('button')) return;
+        fileInput?.click();
+      });
+
+      fileInput?.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) handleFile(e.target.files[0]);
+      });
+
+      importButton?.addEventListener('click', () => {
+        window.showToast?.({
+          title: '导入成功',
+          message: '成功导入 3 条用户数据，建议继续检查角色与状态字段。',
+          icon: 'task_alt'
+        });
+        closeModalShell(importModal);
+        resetImportState();
+      });
+    });
+  </script>
+</body>
+</html>

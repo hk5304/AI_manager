@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>任务详情</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box">
+        <div class="brand-icon"><span class="material-symbols-outlined">science</span></div>
+        <div><h1 class="brand-title">R&D 系统</h1><p class="brand-subtitle">AI 驱动型协作平台</p></div>
+      </div>
+      <button class="sidebar-primary-cta"><span class="material-symbols-outlined">edit_square</span>编辑任务</button>
+      <nav class="sidebar-nav">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></a>
+        <a class="nav-item active" href="./projects.html"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></a>
+        <a class="nav-item" href="./workbench.html"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></a>
+        <a class="nav-item" href="./reports.html"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></a>
+        <a class="nav-item" href="./settings.html"><span class="material-symbols-outlined">settings</span><span>系统设置</span></a>
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></a>
+      </nav>
+    </aside>
+    <header class="app-topbar">
+      <div class="topbar-left"><div><h2 class="topbar-title">任务详情</h2><div class="topbar-breadcrumb"><span>任务</span><span>/</span><span>联调环境参数回灌</span></div></div></div>
+      <div class="topbar-right">
+        <label class="search-shell"><span class="material-symbols-outlined">search</span><input type="text" placeholder="搜索任务活动、评论或子任务..." /></label>
+        <button class="icon-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+      </div>
+    </header>
+    <main class="app-content">
+      <div class="page-stack">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">联调环境参数回灌</h1>
+            <p class="page-subtitle">任务详情页采用左主右辅结构，右侧保留任务状态与 AI 助手信息，不挤占主编辑区域。</p>
+          </div>
+          <div class="page-actions">
+            <span class="pill pill-danger">已阻塞</span>
+            <button class="btn-primary">变更状态</button>
+          </div>
+        </div>
+        <section class="detail-layout">
+          <div class="detail-main">
+            <article class="detail-card glass-panel">
+              <h2 class="section-title">任务描述</h2>
+              <p class="page-subtitle" style="font-size:15px; margin-top:16px; line-height:1.8;">需要将联调环境的参数冻结版本回灌到测试环境，并与“样本误差回归验证”任务保持一致。当前阻塞原因是测试环境配置窗口未确认，导致回灌操作无法开始。</p>
+            </article>
+            <article class="detail-card glass-panel">
+              <h2 class="section-title">子任务</h2>
+              <div class="task-list" style="margin-top:18px;">
+                <div class="task-row"><div class="task-icon done"><span class="material-symbols-outlined">check</span></div><div style="flex:1;"><p class="task-title">确认回灌参数版本</p><p class="task-note">已完成 · 负责人：韩诚</p></div></div>
+                <div class="task-row"><div class="task-icon pending"><span class="material-symbols-outlined">block</span></div><div style="flex:1;"><p class="task-title">等待测试环境配置窗口</p><p class="task-note">阻塞依赖：平台组环境冻结</p></div></div>
+                <div class="task-row"><div class="task-icon"><span class="material-symbols-outlined">task_alt</span></div><div style="flex:1;"><p class="task-title">执行回灌并记录日志</p><p class="task-note">待开始 · 负责人：陈思远</p></div></div>
+              </div>
+            </article>
+            <article class="detail-card glass-panel">
+              <h2 class="section-title">评论与活动</h2>
+              <div class="comment-list" style="margin-top:18px;">
+                <div class="comment-card">
+                  <div class="comment-head">
+                    <div class="comment-author"><img src="https://i.pravatar.cc/80?img=22" alt="陈思远" /><div><strong>陈思远</strong><div class="section-caption">今天 11:24</div></div></div>
+                    <span class="pill pill-warning">已阻塞</span>
+                  </div>
+                  <p class="page-subtitle" style="font-size:14px; line-height:1.7;">当前卡点是平台组尚未确认测试环境冻结窗口，建议 PM 协调后再推进回灌。</p>
+                </div>
+                <div class="comment-card">
+                  <div class="comment-head">
+                    <div class="comment-author"><img src="https://i.pravatar.cc/80?img=47" alt="王志强" /><div><strong>王志强</strong><div class="section-caption">今天 12:08</div></div></div>
+                    <span class="pill pill-ai">PM 回复</span>
+                  </div>
+                  <p class="page-subtitle" style="font-size:14px; line-height:1.7;">已联系平台组，若 15:00 前无反馈，将按 AI 建议临时调整资源窗口。</p>
+                </div>
+              </div>
+            </article>
+          </div>
+          <aside class="detail-side">
+            <article class="detail-card glass-panel">
+              <h2 class="section-title">任务信息</h2>
+              <div class="settings-list" style="margin-top:18px;">
+                <div class="settings-row"><div><strong>负责人</strong><span>陈思远</span></div></div>
+                <div class="settings-row"><div><strong>优先级</strong><span>P0</span></div></div>
+                <div class="settings-row"><div><strong>截止日期</strong><span>今天 18:00</span></div></div>
+                <div class="settings-row"><div><strong>关联项目</strong><span>纳米晶体结构优化</span></div></div>
+                <div class="settings-row"><div><strong>关联 PBC</strong><span>提升团队协作效率</span></div></div>
+              </div>
+            </article>
+            <article class="detail-card glass-panel" style="background: linear-gradient(180deg, rgba(255,218,214,0.34), rgba(255,255,255,0.46));">
+              <h2 class="section-title">阻塞原因</h2>
+              <p class="page-subtitle" style="font-size:14px; margin-top:14px;">测试环境配置窗口未确认，且阻塞依赖任务“测试环境参数冻结”尚未完成。</p>
+            </article>
+            <article class="detail-card glass-panel" style="background: linear-gradient(180deg, rgba(236,220,255,0.32), rgba(255,255,255,0.42));">
+              <h2 class="section-title">右侧 AI 助手面板</h2>
+              <p class="page-subtitle" style="font-size:14px; margin-top:14px;">建议先协调平台组冻结测试环境，再把日志补录转交给 QA 协作者，预计可追回 0.4 天。</p>
+              <div class="ai-actions">
+                <button class="btn-primary">一键采纳</button>
+                <button class="btn-secondary">手动拆解</button>
+              </div>
+            </article>
+          </aside>
+        </section>
+      </div>
+    </main>
+  </div>
+  <button class="floating-ai-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+  <div class="ai-overlay" data-ai-overlay></div>
+  <aside class="ai-drawer" data-ai-drawer>
+    <div class="ai-header"><div><h3>AI 助手</h3><p class="section-caption">当前上下文：任务详情</p></div><button class="icon-btn" data-ai-close><span class="material-symbols-outlined">close</span></button></div>
+    <div class="ai-card"><h4>任务拆解建议</h4><p>可把当前任务拆成“环境冻结确认”“回灌执行”“日志补录”三个子任务，并分别指定负责人。</p><div class="ai-actions"><button class="btn-primary">生成子任务</button><button class="btn-secondary">生成更新说明</button></div></div>
+  </aside>
+  <script src="./shared.js"></script>
+</body>
+</html>

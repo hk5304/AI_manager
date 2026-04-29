@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>项目甘特图</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box">
+        <div class="brand-icon"><span class="material-symbols-outlined">science</span></div>
+        <div>
+          <h1 class="brand-title">R&D 系统</h1>
+          <p class="brand-subtitle">AI 驱动型协作平台</p>
+        </div>
+      </div>
+      <button class="sidebar-primary-cta">
+        <span class="material-symbols-outlined">track_changes</span>
+        设置基线
+      </button>
+      <nav class="sidebar-nav">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></a>
+        <a class="nav-item active" href="./projects.html"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></a>
+        <a class="nav-item" href="./workbench.html"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></a>
+        <a class="nav-item" href="./reports.html"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></a>
+        <a class="nav-item" href="./settings.html"><span class="material-symbols-outlined">settings</span><span>系统设置</span></a>
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></a>
+      </nav>
+    </aside>
+
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div>
+          <h2 class="topbar-title">项目排期</h2>
+          <div class="topbar-breadcrumb">
+            <span>项目</span>
+            <span>/</span>
+            <span>纳米晶体结构优化</span>
+            <span>/</span>
+            <span>甘特图</span>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <label class="search-shell">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" placeholder="搜索里程碑或任务..." />
+        </label>
+        <button class="icon-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+        <div class="avatar-chip">
+          <img src="https://i.pravatar.cc/80?img=47" alt="王志强" />
+          <div>
+            <strong>王志强</strong>
+            <span>项目负责人</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <div class="page-stack">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">项目甘特图</h1>
+            <p class="page-subtitle">基于模板与里程碑节点渲染当前计划，支持基线对比、关键路径和依赖关系展示。</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn-secondary"><span class="material-symbols-outlined">route</span>关键路径</button>
+            <button class="btn-primary"><span class="material-symbols-outlined">schedule_send</span>更新排期</button>
+          </div>
+        </div>
+
+        <section class="glass-panel" style="padding: 20px 24px; border-radius: 24px;">
+          <div style="display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; align-items: center;">
+            <div>
+              <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <span class="pill pill-success">进行中</span>
+                <span class="pill pill-warning">联调偏差 +2 天</span>
+              </div>
+              <h2 class="section-title" style="margin-top: 14px;">纳米晶体结构优化</h2>
+              <p class="page-subtitle" style="font-size: 15px; margin-top: 8px;">负责人：王志强 · 时间范围：04/14 - 05/16 · 当前进度：72%</p>
+            </div>
+            <div class="summary-kpis" style="margin-top: 0;">
+              <div class="summary-kpi">
+                <span>关键路径</span>
+                <strong>3 段</strong>
+              </div>
+              <div class="summary-kpi">
+                <span>基线版本</span>
+                <strong>V2</strong>
+              </div>
+              <div class="summary-kpi">
+                <span>超期节点</span>
+                <strong style="color: var(--color-danger-600);">1 个</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <nav class="subnav-bar glass-panel">
+          <a class="subnav-link" href="./project-overview.html">概览</a>
+          <a class="subnav-link" href="./project-kanban.html">项目看板</a>
+          <a class="subnav-link active" href="./project-gantt.html">项目甘特图</a>
+          <a class="subnav-link" href="./project-risk.html">风险看板</a>
+          <a class="subnav-link" href="./project-members.html">成员管理</a>
+          <a class="subnav-link" href="./project-reports.html">报表</a>
+          <a class="subnav-link" href="./project-docs.html">文档</a>
+        </nav>
+
+        <section class="grid-3-2">
+          <div class="gantt-shell glass-panel">
+            <div class="gantt-toolbar">
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn-chip active">按周</button>
+                <button class="btn-chip">按日</button>
+                <button class="btn-chip">按月</button>
+              </div>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn-chip active" data-toggle-target="#gantt-stage" data-toggle-class="hide-baseline">显示基线</button>
+                <button class="btn-chip"><span class="material-symbols-outlined">share</span>依赖关系</button>
+                <button class="btn-chip"><span class="material-symbols-outlined">unfold_more</span>缩放</button>
+              </div>
+            </div>
+
+            <div class="gantt-layout">
+              <div class="gantt-side">
+                <div class="gantt-head-row">
+                  <div>里程碑 / 任务</div>
+                  <div>负责人</div>
+                </div>
+                <div class="gantt-item-row">
+                  <div><strong>需求评审</strong></div>
+                  <div class="section-caption">王志强</div>
+                </div>
+                <div class="gantt-item-row">
+                  <div><strong>开发实现</strong></div>
+                  <div class="section-caption">韩诚</div>
+                </div>
+                <div class="gantt-item-row">
+                  <div><strong>联调验证</strong></div>
+                  <div class="section-caption">陈思远</div>
+                </div>
+                <div class="gantt-item-row">
+                  <div><strong>上线验收</strong></div>
+                  <div class="section-caption">周雅楠</div>
+                </div>
+              </div>
+
+              <div class="gantt-stage" id="gantt-stage">
+                <div class="gantt-head-row">
+                  <div>04/14</div><div>04/21</div><div>04/28</div><div>05/05</div><div>05/12</div><div>05/19</div><div>05/26</div><div>06/02</div><div>06/09</div><div>06/16</div><div>06/23</div><div>06/30</div>
+                </div>
+
+                <div class="gantt-item-row">
+                  <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                  <div class="gantt-bar-layer">
+                    <div class="gantt-baseline" style="left: 2%; width: 18%;"></div>
+                    <div class="gantt-bar blue" style="left: 2%; width: 18%;"></div>
+                  </div>
+                </div>
+                <div class="gantt-item-row">
+                  <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                  <div class="gantt-bar-layer">
+                    <div class="gantt-baseline" style="left: 20%; width: 26%;"></div>
+                    <div class="gantt-bar purple" style="left: 20%; width: 30%;"></div>
+                  </div>
+                </div>
+                <div class="gantt-item-row">
+                  <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                  <div class="gantt-bar-layer">
+                    <div class="gantt-baseline" style="left: 49%; width: 18%;"></div>
+                    <div class="gantt-bar red" style="left: 53%; width: 21%;"></div>
+                  </div>
+                </div>
+                <div class="gantt-item-row">
+                  <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                  <div class="gantt-bar-layer">
+                    <div class="gantt-baseline" style="left: 68%; width: 16%;"></div>
+                    <div class="gantt-bar green" style="left: 73%; width: 14%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+              <h2 class="section-title">排期摘要</h2>
+              <div class="summary-kpis" style="margin-top: 16px;">
+                <div class="summary-kpi">
+                  <span>关键路径</span>
+                  <strong>开发 → 联调 → 验收</strong>
+                </div>
+                <div class="summary-kpi">
+                  <span>偏差</span>
+                  <strong style="color: var(--color-danger-600);">+2 天</strong>
+                </div>
+              </div>
+              <p class="page-subtitle" style="font-size: 14px; margin-top: 16px;">当前实际计划主要偏差集中在“联调验证”，其余里程碑仍在可控范围内。</p>
+            </div>
+
+            <div class="glass-panel" style="padding: 24px; border-radius: 24px; background: linear-gradient(180deg, rgba(236,220,255,0.28), rgba(255,255,255,0.42));">
+              <h2 class="section-title">AI 排期建议</h2>
+              <p class="page-subtitle" style="font-size: 14px; margin-top: 14px;">若将 QA 提前一周介入联调准备，并拆分“回灌验证”与“异常样本校正”两项任务，可追回 0.8 天，并降低关键路径波动。</p>
+              <div class="ai-actions">
+                <button class="btn-primary">采纳建议</button>
+                <button class="btn-secondary">生成任务</button>
+              </div>
+            </div>
+
+            <div class="glass-panel" style="padding: 24px; border-radius: 24px;">
+              <h2 class="section-title">图例</h2>
+              <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+                <div class="gantt-flag"><span class="material-symbols-outlined" style="color: var(--color-primary-700);">timeline</span>当前计划</div>
+                <div class="gantt-flag"><span class="material-symbols-outlined" style="color: var(--color-text-tertiary);">layers</span>基线计划</div>
+                <div class="gantt-flag"><span class="material-symbols-outlined" style="color: var(--color-danger-600);">warning</span>偏差节点</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <button class="floating-ai-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+  <div class="ai-overlay" data-ai-overlay></div>
+  <aside class="ai-drawer" data-ai-drawer>
+    <div class="ai-header">
+      <div>
+        <h3>AI 助手</h3>
+        <p class="section-caption">当前上下文：项目甘特图</p>
+      </div>
+      <button class="icon-btn" data-ai-close><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="ai-card">
+      <h4>基线偏差说明</h4>
+      <p>“联调验证”条形已超过基线半透明条 2 天，建议优先处理环境参数回灌和 QA 资源安排，以免影响上线验收窗口。</p>
+      <div class="ai-actions">
+        <button class="btn-primary">创建补救计划</button>
+        <button class="btn-secondary">导出风险摘要</button>
+      </div>
+    </div>
+    <div class="ai-list">
+      <div class="ai-list-item">
+        <h4>关键路径提醒</h4>
+        <p>开发实现、联调验证、上线验收构成当前最长依赖链，请勿在该链路上新增低优先级任务。</p>
+      </div>
+    </div>
+  </aside>
+
+  <script src="./shared.js"></script>
+</body>
+</html>

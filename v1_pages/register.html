@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>注册</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-card glass-panel-strong" style="width:min(720px,100%);">
+      <div class="auth-header">
+        <div class="auth-brand-mark"><span class="material-symbols-outlined" style="font-size: 34px;">person_add</span></div>
+        <h1 class="page-title" style="font-size: 28px; margin: 0;">创建协作账户</h1>
+        <p class="page-subtitle" style="margin: 0;">延续登录页风格，注册后可进入项目、任务、报表与 AI 协作流程。</p>
+      </div>
+      <form class="auth-form">
+        <div class="field-inline">
+          <div class="field-stack">
+            <label class="field-label">账号</label>
+            <div class="field-input"><span class="material-symbols-outlined">badge</span><input type="text" placeholder="研发工号" /></div>
+          </div>
+          <div class="field-stack">
+            <label class="field-label">姓名</label>
+            <div class="field-input"><span class="material-symbols-outlined">person</span><input type="text" placeholder="请输入姓名" /></div>
+          </div>
+        </div>
+        <div class="field-inline">
+          <div class="field-stack">
+            <label class="field-label">邮箱</label>
+            <div class="field-input"><span class="material-symbols-outlined">mail</span><input type="email" placeholder="请输入邮箱" /></div>
+          </div>
+          <div class="field-stack">
+            <label class="field-label">部门</label>
+            <div class="field-input"><span class="material-symbols-outlined">apartment</span><input type="text" placeholder="请输入部门" /></div>
+          </div>
+        </div>
+        <div class="field-inline">
+          <div class="field-stack">
+            <label class="field-label">密码</label>
+            <div class="field-input"><span class="material-symbols-outlined">lock</span><input type="password" placeholder="设置密码" /></div>
+          </div>
+          <div class="field-stack">
+            <label class="field-label">确认密码</label>
+            <div class="field-input"><span class="material-symbols-outlined">verified_user</span><input type="password" placeholder="再次输入密码" /></div>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; gap:14px; align-items:center;">
+          <span class="section-caption">提交后由系统管理员审核并分配平台角色。</span>
+          <a href="./login.html" style="color: var(--color-primary-700); font-weight: 600;">返回登录</a>
+        </div>
+        <button class="btn-primary" type="button" style="min-height:54px; font-size:18px;">提交注册</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

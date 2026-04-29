@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>项目文档</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box">
+        <div class="brand-icon"><span class="material-symbols-outlined">science</span></div>
+        <div><h1 class="brand-title">R&D 系统</h1><p class="brand-subtitle">AI 驱动型协作平台</p></div>
+      </div>
+      <button class="sidebar-primary-cta"><span class="material-symbols-outlined">upload_file</span>上传文档</button>
+      <nav class="sidebar-nav">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></a>
+        <a class="nav-item active" href="./projects.html"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></a>
+        <a class="nav-item" href="./workbench.html"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></a>
+        <a class="nav-item" href="./reports.html"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></a>
+        <a class="nav-item" href="./settings.html"><span class="material-symbols-outlined">settings</span><span>系统设置</span></a>
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></a>
+      </nav>
+    </aside>
+    <header class="app-topbar">
+      <div class="topbar-left"><div><h2 class="topbar-title">项目文档</h2><div class="topbar-breadcrumb"><span>项目</span><span>/</span><span>纳米晶体结构优化</span><span>/</span><span>文档</span></div></div></div>
+      <div class="topbar-right">
+        <label class="search-shell"><span class="material-symbols-outlined">search</span><input type="text" placeholder="搜索文档、版本或标签..." /></label>
+        <button class="icon-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+      </div>
+    </header>
+    <main class="app-content">
+      <div class="page-stack">
+        <div class="page-header">
+          <div><h1 class="page-title">项目文档</h1><p class="page-subtitle">首版保留统一空态与示例文档卡片，方便后续继续接入文档列表、版本记录和 AI 摘要。</p></div>
+          <div class="page-actions"><button class="btn-secondary">版本记录</button><button class="btn-primary">上传新文档</button></div>
+        </div>
+        <nav class="subnav-bar glass-panel">
+          <a class="subnav-link" href="./project-overview.html">概览</a>
+          <a class="subnav-link" href="./project-kanban.html">项目看板</a>
+          <a class="subnav-link" href="./project-gantt.html">项目甘特图</a>
+          <a class="subnav-link" href="./project-risk.html">风险看板</a>
+          <a class="subnav-link" href="./project-members.html">成员管理</a>
+          <a class="subnav-link" href="./project-reports.html">报表</a>
+          <a class="subnav-link active" href="./project-docs.html">文档</a>
+        </nav>
+        <section class="doc-grid">
+          <article class="doc-card glass-panel">
+            <span class="pill pill-success">最新版本</span>
+            <h3 style="margin-top:14px; font-size:20px;">需求评审纪要</h3>
+            <p>记录需求边界、时间计划和依赖说明，供 PM、研发与 QA 对齐使用。</p>
+            <div class="summary-kpis"><div class="summary-kpi"><span>更新时间</span><strong>今天 10:40</strong></div></div>
+          </article>
+          <article class="doc-card glass-panel">
+            <span class="pill pill-ai">AI 摘要</span>
+            <h3 style="margin-top:14px; font-size:20px;">联调验证说明</h3>
+            <p>包含当前联调阶段的前置条件、关键风险和任务引用，可自动生成摘要。</p>
+            <div class="summary-kpis"><div class="summary-kpi"><span>标签</span><strong>联调 / 风险</strong></div></div>
+          </article>
+          <article class="doc-card glass-panel">
+            <span class="pill pill-warning">待补充</span>
+            <h3 style="margin-top:14px; font-size:20px;">回归样本池说明</h3>
+            <p>当前文档仅存在占位，建议下一轮把样本来源、版本和映射关系整理进来。</p>
+            <div class="summary-kpis"><div class="summary-kpi"><span>责任人</span><strong>QA 组</strong></div></div>
+          </article>
+        </section>
+        <section class="empty-card glass-panel">
+          <span class="material-symbols-outlined" style="font-size:56px; color: var(--color-primary-700);">folder_open</span>
+          <h3 style="margin-top:18px; font-size:26px;">文档页首版以风格基线为主</h3>
+          <p>当前已保留列表卡、版本、AI 摘要和空状态表达，后续可继续扩展为真实文档中心。</p>
+        </section>
+      </div>
+    </main>
+  </div>
+  <button class="floating-ai-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+  <div class="ai-overlay" data-ai-overlay></div>
+  <aside class="ai-drawer" data-ai-drawer>
+    <div class="ai-header"><div><h3>AI 助手</h3><p class="section-caption">当前上下文：项目文档</p></div><button class="icon-btn" data-ai-close><span class="material-symbols-outlined">close</span></button></div>
+    <div class="ai-card"><h4>文档建议</h4><p>建议优先补齐“回归样本池说明”，并将需求评审纪要自动链接到联调验证任务。</p><div class="ai-actions"><button class="btn-primary">生成文档提纲</button><button class="btn-secondary">生成摘要</button></div></div>
+  </aside>
+  <script src="./shared.js"></script>
+</body>
+</html>

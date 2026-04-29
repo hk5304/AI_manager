@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>审计日志</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box"><div class="brand-icon"><span class="material-symbols-outlined">admin_panel_settings</span></div><div><h1 class="brand-title">Admin Console</h1><p class="brand-subtitle">系统管理入口</p></div></div>
+      <button class="sidebar-primary-cta"><span class="material-symbols-outlined">download</span>导出日志</button>
+      <nav class="sidebar-nav" style="margin-top:20px;">
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">grid_view</span><span>管理首页</span></a>
+        <a class="nav-item" href="./admin-users.html"><span class="material-symbols-outlined">group</span><span>用户管理</span></a>
+        <a class="nav-item" href="./admin-roles.html"><span class="material-symbols-outlined">badge</span><span>角色管理</span></a>
+        <a class="nav-item active" href="./admin-logs.html"><span class="material-symbols-outlined">receipt_long</span><span>审计日志</span></a>
+        <a class="nav-item" href="./admin-system.html"><span class="material-symbols-outlined">settings</span><span>系统配置</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">arrow_back</span><span>返回主系统</span></a>
+      </div>
+    </aside>
+    <header class="app-topbar"><div class="topbar-left"><div><h2 class="topbar-title">审计日志</h2><div class="topbar-breadcrumb"><span>后台管理</span><span>/</span><span>审计日志</span></div></div></div></header>
+    <main class="app-content">
+      <div class="page-stack">
+        <div class="page-header"><div><h1 class="page-title">审计日志</h1><p class="page-subtitle">操作日志页维持高可读性表格风格，用于检查敏感操作、删除记录和系统改动。</p></div></div>
+        <section class="admin-table-card glass-panel">
+          <div class="admin-toolbar"><label class="search-shell"><span class="material-symbols-outlined">search</span><input type="text" placeholder="搜索操作者、对象、动作..." /></label><div class="table-chip-group"><button class="btn-chip active" onclick="filterLogs('all')">全部动作</button><button class="btn-chip" onclick="filterLogs('delete')">删除</button><button class="btn-chip" onclick="filterLogs('config')">配置</button></div></div>
+          <table class="data-table">
+            <thead><tr><th>时间</th><th>操作者</th><th>动作</th><th>对象</th><th>结果</th></tr></thead>
+            <tbody>
+              <tr data-action="delete"><td>2026-04-26 10:43</td><td>系统管理员</td><td>删除模板</td><td>临时排障模板</td><td><span class="pill pill-success">成功</span></td></tr>
+              <tr data-action="config"><td>2026-04-26 09:28</td><td>王志强</td><td>更新权限</td><td>项目归档恢复</td><td><span class="pill pill-success">成功</span></td></tr>
+              <tr data-action="config"><td>2026-04-26 09:15</td><td>张工</td><td>修改配置</td><td>系统参数</td><td><span class="pill pill-danger">失败</span></td></tr>
+              <tr data-action="other"><td>2026-04-25 18:11</td><td>李工</td><td>导出报表</td><td>全局效率周报</td><td><span class="pill pill-success">成功</span></td></tr>
+              <tr data-action="other"><td>2026-04-25 16:30</td><td>测试员</td><td>登录系统</td><td>后台管理</td><td><span class="pill pill-danger">失败</span></td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function filterLogs(type) {
+      const rows = document.querySelectorAll('.data-table tbody tr');
+      const buttons = document.querySelectorAll('.table-chip-group .btn-chip');
+
+      // 更新按钮状态
+      buttons.forEach((btn, index) => {
+        btn.classList.remove('active');
+        if ((type === 'all' && index === 0) ||
+            (type === 'delete' && index === 1) ||
+            (type === 'config' && index === 2)) {
+          btn.classList.add('active');
+        }
+      });
+
+      // 筛选表格行
+      rows.forEach(row => {
+        const action = row.dataset.action;
+        if (type === 'all') {
+          row.style.display = '';
+        } else if (type === 'delete') {
+          row.style.display = action === 'delete' ? '' : 'none';
+        } else if (type === 'config') {
+          row.style.display = action === 'config' ? '' : 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+:root {
+  /* 主色调 */
+  --primary-color: #1890FF;
+  --primary-hover: #40a9ff;
+  --primary-active: #096dd9;
+  
+  /* AI交互高亮色 */
+  --ai-gradient-start: #722ed1;
+  --ai-gradient-end: #1890ff;
+  
+  /* 状态颜色 */
+  --success-color: #52C41A;
+  --warning-color: #FAAD14;
+  --danger-color: #FF4D4F;
+  --info-color: #1890FF;
+  
+  /* 背景颜色 */
+  --bg-color: #F0F2F5;
+  --card-bg: #FFFFFF;
+  --sidebar-bg: #304156;
+  --header-bg: #FFFFFF;
+  
+  /* 文本颜色 */
+  --text-primary: #333333;
+  --text-secondary: #606266;
+  --text-light: #909399;
+  --text-white: #FFFFFF;
+  
+  /* 边框颜色 */
+  --border-color: #dcdfe6;
+  --border-light: #e4e7ed;
+  --border-dark: #c0c4cc;
+  
+  /* 阴影 */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 6px 20px rgba(0, 0, 0, 0.2);
+  
+  /* 圆角 */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-full: 50%;
+  
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* 字体大小 */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  
+  /* 过渡效果 */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}

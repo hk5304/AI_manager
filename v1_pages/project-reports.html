@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>项目报表</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box">
+        <div class="brand-icon"><span class="material-symbols-outlined">science</span></div>
+        <div>
+          <h1 class="brand-title">R&D 系统</h1>
+          <p class="brand-subtitle">AI 驱动型协作平台</p>
+        </div>
+      </div>
+      <button class="sidebar-primary-cta">
+        <span class="material-symbols-outlined">download</span>
+        导出报表
+      </button>
+      <nav class="sidebar-nav">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></a>
+        <a class="nav-item active" href="./projects.html"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></a>
+        <a class="nav-item" href="./workbench.html"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></a>
+        <a class="nav-item" href="./reports.html"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></a>
+        <a class="nav-item" href="./settings.html"><span class="material-symbols-outlined">settings</span><span>系统设置</span></a>
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></a>
+      </nav>
+    </aside>
+
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div>
+          <h2 class="topbar-title">项目报表</h2>
+          <div class="topbar-breadcrumb">
+            <span>项目</span><span>/</span><span>纳米晶体结构优化</span><span>/</span><span>报表</span>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <label class="search-shell">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" placeholder="搜索报表、图表或成员..." />
+        </label>
+        <button class="icon-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+        <div class="avatar-chip">
+          <img src="https://i.pravatar.cc/80?img=47" alt="王志强" />
+          <div><strong>王志强</strong><span>项目负责人</span></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <div class="page-stack">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">项目报表</h1>
+            <p class="page-subtitle">聚合进度、工时与质量数据，并以 AI 洞察卡方式生成周报结论和风险建议。</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn-secondary"><span class="material-symbols-outlined">schedule</span>定时订阅</button>
+            <button class="btn-primary"><span class="material-symbols-outlined">description</span>导出 PDF</button>
+          </div>
+        </div>
+
+        <nav class="subnav-bar glass-panel">
+          <a class="subnav-link" href="./project-overview.html">概览</a>
+          <a class="subnav-link" href="./project-kanban.html">项目看板</a>
+          <a class="subnav-link" href="./project-gantt.html">项目甘特图</a>
+          <a class="subnav-link" href="./project-risk.html">风险看板</a>
+          <a class="subnav-link" href="./project-members.html">成员管理</a>
+          <a class="subnav-link active" href="./project-reports.html">报表</a>
+          <a class="subnav-link" href="./project-docs.html">文档</a>
+        </nav>
+
+        <section class="glass-panel filter-bar">
+          <button class="btn-chip active">最近 30 天</button>
+          <button class="btn-chip">本周</button>
+          <button class="btn-chip">全部成员</button>
+          <button class="btn-chip">进度报表</button>
+          <button class="btn-chip">工时报表</button>
+          <button class="btn-chip">质量报表</button>
+        </section>
+
+        <section class="summary-card glass-panel">
+          <div class="summary-content">
+            <span class="pill pill-ai"><span class="material-symbols-outlined">auto_awesome</span>AI 洞察卡片</span>
+            <h2 class="section-title" style="font-size: 32px; margin-top: 18px;">本周团队效率提升 12%，但联调节点仍是唯一主风险源。</h2>
+            <p class="page-subtitle" style="margin-top: 14px; max-width: 980px;">AI 综合燃尽图、成员负载与 Bug 趋势后判断：当前项目整体可控，主要问题集中在联调准备时间与测试环境冻结。建议下周优先协调平台组与 QA 的时间窗口，并提前生成周报草稿给相关成员确认。</p>
+            <div class="ai-actions" style="margin-top: 20px;">
+              <button class="btn-primary">一键导出 Markdown</button>
+              <button class="btn-secondary">点赞反馈</button>
+              <button class="btn-secondary">点踩反馈</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid-2">
+          <div class="chart-card glass-panel">
+            <div class="chart-header">
+              <h2 class="section-title">燃尽图</h2>
+              <span class="section-caption">剩余工作量趋势</span>
+            </div>
+            <div class="dual-line">
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 74%;"></span><span class="dot-b" style="bottom: 78%;"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 66%;"></span><span class="dot-b" style="bottom: 70%;"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 58%;"></span><span class="dot-b" style="bottom: 61%;"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 51%;"></span><span class="dot-b" style="bottom: 54%;"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 45%;"></span><span class="dot-b" style="bottom: 42%;"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 36%;"></span><span class="dot-b" style="bottom: 31%;"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 29%;"></span><span class="dot-b" style="bottom: 22%;"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 21%;"></span><span class="dot-b" style="bottom: 14%;"></span></div>
+            </div>
+            <div class="legend" style="margin-top: 16px;">
+              <span style="display:inline-flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background: var(--color-primary-700); display:inline-block;"></span>实际剩余</span>
+              <span style="display:inline-flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background: var(--color-secondary-600); display:inline-block;"></span>目标燃尽</span>
+            </div>
+          </div>
+
+          <div class="chart-card glass-panel">
+            <div class="chart-header">
+              <h2 class="section-title">计划 vs 实际工时</h2>
+              <span class="section-caption">按成员对比</span>
+            </div>
+            <div class="bar-chart">
+              <div class="bar-item"><div class="bar-track"><div class="bar-fill" style="height: 82%; background: linear-gradient(180deg, var(--color-primary-400), var(--color-primary-700));"></div></div><span>王志强</span></div>
+              <div class="bar-item"><div class="bar-track"><div class="bar-fill" style="height: 92%; background: linear-gradient(180deg, #f7c455, var(--color-warning-600));"></div></div><span>陈思远</span></div>
+              <div class="bar-item"><div class="bar-track"><div class="bar-fill" style="height: 58%; background: linear-gradient(180deg, #38c59b, var(--color-secondary-600));"></div></div><span>王雅婷</span></div>
+              <div class="bar-item"><div class="bar-track"><div class="bar-fill" style="height: 36%; background: linear-gradient(180deg, #a871ff, var(--color-tertiary-600));"></div></div><span>赵扬</span></div>
+            </div>
+          </div>
+
+          <div class="chart-card glass-panel">
+            <div class="chart-header">
+              <h2 class="section-title">Bug 趋势</h2>
+              <span class="section-caption">新增 / 关闭</span>
+            </div>
+            <div class="dual-line">
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 48%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 18%; background: var(--color-secondary-600);"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 58%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 25%; background: var(--color-secondary-600);"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 44%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 36%; background: var(--color-secondary-600);"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 39%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 42%; background: var(--color-secondary-600);"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 31%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 46%; background: var(--color-secondary-600);"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 22%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 41%; background: var(--color-secondary-600);"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 18%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 33%; background: var(--color-secondary-600);"></span></div>
+              <div class="point-col"><div class="track"></div><span class="dot-a" style="bottom: 13%; background: var(--color-danger-600);"></span><span class="dot-b" style="bottom: 28%; background: var(--color-secondary-600);"></span></div>
+            </div>
+          </div>
+
+          <div class="chart-card glass-panel">
+            <div class="chart-header">
+              <h2 class="section-title">阻塞时长与负载分布</h2>
+              <span class="section-caption">小时 / 人员</span>
+            </div>
+            <div class="mini-bars">
+              <div class="mini-bar-row"><span>联调环境</span><div class="progress-track"><div class="progress-fill" style="width: 78%; background: linear-gradient(90deg, #f36b63, var(--color-danger-600));"></div></div><strong>31h</strong></div>
+              <div class="mini-bar-row"><span>样本验证</span><div class="progress-track"><div class="progress-fill" style="width: 52%; background: linear-gradient(90deg, #f7c455, var(--color-warning-600));"></div></div><strong>19h</strong></div>
+              <div class="mini-bar-row"><span>平台组负载</span><div class="progress-track"><div class="progress-fill" style="width: 91%; background: linear-gradient(90deg, #a871ff, var(--color-tertiary-600));"></div></div><strong>91%</strong></div>
+              <div class="mini-bar-row"><span>QA 负载</span><div class="progress-track"><div class="progress-fill" style="width: 58%; background: linear-gradient(90deg, #38c59b, var(--color-secondary-600));"></div></div><strong>58%</strong></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <button class="floating-ai-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+  <div class="ai-overlay" data-ai-overlay></div>
+  <aside class="ai-drawer" data-ai-drawer>
+    <div class="ai-header">
+      <div><h3>AI 助手</h3><p class="section-caption">当前上下文：项目报表</p></div>
+      <button class="icon-btn" data-ai-close><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="ai-card">
+      <h4>周报撰写建议</h4>
+      <p>当前报表最值得强调的结论是“整体效率提升 12%，但联调节点是唯一主风险”，适合作为周报首段摘要。</p>
+      <div class="ai-actions">
+        <button class="btn-primary">自动生成周报</button>
+        <button class="btn-secondary">复制 Markdown</button>
+      </div>
+    </div>
+  </aside>
+  <script src="./shared.js"></script>
+</body>
+</html>

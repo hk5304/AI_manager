@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>系统设置</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="brand-box">
+        <div class="brand-icon"><span class="material-symbols-outlined">science</span></div>
+        <div><h1 class="brand-title">R&D 系统</h1><p class="brand-subtitle">AI 驱动型协作平台</p></div>
+      </div>
+      <button class="sidebar-primary-cta"><span class="material-symbols-outlined">save</span>保存设置</button>
+      <nav class="sidebar-nav">
+        <a class="nav-item" href="./dashboard.html"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></a>
+        <a class="nav-item" href="./projects.html"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></a>
+        <a class="nav-item" href="./workbench.html"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></a>
+        <a class="nav-item" href="./reports.html"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></a>
+        <a class="nav-item active" href="./settings.html"><span class="material-symbols-outlined">settings</span><span>系统设置</span></a>
+        <a class="nav-item" href="./admin.html"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></a>
+      </nav>
+    </aside>
+    <header class="app-topbar">
+      <div class="topbar-left"><div><h2 class="topbar-title">系统设置</h2><div class="topbar-breadcrumb"><span>个人</span><span>/</span><span>设置</span></div></div></div>
+      <div class="topbar-right"><button class="icon-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button></div>
+    </header>
+    <main class="app-content">
+      <div class="page-stack">
+        <div class="page-header">
+          <div><h1 class="page-title">系统设置</h1><p class="page-subtitle">采用分组设置卡组织个人资料、通知偏好与账号安全，装饰最少，以表单清晰为主。</p></div>
+          <div class="page-actions"><button class="btn-secondary">恢复默认</button><button class="btn-primary">保存修改</button></div>
+        </div>
+        <section class="settings-layout">
+          <aside class="settings-nav glass-panel">
+            <a class="subnav-link active" href="./settings.html">个人资料</a>
+            <a class="subnav-link" href="./settings.html">通知偏好</a>
+            <a class="subnav-link" href="./settings.html">账号安全</a>
+            <a class="subnav-link" href="./settings.html">AI 偏好</a>
+          </aside>
+          <div class="settings-panel">
+            <article class="settings-card glass-panel">
+              <div class="settings-card-head"><h2 class="section-title">个人资料</h2><span class="section-caption">修改基础信息</span></div>
+              <div class="field-inline">
+                <div class="field-stack"><label class="field-label">姓名</label><div class="field-input"><input value="张工" /></div></div>
+                <div class="field-stack"><label class="field-label">部门</label><div class="field-input"><input value="研发中心" /></div></div>
+              </div>
+              <div class="field-inline" style="margin-top:16px;">
+                <div class="field-stack"><label class="field-label">邮箱</label><div class="field-input"><input value="zhang@example.com" /></div></div>
+                <div class="field-stack"><label class="field-label">手机号</label><div class="field-input"><input value="138****7788" /></div></div>
+              </div>
+            </article>
+            <article class="settings-card glass-panel">
+              <div class="settings-card-head"><h2 class="section-title">通知偏好</h2><span class="section-caption">站内 / 邮件 / 企微</span></div>
+              <div class="settings-list">
+                <div class="settings-row"><div><strong>任务状态变更</strong><span>任务完成、阻塞、待评审时提醒我</span></div><span class="toggle on"></span></div>
+                <div class="settings-row"><div><strong>日志互动</strong><span>有人评论或点赞日志时提醒我</span></div><span class="toggle on"></span></div>
+                <div class="settings-row"><div><strong>报表订阅</strong><span>接收定时周报和项目报表</span></div><span class="toggle"></span></div>
+              </div>
+            </article>
+            <article class="settings-card glass-panel">
+              <div class="settings-card-head"><h2 class="section-title">账号安全</h2><span class="section-caption">密码与会话管理</span></div>
+              <div class="settings-list">
+                <div class="settings-row"><div><strong>修改密码</strong><span>上次修改时间：2026-03-12</span></div><button class="btn-chip active">操作</button></div>
+                <div class="settings-row"><div><strong>设备会话</strong><span>当前有 3 个登录设备</span></div><button class="btn-chip">查看</button></div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <button class="floating-ai-btn" data-ai-toggle><span class="material-symbols-outlined">auto_awesome</span></button>
+  <div class="ai-overlay" data-ai-overlay></div>
+  <aside class="ai-drawer" data-ai-drawer>
+    <div class="ai-header"><div><h3>AI 助手</h3><p class="section-caption">当前上下文：系统设置</p></div><button class="icon-btn" data-ai-close><span class="material-symbols-outlined">close</span></button></div>
+    <div class="ai-card"><h4>偏好建议</h4><p>你当前同时开启了任务和日志通知，建议保留站内提醒并关闭邮件提醒，减少高频干扰。</p><div class="ai-actions"><button class="btn-primary">采纳建议</button></div></div>
+  </aside>
+  <script src="./shared.js"></script>
+</body>
+</html>
