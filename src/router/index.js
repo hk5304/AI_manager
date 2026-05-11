@@ -12,6 +12,46 @@ const routes = [
     component: () => import('../views/Register.vue')
   },
   {
+    path: '/projects',
+    name: 'Projects',
+    component: () => import('../views/Projects.vue')
+  },
+  {
+    path: '/project/:id',
+    name: 'ProjectDetail',
+    component: () => import('../views/ProjectDetail.vue')
+  },
+  {
+    path: '/project/:id/kanban',
+    name: 'ProjectKanban',
+    component: () => import('../views/ProjectKanban.vue')
+  },
+  {
+    path: '/project/:id/gantt',
+    name: 'ProjectGantt',
+    component: () => import('../views/ProjectGantt.vue')
+  },
+  {
+    path: '/project/:id/risk',
+    name: 'ProjectRisk',
+    component: () => import('../views/ProjectRisk.vue')
+  },
+  {
+    path: '/project/:id/members',
+    name: 'ProjectMembers',
+    component: () => import('../views/ProjectMembers.vue')
+  },
+  {
+    path: '/project/:id/docs',
+    name: 'ProjectDocs',
+    component: () => import('../views/ProjectDocs.vue')
+  },
+  {
+    path: '/project/:id/reports',
+    name: 'ProjectReports',
+    component: () => import('../views/ProjectReports.vue')
+  },
+  {
     path: '/',
     component: () => import('../layouts/MainLayout.vue'),
     children: [
@@ -19,41 +59,6 @@ const routes = [
         path: '/dashboard',
         name: 'Dashboard',
         component: () => import('../views/Dashboard.vue')
-      },
-      {
-        path: '/projects',
-        name: 'Projects',
-        component: () => import('../views/Projects.vue')
-      },
-      {
-        path: '/project/:id',
-        name: 'ProjectDetail',
-        component: () => import('../views/ProjectDetail.vue')
-      },
-      {
-        path: '/project/:id/kanban',
-        name: 'ProjectKanban',
-        component: () => import('../views/ProjectKanban.vue')
-      },
-      {
-        path: '/project/:id/gantt',
-        name: 'ProjectGantt',
-        component: () => import('../views/ProjectGantt.vue')
-      },
-      {
-        path: '/project/:id/risk',
-        name: 'ProjectRisk',
-        component: () => import('../views/ProjectRisk.vue')
-      },
-      {
-        path: '/project/:id/members',
-        name: 'ProjectMembers',
-        component: () => import('../views/ProjectMembers.vue')
-      },
-      {
-        path: '/project/:id/docs',
-        name: 'ProjectDocs',
-        component: () => import('../views/ProjectDocs.vue')
       },
       {
         path: '/task/:id',
