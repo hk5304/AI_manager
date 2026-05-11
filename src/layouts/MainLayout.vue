@@ -418,15 +418,18 @@ const canAccessAdmin = computed(() => {
 
 .notification-popup {
   position: fixed;
-  top: 60px;
-  right: 80px;
-  width: 360px;
-  max-height: 480px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  top: 72px;
+  right: 24px;
+  z-index: 1040;
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(480px, calc(100dvh - 96px));
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.84);
+  border-radius: 20px;
+  box-shadow: var(--shadow-overlay, 0 28px 84px rgba(27, 40, 87, 0.18));
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
   overflow: hidden;
-  z-index: 999;
   animation: fadeIn 0.3s ease;
 }
 
@@ -445,21 +448,25 @@ const canAccessAdmin = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(216, 221, 232, 0.58);
+  background: rgba(255, 255, 255, 0.56);
 }
 
 .notification-header h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary, #1a1c1e);
 }
 
 .notification-header .close-btn {
-  background: none;
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.34);
   border: none;
-  color: #999;
+  border-radius: 50%;
+  color: var(--color-text-secondary, #414754);
   font-size: 20px;
   cursor: pointer;
   padding: 0;
@@ -472,19 +479,23 @@ const canAccessAdmin = computed(() => {
 }
 
 .notification-header .close-btn:hover {
-  color: #333;
+  color: var(--color-primary-700, #0058bd);
+  background: rgba(255, 255, 255, 0.64);
 }
 
 .notification-list {
-  max-height: 400px;
+  max-height: calc(min(480px, calc(100dvh - 96px)) - 58px);
   overflow-y: auto;
-  padding: 8px;
+  padding: 10px;
+  overscroll-behavior: contain;
 }
 
 .notification-item {
-  padding: 12px;
-  border-radius: 4px;
+  padding: 13px 14px;
+  border-radius: 16px;
   margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.38);
+  border: 1px solid rgba(216, 221, 232, 0.46);
   transition: background-color 0.2s;
 }
 
@@ -493,18 +504,34 @@ const canAccessAdmin = computed(() => {
 }
 
 .notification-item:hover {
-  background-color: #f5f7fa;
+  background-color: rgba(255, 255, 255, 0.68);
 }
 
 .notification-item p {
   font-size: 14px;
-  color: #666;
+  color: var(--color-text-secondary, #414754);
   margin: 0 0 4px 0;
-  line-height: 1.4;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .notification-item .notification-time {
   font-size: 12px;
-  color: #999;
+  color: var(--color-text-tertiary, #727785);
+}
+
+@media (max-width: 767px) {
+  .notification-popup {
+    top: 12px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-height: calc(100dvh - 24px);
+    border-radius: 18px;
+  }
+
+  .notification-list {
+    max-height: calc(100dvh - 88px);
+  }
 }
 </style>

@@ -92,6 +92,7 @@ const routes = [
       {
         path: 'task/:id',
         name: 'TaskDetail',
+        meta: { routeLoader: true },
         component: () => import('../views/TaskDetail.vue')
       },
     ]
