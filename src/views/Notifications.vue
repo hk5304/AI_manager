@@ -268,10 +268,11 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import { pushAppPath } from "../utils/navigation";
+import { useRoute, useRouter } from "vue-router";
+import { pushAppPath, resolveNotificationReturnPath } from "../utils/navigation";
 import UserProfileHoverCard from "../components/topbar/UserProfileHoverCard.vue";
 
+const route = useRoute();
 const router = useRouter();
 
 defineOptions({
@@ -521,6 +522,10 @@ const filteredNotifications = computed(() => {
   });
 });
 
+const notificationReturnPath = computed(() => {
+  return resolveNotificationReturnPath(route.query.from);
+});
+
 const getFilterCount = (filter) => {
   if (filter === "all") {
     return notifications.length;
@@ -533,9 +538,13 @@ const handleNavigate = (path) => {
   pushAppPath(router, path);
 };
 
+const handleReturnFromNotifications = () => {
+  pushAppPath(router, notificationReturnPath.value);
+};
+
 const handleOpenNotifications = () => {
   emit("open-notifications");
-  pushAppPath(router, "/notifications");
+  handleReturnFromNotifications();
 };
 
 const handleOpenAppSwitcher = () => {
