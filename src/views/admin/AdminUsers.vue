@@ -505,22 +505,24 @@
       </section>
     </div>
 
-    <div v-if="toasts.length" class="toast-stack" data-toast-stack>
-      <div v-for="toast in toasts" :key="toast.id" class="toast-card">
-        <span class="material-symbols-outlined">{{ toast.icon }}</span>
-        <div class="toast-body">
-          <strong>{{ toast.title }}</strong>
-          <span>{{ toast.message }}</span>
+    <Transition name="toast">
+      <div v-if="toasts.length" class="toast-stack" data-toast-stack>
+        <div v-for="toast in toasts" :key="toast.id" class="toast-card">
+          <span class="material-symbols-outlined">{{ toast.icon }}</span>
+          <div class="toast-body">
+            <strong>{{ toast.title }}</strong>
+            <span>{{ toast.message }}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import { pushAppPath } from "../../utils/navigation";
+import { pushAppPath, pushNotificationPath } from "../../utils/navigation";
 import UserProfileHoverCard from "../../components/topbar/UserProfileHoverCard.vue";
 
 const router = useRouter();
@@ -749,7 +751,7 @@ const handleNavigate = (path) => {
 
 const handleOpenNotifications = () => {
   emit("open-notifications");
-  pushAppPath(router, "/notifications");
+  pushNotificationPath(router, router.currentRoute.value.fullPath);
 };
 
 const handleOpenAppSwitcher = () => {

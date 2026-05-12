@@ -26,7 +26,7 @@
       </div>
       <div class="topbar-right">
         <label class="search-shell"><span class="material-symbols-outlined">search</span><input type="text" placeholder="搜索任务、里程碑或成员..." /></label>
-        <button class="icon-btn notification-link" type="button"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></button>
+        <button class="icon-btn notification-link" type="button" @click="handleOpenNotifications"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></button>
         <UserProfileHoverCard :user="currentUser" />
       </div>
     </header>
@@ -135,6 +135,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { pushNotificationPath } from '../utils/navigation'
 import UserProfileHoverCard from '../components/topbar/UserProfileHoverCard.vue'
 
 const route = useRoute()
@@ -211,6 +212,7 @@ const tabRoute = (tab) => {
   if (tab === 'overview') return `/project/${id}`
   return `/project/${id}/${tab}`
 }
+const handleOpenNotifications = () => pushNotificationPath(router, route.fullPath)
 const goBack = () => router.push('/projects')
 
 // TODO(API): 风险新增、状态流转、责任人分配、AI 根因分析需接风险管理接口。

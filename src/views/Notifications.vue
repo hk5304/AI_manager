@@ -37,9 +37,6 @@
 
       <header class="app-topbar">
         <div class="topbar-left">
-          <button class="topbar-back-icon" type="button" aria-label="返回工作台" @click="handleNavigate('/dashboard')">
-            <span class="material-symbols-outlined">arrow_back</span>
-          </button>
           <div>
             <h2 class="topbar-title">通知中心</h2>
             <div class="topbar-breadcrumb">
@@ -266,10 +263,11 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import { pushAppPath } from "../utils/navigation";
+import { useRoute, useRouter } from "vue-router";
+import { pushAppPath, resolveNotificationReturnPath } from "../utils/navigation";
 import UserProfileHoverCard from "../components/topbar/UserProfileHoverCard.vue";
 
+const route = useRoute();
 const router = useRouter();
 
 defineOptions({
@@ -519,6 +517,10 @@ const filteredNotifications = computed(() => {
   });
 });
 
+const notificationReturnPath = computed(() => {
+  return resolveNotificationReturnPath(route.query.from);
+});
+
 const getFilterCount = (filter) => {
   if (filter === "all") {
     return notifications.length;
@@ -531,9 +533,13 @@ const handleNavigate = (path) => {
   pushAppPath(router, path);
 };
 
+const handleReturnFromNotifications = () => {
+  pushAppPath(router, notificationReturnPath.value);
+};
+
 const handleOpenNotifications = () => {
   emit("open-notifications");
-  pushAppPath(router, "/notifications");
+  handleReturnFromNotifications();
 };
 
 const handleOpenAppSwitcher = () => {

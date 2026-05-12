@@ -153,7 +153,7 @@
 
     <div class="modal-shell" :class="{ open: modalState.roleMatrix }" data-modal-id="role-matrix-modal">
       <div class="modal-backdrop" data-modal-close @click="closeModal('roleMatrix')"></div>
-      <section class="modal-panel glass-panel-strong">
+      <section class="modal-panel glass-panel-strong classic-modal-panel admin-matrix-modal">
         <div class="modal-header">
           <div>
             <span class="pill pill-ai">权限矩阵</span>
@@ -167,7 +167,7 @@
           </button>
         </div>
 
-        <div class="matrix-section">
+        <div class="matrix-section matrix-card">
           <div class="chart-header" style="margin-bottom: 0;">
             <h3 class="section-title" style="font-size: 22px;">平台角色矩阵</h3>
             <span class="section-caption">后台访问与全局管理能力</span>
@@ -197,7 +197,7 @@
           </table>
         </div>
 
-        <div class="matrix-section">
+        <div class="matrix-section matrix-card">
           <div class="chart-header" style="margin-bottom: 0;">
             <h3 class="section-title" style="font-size: 22px;">项目角色矩阵</h3>
             <span class="section-caption">项目内默认权限集合</span>
@@ -537,22 +537,24 @@
       </section>
     </div>
 
-    <div v-if="toasts.length" class="toast-stack" data-toast-stack>
-      <div v-for="toast in toasts" :key="toast.id" class="toast-card">
-        <span class="material-symbols-outlined">{{ toast.icon }}</span>
-        <div class="toast-body">
-          <strong>{{ toast.title }}</strong>
-          <span>{{ toast.message }}</span>
+    <Transition name="toast">
+      <div v-if="toasts.length" class="toast-stack" data-toast-stack>
+        <div v-for="toast in toasts" :key="toast.id" class="toast-card">
+          <span class="material-symbols-outlined">{{ toast.icon }}</span>
+          <div class="toast-body">
+            <strong>{{ toast.title }}</strong>
+            <span>{{ toast.message }}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
 import { onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import { pushAppPath } from "../../utils/navigation";
+import { pushAppPath, pushNotificationPath } from "../../utils/navigation";
 import UserProfileHoverCard from "../../components/topbar/UserProfileHoverCard.vue";
 
 const router = useRouter();
@@ -907,7 +909,7 @@ const handleNavigate = (path) => {
 
 const handleOpenNotifications = () => {
   emit("open-notifications");
-  pushAppPath(router, "/notifications");
+  pushNotificationPath(router, router.currentRoute.value.fullPath);
 };
 
 const handleOpenAppSwitcher = () => {
@@ -972,6 +974,7 @@ const handleExportMatrix = () => {
     message: "角色功能矩阵将按当前视图导出为 PDF 草稿。",
     icon: "download",
   });
+  closeModal("roleMatrix");
 };
 
 const handleEditTemplateSave = () => {
@@ -989,6 +992,7 @@ const handleEditTemplateSave = () => {
     message: `${editTemplateForm.title || templateLibrary[editTemplateKey.value].title} 已更新到角色配置草稿。`,
     icon: "task_alt",
   });
+  closeModal("editTemplate");
 };
 
 const handleEditTemplateSaveAs = () => {
@@ -1001,6 +1005,7 @@ const handleEditTemplateSaveAs = () => {
     message: `${editTemplateForm.title || templateLibrary[editTemplateKey.value].title} 副本已生成，可继续修改。`,
     icon: "content_copy",
   });
+  closeModal("editTemplate");
 };
 
 const validateCreateTemplate = () => {

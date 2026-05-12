@@ -151,17 +151,19 @@
       </main>
     </div>
 
-    <div v-if="showSuccessToast" class="success-toast" role="status" aria-live="polite">
-      <span class="material-symbols-outlined">check_circle</span>
-      <span>{{ successToastMessage }}</span>
-    </div>
+    <Transition name="toast">
+      <div v-if="showSuccessToast" class="success-toast" role="status" aria-live="polite">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span>{{ successToastMessage }}</span>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
 import { onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import { pushAppPath } from "../../utils/navigation";
+import { pushAppPath, pushNotificationPath } from "../../utils/navigation";
 import UserProfileHoverCard from "../../components/topbar/UserProfileHoverCard.vue";
 
 const router = useRouter();
@@ -340,7 +342,7 @@ const handleResetToDefault = () => {
 
 const handleOpenNotifications = () => {
   emit("open-notifications");
-  pushAppPath(router, "/notifications");
+  pushNotificationPath(router, router.currentRoute.value.fullPath);
 };
 
 const handleOpenAppSwitcher = () => {
@@ -383,8 +385,9 @@ onBeforeUnmount(() => {
 
 .success-toast {
   position: fixed;
-  left: clamp(16px, 2vw, 28px);
-  bottom: max(22px, env(safe-area-inset-bottom));
+  top: 84px;
+  left: 50%;
+  bottom: auto;
   z-index: 1200;
   display: inline-flex;
   align-items: flex-start;
@@ -392,13 +395,13 @@ onBeforeUnmount(() => {
   width: min(440px, calc(100vw - 32px));
   min-width: min(300px, calc(100vw - 32px));
   max-width: calc(100vw - 32px);
+  translate: -50% 0;
   padding: 16px 18px;
   color: var(--color-text-primary);
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid rgba(255, 255, 255, 0.84);
   border-radius: 20px;
   box-shadow: var(--shadow-overlay);
-  transform: none;
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
   font-size: 14px;
@@ -413,14 +416,29 @@ onBeforeUnmount(() => {
   font-size: 20px;
 }
 
+.toast-enter-active,
+.toast-leave-active {
+  transform-origin: top center;
+}
+
+.toast-enter-active {
+  animation: toastPopIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.toast-leave-active {
+  animation: toastPopOut 160ms ease-in both;
+}
+
 @media (max-width: 767px) {
   .success-toast {
-    right: 10px;
-    left: 10px;
-    bottom: max(10px, env(safe-area-inset-bottom));
-    width: auto;
+    top: 76px;
+    right: auto;
+    left: 50%;
+    bottom: auto;
+    width: min(440px, calc(100vw - 20px));
     max-width: none;
     min-width: 0;
+    translate: -50% 0;
     border-radius: 18px;
   }
 }
