@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="app-shell">
     <aside class="app-sidebar">
       <div class="brand-box">
@@ -71,6 +71,7 @@
               <div class="summary-kpi"><span>时间范围</span><strong>{{ project.range }}</strong></div>
               <div class="summary-kpi"><span>项目进度</span><strong>{{ project.progress }}%</strong></div>
               <div class="summary-kpi"><span>健康度</span><strong style="color:var(--color-secondary-600);">{{ project.health }}</strong></div>
+              <div class="summary-kpi"><span>优先级</span><strong :class="getPriorityClass(project.priority)">{{ project.priority }}</strong></div>
               <div class="summary-kpi"><span>成员数</span><strong>{{ project.members }} 人</strong></div>
             </div>
           </div>
@@ -229,14 +230,14 @@
         <!-- Kanban -->
         <div v-show="currentTab === 'kanban'" class="tab-panel">
           <section class="glass-panel filter-bar">
-            <button class="btn-chip active">全部状态</button>
-            <button class="btn-chip">P0 / P1</button>
-            <button class="btn-chip">本周截止</button>
-            <button class="btn-chip">仅阻塞</button>
-            <button class="btn-chip">关联里程碑</button>
+            <button class="btn-chip" :class="{ active: activeFilter === 'all' }" @click="setFilter('all')">全部状态</button>
+            <button class="btn-chip" :class="{ active: activeFilter === 'priority' }" @click="togglePriorityFilter">重要程度 {{ activeFilter === 'priority' ? currentPriority : '' }}</button>
+            <button class="btn-chip" :class="{ active: activeFilter === 'week' }" @click="setFilter('week')">本周截止</button>
+            <button class="btn-chip" :class="{ active: activeFilter === 'blocked' }" @click="setFilter('blocked')">仅阻塞</button>
+            <button class="btn-chip" :class="{ active: activeFilter === 'milestone' }" @click="setFilter('milestone')">关联里程碑</button>
             <div class="report-chip-group" style="margin-left:auto;">
-              <span class="pill pill-neutral">任务总数 26</span>
-              <span class="pill pill-warning">阻塞 3</span>
+              <span class="pill pill-neutral">任务总数 {{ totalTasks }}</span>
+              <span class="pill pill-warning">阻塞 {{ blockedTasks }}</span>
             </div>
           </section>
           <section class="kanban-5">
@@ -298,29 +299,54 @@
             <div class="gantt-shell glass-panel">
               <div class="gantt-toolbar">
                 <div class="chip-group">
-                  <button class="btn-chip active">按周</button>
-                  <button class="btn-chip">按日</button>
-                  <button class="btn-chip">按月</button>
+                  <button class="btn-chip" :class="{ active: ganttViewMode === 'week' }" @click="setGanttView('week')">按周</button>
+                  <button class="btn-chip" :class="{ active: ganttViewMode === 'day' }" @click="setGanttView('day')">按日</button>
+                  <button class="btn-chip" :class="{ active: ganttViewMode === 'month' }" @click="setGanttView('month')">按月</button>
                 </div>
                 <div class="chip-group">
-                  <button class="btn-chip active">显示基线</button>
-                  <button class="btn-chip"><span class="material-symbols-outlined">share</span>依赖关系</button>
-                  <button class="btn-chip"><span class="material-symbols-outlined">unfold_more</span>缩放</button>
+                  <button class="btn-chip" :class="{ active: showBaseline }" @click="toggleBaseline"><span class="material-symbols-outlined">layers</span>{{ showBaseline ? '隐藏基线' : '显示基线' }}</button>
+                  <button class="btn-chip" :class="{ active: showDependencies }" @click="toggleDependencies"><span class="material-symbols-outlined">share</span>依赖关系</button>
+                  <button class="btn-chip" @click="zoomIn"><span class="material-symbols-outlined">zoom_in</span>放大</button>
+                  <button class="btn-chip" @click="zoomOut"><span class="material-symbols-outlined">zoom_out</span>缩小</button>
                 </div>
               </div>
-              <div class="gantt-layout">
-                <div class="gantt-side">
-                  <div class="gantt-head-row"><div>里程碑 / 任务</div><div>负责人</div></div>
-                  <div class="gantt-item-row" v-for="g in ganttData" :key="g.name"><div><strong>{{ g.name }}</strong></div><div class="section-caption">{{ g.owner }}</div></div>
-                </div>
-                <div class="gantt-stage">
-                  <div class="gantt-head-row"><div v-for="d in ganttDates" :key="d">{{ d }}</div></div>
-                  <div class="gantt-item-row" v-for="g in ganttData" :key="g.name">
-                    <div v-for="d in ganttDates" :key="d"></div>
-                    <div class="gantt-bar-layer">
-                      <div class="gantt-baseline" :style="{ left: g.baseLeft, width: g.baseWidth }"></div>
-                      <div class="gantt-bar" :class="g.barClass" :style="{ left: g.barLeft, width: g.barWidth }"></div>
+              <div class="gantt-scroll-container">
+                <div ref="layoutWrapperRef" class="gantt-layout-wrapper" @scroll="syncScrollPosition">
+                  <div class="gantt-layout" :style="{ transform: `scaleX(${ganttZoom})`, transformOrigin: 'left center' }">
+                    <div class="gantt-side">
+                      <div class="gantt-head-row"><div>里程碑 / 任务</div><div>负责人</div><div style="text-align:right;">进度</div></div>
+                      <div class="gantt-item-row" v-for="g in ganttData" :key="g.name">
+                        <div><strong>{{ g.name }}</strong></div>
+                        <div class="section-caption">{{ g.owner }}</div>
+                        <div style="text-align:right;">
+                          <span class="progress-badge" :class="getProgressClass(g.progress)">{{ g.progress }}%</span>
+                        </div>
+                      </div>
                     </div>
+                    <div class="gantt-stage">
+                      <div class="gantt-head-row"><div v-for="d in ganttDates" :key="d">{{ d }}</div></div>
+                      <div class="gantt-item-row" v-for="g in ganttData" :key="g.name">
+                        <div v-for="d in ganttDates" :key="d"></div>
+                        <div class="gantt-bar-layer">
+                          <div v-if="showBaseline" class="gantt-baseline" :style="{ left: g.baseLeft, width: g.baseWidth }"></div>
+                          <div class="gantt-bar" :class="g.barClass" :style="{ left: g.barLeft, width: g.barWidth }">
+                            <div class="gantt-bar-progress" :style="{ width: g.progress + '%' }"></div>
+                            <span class="gantt-bar-label">{{ g.progress }}%</span>
+                          </div>
+                          <!-- 依赖关系连接线 -->
+                          <div v-if="showDependencies" class="gantt-connector" v-for="(conn, idx) in getConnectors(g.name)" :key="idx" :style="conn.style"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- 滑动条 -->
+                <div class="gantt-scrollbar">
+                  <div class="gantt-scroll-track" @click="jumpToPosition">
+                    <div class="gantt-scroll-thumb" :style="{ left: scrollPosition + '%', width: viewportWidth + '%' }" @mousedown.stop="startDrag"></div>
+                  </div>
+                  <div class="gantt-scroll-labels">
+                    <span v-for="(label, idx) in ganttDates" :key="idx">{{ label }}</span>
                   </div>
                 </div>
               </div>
@@ -686,6 +712,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import UserProfileHoverCard from '../components/topbar/UserProfileHoverCard.vue'
+import { useProjects } from '../composables/useProjects'
 
 const route = useRoute()
 const router = useRouter()
@@ -725,15 +752,46 @@ const currentUser = {
   avatar: 'https://i.pravatar.cc/80?img=47'
 }
 
-const project = ref({
-  name: '纳米晶体结构优化',
-  owner: '王志强',
-  desc: '聚焦晶体结构稳定性与模型预测精度提升，当前处于“联调验证”阶段。项目已建立最新计划基线，AI 判断存在轻度进度偏差，但整体健康可控。',
-  range: '04/14 - 05/16',
-  progress: 72,
-  health: '良好',
-  members: 12
+// 使用共享的项目数据
+const { projects } = useProjects()
+
+// 根据项目ID获取项目详情
+const project = computed(() => {
+  const id = parseInt(projectId.value)
+  const found = projects.value.find(p => p.id === id)
+  if (found) {
+    return {
+      name: found.name,
+      owner: found.owner.name,
+      desc: `聚焦晶体结构稳定性与模型预测精度提升，当前处于“联调验证”阶段。项目已建立最新计划基线，AI 判断存在轻度进度偏差，但整体健康可控。`,
+      range: '04/14 - 05/16',
+      progress: found.progress,
+      health: found.health,
+      priority: found.priority,
+      members: found.memberCount
+    }
+  }
+  return {
+    name: '项目不存在',
+    owner: '-',
+    desc: '',
+    range: '-',
+    progress: 0,
+    health: '未知',
+    priority: 'P2',
+    members: 0
+  }
 })
+
+// 获取优先级对应的样式类
+const getPriorityClass = (priority) => {
+  const classMap = {
+    'P0': 'priority-p0',
+    'P1': 'priority-p1',
+    'P2': 'priority-p2'
+  }
+  return classMap[priority] || 'priority-p2'
+}
 
 const milestones = ref([
   { id: 1, title: '需求评审', desc: '已完成。需求评审结论与实验约束已沉淀到项目文档，关联任务已自动拆解。', color: 'var(--color-secondary-600)', meta: '完成日期：04-18' },
@@ -775,28 +833,98 @@ const heatmap = ref([
   { name: '赵扬', cells: [0, 1, 2, 2, 1, 0, 0] }
 ])
 
-const kanbanCols = ref([
-  { name: '待开始', count: 5, pillClass: 'pill-neutral', cards: [
+// 筛选状态
+const activeFilter = ref('all')
+
+// 当前优先级筛选值（P0/P1/P2循环）
+const currentPriority = ref('')
+
+// 原始看板数据
+const kanbanData = ref([
+  { name: '待开始', pillClass: 'pill-neutral', cards: [
     { title: '整理联调验证清单', tags: [{ text: 'P2', class: 'p2' }, { text: '里程碑' }], note: '负责人：赵扬 · 预估工时 1.5d' },
     { title: '补充异常样本说明', tags: [{ text: 'P3', class: 'p3' }], note: '负责人：韩诚 · 截止：周四' }
   ]},
-  { name: '进行中', count: 7, pillClass: 'pill-neutral', cards: [
+  { name: '进行中', pillClass: 'pill-neutral', cards: [
     { title: '联调环境参数回灌', tags: [{ text: 'P0', class: 'p0' }, { text: '依赖平台组' }], note: '负责人：陈思远 · 进度 62%' },
     { title: '样本误差回归验证', tags: [{ text: 'P1', class: 'p1' }, { text: 'PBC' }], note: '负责人：王雅婷 · 进度 48%' }
   ]},
-  { name: '待评审', count: 4, pillClass: 'pill-neutral', cards: [
+  { name: '待评审', pillClass: 'pill-neutral', cards: [
     { title: '晶格归一化策略更新', tags: [{ text: 'P1', class: 'p1' }, { text: '需 QA 确认' }], note: '负责人：林初夏 · 截止 今天 18:00' },
     { title: '模型输出字段映射表', tags: [{ text: 'P2', class: 'p2' }], note: '负责人：韩诚 · 进度 90%' }
   ]},
-  { name: '已完成', count: 8, pillClass: 'pill-neutral', cards: [
+  { name: '已完成', pillClass: 'pill-neutral', cards: [
     { title: '需求评审结论归档', tags: [{ text: 'P2', class: 'p2' }, { text: '完成' }], note: '负责人：王志强 · 已自动同步日报' },
     { title: '开发任务拆解确认', tags: [{ text: 'P3', class: 'p3' }], note: '负责人：陈思远 · 已绑定基线' }
   ]},
-  { name: '已阻塞', count: 3, pillClass: 'pill-danger', style: 'background:rgba(255,235,233,0.34);border-color:rgba(216,58,52,0.18);', cards: [
+  { name: '已阻塞', pillClass: 'pill-danger', style: 'background:rgba(255,235,233,0.34);border-color:rgba(216,58,52,0.18);', cards: [
     { title: '测试环境参数冻结', tags: [{ text: 'P0', class: 'p0' }, { text: '阻塞', style: 'color:var(--color-danger-600);background:rgba(255,218,214,0.82);' }], note: '阻塞原因：环境配置窗口未确认' },
     { title: '联调回灌日志补录', tags: [{ text: 'P1', class: 'p1' }], note: '阻塞依赖：测试环境参数冻结' }
   ]}
 ])
+
+// 设置筛选
+const setFilter = (filter) => {
+  activeFilter.value = filter
+}
+
+// 优先级循环切换
+const priorityOrder = ['P0', 'P1', 'P2']
+const togglePriorityFilter = () => {
+  if (activeFilter.value !== 'priority') {
+    // 第一次点击，显示P0
+    activeFilter.value = 'priority'
+    currentPriority.value = 'P0'
+  } else {
+    // 循环切换：P0 -> P1 -> P2 -> P0...
+    const currentIndex = priorityOrder.indexOf(currentPriority.value)
+    const nextIndex = (currentIndex + 1) % priorityOrder.length
+    currentPriority.value = priorityOrder[nextIndex]
+  }
+}
+
+// 检查卡片是否符合筛选条件
+const filterCard = (card) => {
+  const priorityTags = card.tags.map(t => t.text)
+  const hasMilestone = priorityTags.includes('里程碑')
+  const hasBlocked = priorityTags.includes('阻塞')
+  const hasWeekDeadline = card.note.includes('今天') || card.note.includes('本周') || card.note.includes('周三') || card.note.includes('周五') || card.note.includes('周四')
+
+  switch (activeFilter.value) {
+    case 'priority':
+      return priorityTags.includes(currentPriority.value)
+    case 'week':
+      return hasWeekDeadline
+    case 'blocked':
+      return hasBlocked
+    case 'milestone':
+      return hasMilestone
+    default:
+      return true
+  }
+}
+
+// 筛选后的看板数据
+const kanbanCols = computed(() => {
+  return kanbanData.value.map(col => {
+    const filteredCards = col.cards.filter(filterCard)
+    return {
+      ...col,
+      count: filteredCards.length,
+      cards: filteredCards
+    }
+  })
+})
+
+// 统计数据
+const totalTasks = computed(() => {
+  return kanbanCols.value.reduce((sum, col) => sum + col.count, 0)
+})
+
+const blockedTasks = computed(() => {
+  const blockedCol = kanbanCols.value.find(col => col.name === '已阻塞')
+  return blockedCol ? blockedCol.count : 0
+})
 
 const flowRules = ref([
   { rule: '待开始不可直接完成', desc: '必须先进入进行中或待评审', notify: '无' },
@@ -804,13 +932,153 @@ const flowRules = ref([
   { rule: '任务完成通知', desc: '任务变更为已完成时自动触发', notify: '通知创建者' }
 ])
 
-const ganttDates = ['04/14', '04/21', '04/28', '05/05', '05/12', '05/19', '05/26', '06/02', '06/09', '06/16', '06/23', '06/30']
+// 甘特图视图模式
+const ganttViewMode = ref('week')
+
+// 甘特图显示选项
+const showBaseline = ref(true)
+const showDependencies = ref(false)
+const ganttZoom = ref(1)
+
+// 滑动条状态
+const scrollPosition = ref(0)
+const viewportWidth = ref(60) // 可视区域占总宽度的百分比
+const isDragging = ref(false)
+const layoutWrapperRef = ref(null)
+
+// 视图模式切换
+const setGanttView = (mode) => {
+  ganttViewMode.value = mode
+  // 按周和按日显示详细时间点，按月只显示三个月三等分
+  switch (mode) {
+    case 'day':
+      ganttDates.value = ['04/14', '04/17', '04/21', '04/24', '04/28', '05/04', '05/08', '05/12', '05/15', '05/19', '05/22', '05/26', '05/30', '06/03', '06/07', '06/10', '06/14', '06/17', '06/21', '06/24', '06/28', '06/30']
+      break
+    case 'week':
+      ganttDates.value = ['04/14', '04/21', '04/28', '05/05', '05/12', '05/19', '05/26', '06/02', '06/09', '06/16', '06/23', '06/30']
+      break
+    case 'month':
+      ganttDates.value = ['四月', '五月', '六月']
+      break
+  }
+}
+
+// 基线显示切换
+const toggleBaseline = () => {
+  showBaseline.value = !showBaseline.value
+}
+
+// 依赖关系显示切换
+const toggleDependencies = () => {
+  showDependencies.value = !showDependencies.value
+}
+
+// 放大
+const zoomIn = () => {
+  if (ganttZoom.value < 2) {
+    ganttZoom.value += 0.25
+  }
+}
+
+// 缩小
+const zoomOut = () => {
+  if (ganttZoom.value > 0.5) {
+    ganttZoom.value -= 0.25
+  }
+}
+
+// 同步滚动位置到滑动条
+const syncScrollPosition = () => {
+  if (!layoutWrapperRef.value) return
+  const wrapper = layoutWrapperRef.value
+  const maxScroll = wrapper.scrollWidth - wrapper.clientWidth
+  if (maxScroll > 0) {
+    scrollPosition.value = (wrapper.scrollLeft / maxScroll) * (100 - viewportWidth.value)
+  }
+}
+
+// 滑动条拖拽开始
+const startDrag = (e) => {
+  isDragging.value = true
+  const track = e.target.parentElement
+  const trackRect = track.getBoundingClientRect()
+  const startX = e.clientX
+  const startLeft = parseFloat(e.target.style.left)
+  
+  const onMouseMove = (e) => {
+    if (!isDragging.value) return
+    const deltaX = e.clientX - startX
+    const deltaPercent = (deltaX / trackRect.width) * 100
+    let newPosition = startLeft + deltaPercent
+    newPosition = Math.max(0, Math.min(100 - viewportWidth.value, newPosition))
+    scrollPosition.value = newPosition
+    
+    // 更新甘特图滚动
+    if (layoutWrapperRef.value) {
+      const wrapper = layoutWrapperRef.value
+      const maxScroll = wrapper.scrollWidth - wrapper.clientWidth
+      wrapper.scrollLeft = (scrollPosition.value / (100 - viewportWidth.value)) * maxScroll
+    }
+  }
+  
+  const onMouseUp = () => {
+    isDragging.value = false
+    document.removeEventListener('mousemove', onMouseMove)
+    document.removeEventListener('mouseup', onMouseUp)
+  }
+  
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
+}
+
+// 点击滑动条跳转
+const jumpToPosition = (e) => {
+  if (isDragging.value) return
+  const track = e.currentTarget
+  const trackRect = track.getBoundingClientRect()
+  const clickX = e.clientX - trackRect.left
+  const clickPercent = (clickX / trackRect.width) * 100
+  let newPosition = clickPercent - viewportWidth.value / 2
+  newPosition = Math.max(0, Math.min(100 - viewportWidth.value, newPosition))
+  scrollPosition.value = newPosition
+  
+  // 更新甘特图滚动
+  if (layoutWrapperRef.value) {
+    const wrapper = layoutWrapperRef.value
+    const maxScroll = wrapper.scrollWidth - wrapper.clientWidth
+    wrapper.scrollLeft = (scrollPosition.value / (100 - viewportWidth.value)) * maxScroll
+  }
+}
+
+// 甘特图日期（响应式）- 三个月三等分
+const ganttDates = ref(['四月', '五月', '六月'])
+
+// 甘特图数据（三个月三等分排布）
+// baseLeft/baseWidth 表示原始计划（基线），barLeft/barWidth 表示实际进度
 const ganttData = ref([
-  { name: '需求评审', owner: '王志强', baseLeft: '2%', baseWidth: '18%', barLeft: '2%', barWidth: '18%', barClass: 'blue' },
-  { name: '开发实现', owner: '韩诚', baseLeft: '20%', baseWidth: '26%', barLeft: '20%', barWidth: '30%', barClass: 'purple' },
-  { name: '联调验证', owner: '陈思远', baseLeft: '49%', baseWidth: '18%', barLeft: '53%', barWidth: '21%', barClass: 'red' },
-  { name: '上线验收', owner: '周雅楠', baseLeft: '68%', baseWidth: '16%', barLeft: '73%', barWidth: '14%', barClass: 'green' }
+  { name: '需求评审', owner: '王志强', baseLeft: '5%', baseWidth: '25%', barLeft: '5%', barWidth: '28%', barClass: 'blue', progress: 100 },
+  { name: '开发实现', owner: '韩诚', baseLeft: '35%', baseWidth: '30%', barLeft: '38%', barWidth: '28%', barClass: 'purple', progress: 75 },
+  { name: '联调验证', owner: '陈思远', baseLeft: '40%', baseWidth: '30%', barLeft: '45%', barWidth: '25%', barClass: 'red', progress: 45 },
+  { name: '上线验收', owner: '周雅楠', baseLeft: '75%', baseWidth: '20%', barLeft: '80%', barWidth: '15%', barClass: 'green', progress: 15 }
 ])
+
+// 获取进度样式类
+const getProgressClass = (progress) => {
+  if (progress >= 90) return 'progress-done'
+  if (progress >= 50) return 'progress-active'
+  if (progress > 0) return 'progress-started'
+  return 'progress-pending'
+}
+
+// 获取依赖关系连接线（简化实现）
+const getConnectors = (taskName) => {
+  const connections = {
+    '开发实现': [{ style: { left: '2%', top: '-20px', width: '18%', borderTop: '2px dashed #9ca3af' } }],
+    '联调验证': [{ style: { left: '20%', top: '-20px', width: '30%', borderTop: '2px dashed #9ca3af' } }],
+    '上线验收': [{ style: { left: '53%', top: '-20px', width: '21%', borderTop: '2px dashed #9ca3af' } }]
+  }
+  return connections[taskName] || []
+}
 
 const heatmapBlocks = ref([
   { bg: 'rgba(173,198,255,0.18)' }, { bg: 'rgba(173,198,255,0.34)' }, { bg: 'rgba(79,143,246,0.86)', shadow: '0 14px 28px rgba(79,143,246,0.28)' },
@@ -1030,6 +1298,11 @@ watch(() => route.params.tab, () => { isAiDrawerOpen.value = false })
   .topbar-back-icon .material-symbols-outlined {
     font-size: 18px;
   }
+/* 优先级样式 */
+.priority-p0 { color: #ef4444; }
+.priority-p1 { color: #f59e0b; }
+.priority-p2 { color: #9ca3af; }
+
 @media (max-width: 1279px) {
   .project-edit-layout, .project-edit-field-grid { grid-template-columns: 1fr; }
 }
