@@ -471,7 +471,6 @@
             <button class="btn-chip" :class="{ active: reportTimeFilter === '30days' }" @click="setReportTimeFilter('30days')">最近 30 天</button>
             <button class="btn-chip" :class="{ active: reportTimeFilter === 'week' }" @click="setReportTimeFilter('week')">本周</button>
             <div class="filter-divider"></div>
-            <button class="btn-chip" :class="{ active: reportType === 'all' }" @click="setReportType('all')">全部成员</button>
             <button class="btn-chip" :class="{ active: reportType === 'progress' }" @click="setReportType('progress')">进度报表</button>
             <button class="btn-chip" :class="{ active: reportType === 'hours' }" @click="setReportType('hours')">工时报表</button>
             <button class="btn-chip" :class="{ active: reportType === 'quality' }" @click="setReportType('quality')">质量报表</button>
@@ -492,7 +491,8 @@
               </div>
             </div>
           </section>
-          <section class="grid-2">
+          <!-- 进度报表 -->
+          <section v-show="reportType === 'progress'" class="grid-2">
             <div class="chart-card glass-panel">
               <div class="chart-header"><h2 class="section-title">燃尽图</h2><span class="section-caption">剩余工作量趋势</span></div>
               <div class="dual-line">
@@ -506,6 +506,39 @@
               </div>
             </div>
             <div class="chart-card glass-panel">
+              <div class="chart-header"><h2 class="section-title">任务完成进度</h2><span class="section-caption">按状态分布</span></div>
+              <div class="bar-chart">
+                <div v-for="b in progressBarData" :key="b.name" class="bar-item">
+                  <div class="bar-track"><div class="bar-fill" :style="{ height: b.h + '%', background: b.gradient }"></div></div><span>{{ b.name }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card glass-panel">
+              <div class="chart-header"><h2 class="section-title">里程碑达成率</h2><span class="section-caption">关键节点完成情况</span></div>
+              <div class="mini-bars">
+                <div v-for="m in milestoneData" :key="m.label" class="mini-bar-row">
+                  <span>{{ m.label }}</span>
+                  <div class="progress-track"><div class="progress-fill" :style="{ width: m.w + '%', background: m.gradient }"></div></div>
+                  <strong>{{ m.status }}</strong>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card glass-panel">
+              <div class="chart-header"><h2 class="section-title">进度偏差分析</h2><span class="section-caption">计划 vs 实际完成率</span></div>
+              <div class="bar-chart">
+                <div v-for="b in deviationData" :key="b.name" class="bar-item">
+                  <div class="bar-track">
+                    <div class="bar-fill" :style="{ height: b.plan + '%', background: 'var(--color-text-tertiary)', opacity: 0.5 }"></div>
+                    <div class="bar-fill" :style="{ height: b.actual + '%', background: b.gradient, marginTop: (100 - b.actual) + '%' }"></div>
+                  </div><span>{{ b.name }}</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 工时报表 -->
+          <section v-show="reportType === 'hours'" class="grid-2">
+            <div class="chart-card glass-panel">
               <div class="chart-header"><h2 class="section-title">计划 vs 实际工时</h2><span class="section-caption">按成员对比</span></div>
               <div class="bar-chart">
                 <div v-for="b in barChartData" :key="b.name" class="bar-item">
@@ -513,6 +546,40 @@
                 </div>
               </div>
             </div>
+            <div class="chart-card glass-panel">
+              <div class="chart-header"><h2 class="section-title">工时分布</h2><span class="section-caption">每日工时统计</span></div>
+              <div class="mini-bars">
+                <div v-for="m in hoursDistribution" :key="m.label" class="mini-bar-row">
+                  <span>{{ m.label }}</span>
+                  <div class="progress-track"><div class="progress-fill" :style="{ width: m.w + '%', background: m.gradient }"></div></div>
+                  <strong>{{ m.val }}</strong>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card glass-panel">
+              <div class="chart-header"><h2 class="section-title">资源利用率</h2><span class="section-caption">团队负载情况</span></div>
+              <div class="mini-bars">
+                <div v-for="m in resourceUtilization" :key="m.label" class="mini-bar-row">
+                  <span>{{ m.label }}</span>
+                  <div class="progress-track"><div class="progress-fill" :style="{ width: m.w + '%', background: m.gradient }"></div></div>
+                  <strong :class="m.statusClass">{{ m.status }}</strong>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card glass-panel">
+              <div class="chart-header"><h2 class="section-title">预算执行情况</h2><span class="section-caption">成本控制分析</span></div>
+              <div class="mini-bars">
+                <div v-for="m in budgetData" :key="m.label" class="mini-bar-row">
+                  <span>{{ m.label }}</span>
+                  <div class="progress-track"><div class="progress-fill" :style="{ width: m.w + '%', background: m.gradient }"></div></div>
+                  <strong>{{ m.val }}</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 质量报表 -->
+          <section v-show="reportType === 'quality'" class="grid-2">
             <div class="chart-card glass-panel">
               <div class="chart-header"><h2 class="section-title">Bug 趋势</h2><span class="section-caption">新增 / 关闭</span></div>
               <div class="dual-line">
@@ -525,6 +592,26 @@
               <div class="chart-header"><h2 class="section-title">阻塞时长与负载分布</h2><span class="section-caption">小时 / 人员</span></div>
               <div class="mini-bars">
                 <div v-for="m in miniBars" :key="m.label" class="mini-bar-row">
+                  <span>{{ m.label }}</span>
+                  <div class="progress-track"><div class="progress-fill" :style="{ width: m.w + '%', background: m.gradient }"></div></div>
+                  <strong>{{ m.val }}</strong>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card glass-panel">
+              <div class="chart-header"><h2 class="section-title">风险登记册</h2><span class="section-caption">风险等级分布</span></div>
+              <div class="mini-bars">
+                <div v-for="m in riskData" :key="m.label" class="mini-bar-row">
+                  <span>{{ m.label }}</span>
+                  <div class="progress-track"><div class="progress-fill" :style="{ width: m.w + '%', background: m.gradient }"></div></div>
+                  <strong :class="m.levelClass">{{ m.level }}</strong>
+                </div>
+              </div>
+            </div>
+            <div class="chart-card glass-panel">
+              <div class="chart-header"><h2 class="section-title">缺陷密度分析</h2><span class="section-caption">代码质量评估</span></div>
+              <div class="mini-bars">
+                <div v-for="m in defectDensity" :key="m.label" class="mini-bar-row">
                   <span>{{ m.label }}</span>
                   <div class="progress-track"><div class="progress-fill" :style="{ width: m.w + '%', background: m.gradient }"></div></div>
                   <strong>{{ m.val }}</strong>
@@ -1199,6 +1286,73 @@ const barChartData = ref([
   { name: '陈思远', h: 92, gradient: 'linear-gradient(180deg, #f7c455, var(--color-warning-600))' },
   { name: '王雅婷', h: 58, gradient: 'linear-gradient(180deg, #38c59b, var(--color-secondary-600))' },
   { name: '赵扬', h: 36, gradient: 'linear-gradient(180deg, #a871ff, var(--color-tertiary-600))' }
+])
+
+// 进度报表数据
+const progressBarData = ref([
+  { name: '待开发', h: 25, gradient: 'linear-gradient(180deg, var(--color-text-secondary), var(--color-text-tertiary))' },
+  { name: '开发中', h: 45, gradient: 'linear-gradient(180deg, var(--color-primary-400), var(--color-primary-700))' },
+  { name: '测试中', h: 65, gradient: 'linear-gradient(180deg, #f7c455, var(--color-warning-600))' },
+  { name: '已完成', h: 88, gradient: 'linear-gradient(180deg, #38c59b, var(--color-secondary-600))' }
+])
+
+// 工时分布数据
+const hoursDistribution = ref([
+  { label: '周一', w: 85, gradient: 'linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600))', val: '7.2h' },
+  { label: '周二', w: 92, gradient: 'linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600))', val: '8.1h' },
+  { label: '周三', w: 78, gradient: 'linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600))', val: '6.8h' },
+  { label: '周四', w: 88, gradient: 'linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600))', val: '7.6h' },
+  { label: '周五', w: 72, gradient: 'linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600))', val: '6.3h' },
+  { label: '周六', w: 45, gradient: 'linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600))', val: '3.2h' }
+])
+
+// 里程碑数据
+const milestoneData = ref([
+  { label: '需求评审', w: 100, gradient: 'linear-gradient(90deg, #38c59b, var(--color-secondary-600))', status: '已完成' },
+  { label: '架构设计', w: 100, gradient: 'linear-gradient(90deg, #38c59b, var(--color-secondary-600))', status: '已完成' },
+  { label: '开发完成', w: 85, gradient: 'linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600))', status: '进行中' },
+  { label: '测试验收', w: 40, gradient: 'linear-gradient(90deg, #f7c455, var(--color-warning-600))', status: '进行中' },
+  { label: '上线部署', w: 10, gradient: 'linear-gradient(90deg, var(--color-text-tertiary), var(--color-text-secondary))', status: '待开始' }
+])
+
+// 进度偏差数据
+const deviationData = ref([
+  { name: '需求阶段', plan: 100, actual: 100, gradient: 'linear-gradient(180deg, #38c59b, var(--color-secondary-600))' },
+  { name: '设计阶段', plan: 100, actual: 95, gradient: 'linear-gradient(180deg, #38c59b, var(--color-secondary-600))' },
+  { name: '开发阶段', plan: 75, actual: 65, gradient: 'linear-gradient(180deg, var(--color-primary-400), var(--color-primary-600))' },
+  { name: '测试阶段', plan: 40, actual: 25, gradient: 'linear-gradient(180deg, #f7c455, var(--color-warning-600))' }
+])
+
+// 资源利用率数据
+const resourceUtilization = ref([
+  { label: '王志强', w: 88, gradient: 'linear-gradient(90deg, #f7c455, var(--color-warning-600))', status: '高负荷', statusClass: 'text-warning' },
+  { label: '陈思远', w: 72, gradient: 'linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600))', status: '正常', statusClass: 'text-primary' },
+  { label: '王雅婷', w: 65, gradient: 'linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600))', status: '正常', statusClass: 'text-primary' },
+  { label: '赵扬', w: 45, gradient: 'linear-gradient(90deg, #38c59b, var(--color-secondary-600))', status: '低负荷', statusClass: 'text-secondary' }
+])
+
+// 预算执行数据
+const budgetData = ref([
+  { label: '人力成本', w: 68, gradient: 'linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600))', val: '¥12.5万' },
+  { label: '服务器费用', w: 45, gradient: 'linear-gradient(90deg, #38c59b, var(--color-secondary-600))', val: '¥3.2万' },
+  { label: '第三方服务', w: 82, gradient: 'linear-gradient(90deg, #f7c455, var(--color-warning-600))', val: '¥8.8万' },
+  { label: '培训费用', w: 25, gradient: 'linear-gradient(90deg, #38c59b, var(--color-secondary-600))', val: '¥1.5万' }
+])
+
+// 风险数据
+const riskData = ref([
+  { label: '技术复杂度', w: 75, gradient: 'linear-gradient(90deg, #f7c455, var(--color-warning-600))', level: '中', levelClass: 'text-warning' },
+  { label: '需求变更', w: 45, gradient: 'linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600))', level: '低', levelClass: 'text-primary' },
+  { label: '资源不足', w: 60, gradient: 'linear-gradient(90deg, #f7c455, var(--color-warning-600))', level: '中', levelClass: 'text-warning' },
+  { label: '时间压力', w: 85, gradient: 'linear-gradient(90deg, #f36b63, var(--color-danger-600))', level: '高', levelClass: 'text-danger' }
+])
+
+// 缺陷密度数据
+const defectDensity = ref([
+  { label: '前端模块', w: 32, gradient: 'linear-gradient(90deg, #38c59b, var(--color-secondary-600))', val: '0.8/KLOC' },
+  { label: '后端模块', w: 45, gradient: 'linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600))', val: '1.2/KLOC' },
+  { label: 'API接口', w: 28, gradient: 'linear-gradient(90deg, #38c59b, var(--color-secondary-600))', val: '0.5/KLOC' },
+  { label: '数据库层', w: 58, gradient: 'linear-gradient(90deg, #f7c455, var(--color-warning-600))', val: '1.5/KLOC' }
 ])
 
 const bugPoints = ref([
