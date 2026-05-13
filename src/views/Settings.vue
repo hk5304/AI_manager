@@ -124,10 +124,17 @@
                   <span class="section-caption">修改基础信息</span>
                 </div>
                 <div class="profile-avatar-panel">
-                  <div class="profile-avatar-preview" aria-label="当前头像">
+                  <button
+                    class="profile-avatar-preview"
+                    :class="{ clickable: Boolean(avatarPreviewSrc) }"
+                    type="button"
+                    :disabled="!avatarPreviewSrc"
+                    :aria-label="avatarPreviewSrc ? '查看头像原图' : '当前默认头像'"
+                    @click="openAvatarPreview"
+                  >
                     <img v-if="profileForm.avatar" :src="profileForm.avatar" :alt="`${profileForm.name} 的头像`" />
                     <span v-else>{{ userInitial }}</span>
-                  </div>
+                  </button>
                   <div class="profile-avatar-info">
                     <h3>个人头像</h3>
                     <p>默认显示姓名首字，上传图片需小于 1MB，可在裁剪框内拖动选择展示位置。</p>
@@ -329,6 +336,18 @@
         </div>
       </div>
     </Transition>
+    <Transition name="avatar-preview">
+      <div
+        v-if="isAvatarPreviewOpen"
+        class="avatar-lightbox"
+        role="dialog"
+        aria-modal="true"
+        aria-label="头像原图预览"
+        @click="closeAvatarPreview"
+      >
+        <img :src="avatarPreviewSrc" :alt="`${profileForm.name} 的头像原图`" @click.stop />
+      </div>
+    </Transition>
     <div class="modal-shell" :class="{ open: isAvatarCropModalOpen }" data-modal-id="avatar-crop-modal">
       <div class="modal-backdrop" data-modal-close @click="closeAvatarCropModal"></div>
       <section class="modal-panel glass-panel-strong classic-modal-panel avatar-crop-modal">
@@ -442,6 +461,7 @@ const toastIcon = ref("check_circle");
 const showToast = ref(false);
 const isAvatarMenuOpen = ref(false);
 const isAvatarCropModalOpen = ref(false);
+const isAvatarPreviewOpen = ref(false);
 const avatarFileInput = ref(null);
 const avatarCropFrame = ref(null);
 const avatarCropImage = ref(null);
@@ -460,6 +480,7 @@ const defaultProfileForm = {
   email: "zhang@example.com",
   phone: "138****7788",
   avatar: "",
+  avatarOriginal: "",
 };
 
 const defaultNotificationPrefs = {
@@ -489,7 +510,7 @@ const loadSettings = () => {
 
 const savedSettings = loadSettings();
 
-const profileForm = reactive(savedSettings?.profile ? { ...savedSettings.profile } : { ...defaultProfileForm });
+const profileForm = reactive({ ...defaultProfileForm, ...(savedSettings?.profile || {}) });
 const notificationPrefs = reactive(savedSettings?.notifications ? { ...savedSettings.notifications } : { ...defaultNotificationPrefs });
 const aiPrefs = reactive(savedSettings?.aiPrefs ? { ...savedSettings.aiPrefs } : { ...defaultAiPrefs });
 
@@ -522,6 +543,8 @@ const currentUser = computed(() => ({
   role: "研发总监",
   avatar: profileForm.avatar || "",
 }));
+
+const avatarPreviewSrc = computed(() => profileForm.avatarOriginal || profileForm.avatar || "");
 
 const avatarCropBaseSize = computed(() => {
   const frameSize = avatarCropFrameSize.value || 520;
@@ -622,6 +645,18 @@ const toggleAvatarMenu = () => {
 const triggerAvatarUpload = () => {
   isAvatarMenuOpen.value = false;
   avatarFileInput.value?.click();
+};
+
+const openAvatarPreview = () => {
+  if (!avatarPreviewSrc.value) {
+    return;
+  }
+
+  isAvatarPreviewOpen.value = true;
+};
+
+const closeAvatarPreview = () => {
+  isAvatarPreviewOpen.value = false;
 };
 
 const resetAvatarCropState = () => {
@@ -783,6 +818,7 @@ const applyCroppedAvatar = () => {
   );
 
   profileForm.avatar = canvas.toDataURL("image/jpeg", 0.88);
+  profileForm.avatarOriginal = avatarCropSrc.value;
   persistCurrentSettings();
   closeAvatarCropModal();
   showToastMessage("头像已更新");
@@ -790,6 +826,8 @@ const applyCroppedAvatar = () => {
 
 const removeAvatar = () => {
   profileForm.avatar = "";
+  profileForm.avatarOriginal = "";
+  closeAvatarPreview();
   isAvatarMenuOpen.value = false;
   persistCurrentSettings();
   showToastMessage("已恢复默认头像");
@@ -835,6 +873,10 @@ const handleAcceptAiSuggestion = () => {
 
 const handleKeydown = (event) => {
   if (event.key === "Escape") {
+    if (isAvatarPreviewOpen.value) {
+      closeAvatarPreview();
+      return;
+    }
     if (isAvatarCropModalOpen.value) {
       closeAvatarCropModal();
       return;
@@ -898,14 +940,59 @@ onBeforeUnmount(() => {
   background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700));
   border: 1px solid #dbe6f6;
   box-shadow: 0 12px 28px rgba(20, 104, 199, 0.2);
+  padding: 0;
   font-size: 24px;
   font-weight: 800;
+  cursor: default;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.profile-avatar-preview.clickable {
+  cursor: zoom-in;
+}
+
+.profile-avatar-preview.clickable:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 16px 34px rgba(20, 104, 199, 0.26);
+}
+
+.profile-avatar-preview:disabled {
+  opacity: 1;
 }
 
 .profile-avatar-preview img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.avatar-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1250;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(18, 25, 46, 0.44);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  cursor: zoom-out;
+}
+
+.avatar-lightbox img {
+  max-width: min(92vw, 920px);
+  max-height: 86vh;
+  object-fit: contain;
+}
+
+.avatar-preview-enter-active,
+.avatar-preview-leave-active {
+  transition: opacity 180ms ease;
+}
+
+.avatar-preview-enter-from,
+.avatar-preview-leave-to {
+  opacity: 0;
 }
 
 .profile-avatar-info {
