@@ -248,160 +248,148 @@
         <button class="icon-btn" @click="closeModal"><span class="material-symbols-outlined">close</span></button>
       </div>
 
-      <div class="project-create-layout">
-        <div class="project-create-main">
-          <article class="glass-panel project-create-card">
-            <div class="project-create-card-head">
-              <div>
-                <h3 class="section-title" style="font-size: 22px;">基础信息</h3>
-                <p class="section-caption" style="margin-top: 6px;">对齐项目矩阵页的核心字段展示</p>
-              </div>
-              <span class="pill pill-neutral">列表主字段</span>
+      <div style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
+        <div class="glass-panel" style="padding: 20px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div>
+              <h3 class="section-title" style="font-size: 18px; margin: 0;">基础信息</h3>
+              <p class="section-caption" style="margin-top: 4px; font-size: 12px;">对齐项目矩阵页的核心字段展示</p>
             </div>
+            <span class="pill pill-neutral" style="font-size: 11px;">列表主字段</span>
+          </div>
 
-            <div class="field-inline">
-              <div class="field-stack">
-                <label class="field-label">项目名称</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">title</span>
-                  <input type="text" v-model="formData.name" placeholder="请输入项目名称" />
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">项目编号</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">tag</span>
-                  <input type="text" v-model="formData.code" placeholder="请输入项目编号" />
-                </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+            <div>
+              <label class="field-label" style="font-size: 13px;">项目名称</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">title</span>
+                <input type="text" v-model="formData.name" placeholder="请输入项目名称" />
               </div>
             </div>
-
-            <div class="field-inline" style="margin-top: 16px;">
-              <div class="field-stack">
-                <label class="field-label">项目负责人</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">person</span>
-                  <input type="text" v-model="formData.owner" placeholder="请输入项目负责人" />
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">预计成员数</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">group_add</span>
-                  <input type="text" v-model="formData.memberCount" placeholder="请输入预计成员数" />
-                </div>
+            <div>
+              <label class="field-label" style="font-size: 13px;">项目编号</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">tag</span>
+                <input type="text" v-model="formData.code" placeholder="请输入项目编号" />
               </div>
             </div>
-
-          </article>
-
-          <article class="glass-panel project-create-card">
-            <div class="project-create-card-head">
-              <div>
-                <h3 class="section-title" style="font-size: 22px;">计划与状态</h3>
-                <p class="section-caption" style="margin-top: 6px;">用于项目矩阵页的筛选、排序和状态展示</p>
-              </div>
-              <span class="pill pill-success">计划信息</span>
-            </div>
-
-            <div class="field-inline">
-              <div class="field-stack">
-                <label class="field-label">开始日期</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">calendar_today</span>
-                  <input type="date" v-model="formData.startDate" />
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">截止日期</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">event</span>
-                  <input type="date" v-model="formData.deadline" />
-                </div>
+            <div>
+              <label class="field-label" style="font-size: 13px;">项目负责人</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">person</span>
+                <input type="text" v-model="formData.owner" placeholder="请输入项目负责人" />
               </div>
             </div>
+            <div>
+              <label class="field-label" style="font-size: 13px;">预计成员数</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">group_add</span>
+                <input type="text" v-model="formData.memberCount" placeholder="请输入预计成员数" />
+              </div>
+            </div>
+          </div>
+        </div>
 
-            <div class="field-stack" style="margin-top: 16px;">
-              <label class="field-label">项目优先级</label>
-              <div class="field-input">
-                <span class="material-symbols-outlined">flag</span>
-                <select v-model="formData.priority">
-                  <option value="P0">P0</option>
-                  <option value="P1">P1</option>
-                  <option value="P2">P2</option>
+        <div class="glass-panel" style="padding: 20px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div>
+              <h3 class="section-title" style="font-size: 18px; margin: 0;">计划与状态</h3>
+              <p class="section-caption" style="margin-top: 4px; font-size: 12px;">用于项目矩阵页的筛选、排序和状态展示</p>
+            </div>
+            <span class="pill pill-success" style="font-size: 11px;">计划信息</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+            <div>
+              <label class="field-label" style="font-size: 13px;">开始日期</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">calendar_today</span>
+                <input type="date" v-model="formData.startDate" />
+              </div>
+            </div>
+            <div>
+              <label class="field-label" style="font-size: 13px;">截止日期</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">event</span>
+                <input type="date" v-model="formData.deadline" />
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 12px;">
+            <label class="field-label" style="font-size: 13px;">项目优先级</label>
+            <div class="field-input" style="margin-top: 6px;">
+              <span class="material-symbols-outlined">flag</span>
+              <select v-model="formData.priority">
+                <option value="P0">P0</option>
+                <option value="P1">P1</option>
+                <option value="P2">P2</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label class="field-label" style="font-size: 13px;">项目摘要</label>
+              <button class="btn-ai-summary" @click="generateAiSummary" style="padding: 4px 10px; font-size: 12px;">
+                <span class="material-symbols-outlined" style="font-size: 14px;">auto_awesome</span>
+                AI 智能摘要
+              </button>
+            </div>
+            <div class="field-input" style="margin-top: 6px;">
+              <span class="material-symbols-outlined" style="margin-top: 8px;">article</span>
+              <textarea v-model="formData.summary" style="min-height: 60px;">围绕新型复合材料热稳定性验证展开，预期在 6 周内完成需求评审、实验方案对齐、验证实施与结果复盘，并同步沉淀到项目矩阵与风险页。</textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-panel" style="padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div>
+              <h3 class="section-title" style="font-size: 18px; margin: 0;">成员与同步配置</h3>
+              <p class="section-caption" style="margin-top: 4px; font-size: 12px;">创建后默认影响成员字段、矩阵页筛选项和各详情页入口</p>
+            </div>
+            <span class="pill pill-warning" style="font-size: 11px;">协作配置</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+            <div>
+              <label class="field-label" style="font-size: 13px;">核心成员</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">group</span>
+                <input type="text" placeholder="请输入核心成员" />
+              </div>
+            </div>
+            <div>
+              <label class="field-label" style="font-size: 13px;">报告订阅人</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">forward_to_inbox</span>
+                <input type="text" placeholder="请输入报告订阅人" />
+              </div>
+            </div>
+            <div>
+              <label class="field-label" style="font-size: 13px;">风险提醒频率</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">warning</span>
+                <select>
+                  <option>每日同步</option>
+                  <option>每周同步</option>
+                  <option>仅异常提醒</option>
                 </select>
               </div>
             </div>
-
-            <div class="field-stack project-create-textarea" style="margin-top: 16px;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <label class="field-label">项目摘要</label>
-                <button class="btn-ai-summary" @click="generateAiSummary">
-                  <span class="material-symbols-outlined">auto_awesome</span>
-                  AI 智能摘要
-                </button>
-              </div>
-              <div class="field-input">
-                <span class="material-symbols-outlined" style="margin-top: 16px;">article</span>
-                <textarea v-model="formData.summary">围绕新型复合材料热稳定性验证展开，预期在 6 周内完成需求评审、实验方案对齐、验证实施与结果复盘，并同步沉淀到项目矩阵与风险页。</textarea>
+            <div>
+              <label class="field-label" style="font-size: 13px;">模板初始化</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">auto_fix_high</span>
+                <select>
+                  <option>自动生成默认结构</option>
+                  <option>仅创建空白项目</option>
+                  <option>复制最近项目配置</option>
+                </select>
               </div>
             </div>
-
-          </article>
-
-          <article class="glass-panel project-create-card">
-            <div class="project-create-card-head">
-              <div>
-                <h3 class="section-title" style="font-size: 22px;">成员与同步配置</h3>
-                <p class="section-caption" style="margin-top: 6px;">创建后默认影响成员字段、矩阵页筛选项和各详情页入口</p>
-              </div>
-              <span class="pill pill-warning">协作配置</span>
-            </div>
-
-            <div class="field-inline">
-              <div class="field-stack">
-                <label class="field-label">核心成员</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">group</span>
-                  <input type="text" placeholder="请输入核心成员" />
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">报告订阅人</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">forward_to_inbox</span>
-                  <input type="text" placeholder="请输入报告订阅人" />
-                </div>
-              </div>
-            </div>
-
-            <div class="field-inline" style="margin-top: 16px;">
-              <div class="field-stack">
-                <label class="field-label">风险提醒频率</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">warning</span>
-                  <select>
-                    <option>每日同步</option>
-                    <option>每周同步</option>
-                    <option>仅异常提醒</option>
-                  </select>
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">模板初始化</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">auto_fix_high</span>
-                  <select>
-                    <option>自动生成默认结构</option>
-                    <option>仅创建空白项目</option>
-                    <option>复制最近项目配置</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-
-          </article>
+          </div>
         </div>
       </div>
 

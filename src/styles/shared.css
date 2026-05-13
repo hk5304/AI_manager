@@ -1266,6 +1266,13 @@ select {
   margin-bottom: 24px;
 }
 
+.filter-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(216, 221, 232, 0.5);
+  margin: 0 4px;
+}
+
 .filter-bar .search-shell {
   flex: 1;
   min-width: 320px;

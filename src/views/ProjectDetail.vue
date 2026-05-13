@@ -468,22 +468,27 @@
         <!-- Reports -->
         <div v-show="currentTab === 'reports'" class="tab-panel">
           <section class="glass-panel filter-bar">
-            <button class="btn-chip active">最近 30 天</button>
-            <button class="btn-chip">本周</button>
-            <button class="btn-chip">全部成员</button>
-            <button class="btn-chip">进度报表</button>
-            <button class="btn-chip">工时报表</button>
-            <button class="btn-chip">质量报表</button>
+            <button class="btn-chip" :class="{ active: reportTimeFilter === '30days' }" @click="setReportTimeFilter('30days')">最近 30 天</button>
+            <button class="btn-chip" :class="{ active: reportTimeFilter === 'week' }" @click="setReportTimeFilter('week')">本周</button>
+            <div class="filter-divider"></div>
+            <button class="btn-chip" :class="{ active: reportType === 'all' }" @click="setReportType('all')">全部成员</button>
+            <button class="btn-chip" :class="{ active: reportType === 'progress' }" @click="setReportType('progress')">进度报表</button>
+            <button class="btn-chip" :class="{ active: reportType === 'hours' }" @click="setReportType('hours')">工时报表</button>
+            <button class="btn-chip" :class="{ active: reportType === 'quality' }" @click="setReportType('quality')">质量报表</button>
           </section>
           <section class="summary-card glass-panel">
             <div class="summary-content">
               <span class="pill pill-ai"><span class="material-symbols-outlined">auto_awesome</span>AI 洞察卡片</span>
-              <h2 class="section-title" style="font-size:32px;margin-top:18px;">本周团队效率提升 12%，但联调节点仍是唯一主风险源。</h2>
-              <p class="page-subtitle" style="margin-top:14px;max-width:980px;">AI 综合燃尽图、成员负载与 Bug 趋势后判断：当前项目整体可控，主要问题集中在联调准备时间与测试环境冻结。建议下周优先协调平台组与 QA 的时间窗口，并提前生成周报草稿给相关成员确认。</p>
+              <h2 class="section-title" style="font-size:32px;margin-top:18px;">{{ aiSummaryTitle }}</h2>
+              <p class="page-subtitle" style="margin-top:14px;max-width:980px;">{{ aiSummaryContent }}</p>
               <div class="ai-actions" style="margin-top:20px;">
-                <button class="btn-primary">一键导出 Markdown</button>
-                <button class="btn-secondary">点赞反馈</button>
-                <button class="btn-secondary">点踩反馈</button>
+                <button class="btn-primary" @click="exportMarkdown">一键导出 Markdown</button>
+                <button class="btn-secondary" :class="{ active: feedbackType === 'like' }" @click="submitFeedback('like')">
+                  <span class="material-symbols-outlined">thumb_up</span>点赞反馈 {{ feedbackCount.like > 0 ? feedbackCount.like : '' }}
+                </button>
+                <button class="btn-secondary" :class="{ active: feedbackType === 'dislike' }" @click="submitFeedback('dislike')">
+                  <span class="material-symbols-outlined">thumb_down</span>点踩反馈 {{ feedbackCount.dislike > 0 ? feedbackCount.dislike : '' }}
+                </button>
               </div>
             </div>
           </section>
@@ -883,6 +888,90 @@ const togglePriorityFilter = () => {
   }
 }
 
+// 报表时间筛选
+const reportTimeFilter = ref('30days')
+const setReportTimeFilter = (filter) => {
+  reportTimeFilter.value = filter
+  updateSummary()
+}
+
+// 报表类型
+const reportType = ref('all')
+const setReportType = (type) => {
+  reportType.value = type
+  updateSummary()
+}
+
+// AI摘要内容
+const aiSummaryTitle = ref('本周团队效率提升 12%，但联调节点仍是唯一主风险源。')
+const aiSummaryContent = ref('AI 综合燃尽图、成员负载与 Bug 趋势后判断：当前项目整体可控，主要问题集中在联调准备时间与测试环境冻结。建议下周优先协调平台组与 QA 的时间窗口，并提前生成周报草稿给相关成员确认。')
+
+// 反馈相关
+const feedbackType = ref('')
+const feedbackCount = ref({ like: 12, dislike: 3 })
+const submitFeedback = (type) => {
+  if (feedbackType.value === type) {
+    // 再次点击取消反馈
+    feedbackType.value = ''
+    feedbackCount.value[type]--
+  } else {
+    // 切换反馈类型
+    if (feedbackType.value) {
+      feedbackCount.value[feedbackType.value]--
+    }
+    feedbackType.value = type
+    feedbackCount.value[type]++
+  }
+}
+
+// 导出Markdown
+const exportMarkdown = () => {
+  const markdown = `# 项目周报：${projectName.value}
+
+## AI 洞察摘要
+${aiSummaryTitle.value}
+
+${aiSummaryContent.value}
+
+## 燃尽图趋势
+- 实际剩余工作量持续下降，整体符合预期
+
+## 工时分布
+${barChartData.value.map(item => `- ${item.name}: ${item.h}%`).join('\n')}
+
+## Bug 趋势
+- 新增 Bug 数量呈下降趋势
+- 关闭率持续提升
+
+---
+*生成时间：${new Date().toLocaleDateString('zh-CN')}*`
+
+  const blob = new Blob([markdown], { type: 'text/markdown' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${projectName.value}_周报.md`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// 更新摘要内容
+const updateSummary = () => {
+  const summaries = {
+    '30days': {
+      title: '近30天团队效率提升 8%，项目整体健康度维持良好。',
+      content: 'AI 综合分析近30天数据：燃尽曲线正常下降，成员负载合理，Bug 收敛趋势良好。建议继续保持当前节奏，重点关注联调节点的资源协调。'
+    },
+    'week': {
+      title: '本周团队效率提升 12%，但联调节点仍是唯一主风险源。',
+      content: 'AI 综合燃尽图、成员负载与 Bug 趋势后判断：当前项目整体可控，主要问题集中在联调准备时间与测试环境冻结。建议下周优先协调平台组与 QA 的时间窗口。'
+    }
+  }
+  const summary = summaries[reportTimeFilter.value] || summaries['30days']
+  aiSummaryTitle.value = summary.title
+  aiSummaryContent.value = summary.content
+}
+
 // 检查卡片是否符合筛选条件
 const filterCard = (card) => {
   const priorityTags = card.tags.map(t => t.text)
@@ -952,10 +1041,10 @@ const setGanttView = (mode) => {
   // 按周和按日显示详细时间点，按月只显示三个月三等分
   switch (mode) {
     case 'day':
-      ganttDates.value = ['04/14', '04/17', '04/21', '04/24', '04/28', '05/04', '05/08', '05/12', '05/15', '05/19', '05/22', '05/26', '05/30', '06/03', '06/07', '06/10', '06/14', '06/17', '06/21', '06/24', '06/28', '06/30']
+      ganttDates.value = ['04/14', '04/15', '04/16', '04/17', '04/18', '04/19', '04/20', '04/21', '04/22', '04/23']
       break
     case 'week':
-      ganttDates.value = ['04/14', '04/21', '04/28', '05/05', '05/12', '05/19', '05/26', '06/02', '06/09', '06/16', '06/23', '06/30']
+      ganttDates.value = ['04/14', '04/21', '04/28', '05/05']
       break
     case 'month':
       ganttDates.value = ['四月', '五月', '六月']
