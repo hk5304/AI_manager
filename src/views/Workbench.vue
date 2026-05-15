@@ -339,16 +339,32 @@
 
         <!-- 看板模块 -->
         <section v-show="activeTab === 'kanban'">
-          <div class="glass-panel filter-bar">
-            <button class="btn-chip" :class="{ active: isAllFilterActive }" @click="resetAllFilters">全部状态</button>
-            <button class="btn-chip" :class="{ active: priorityFilter !== 'all' }" @click="togglePriorityFilter">{{ priorityFilter === 'all' ? 'P0 / P1' : priorityFilter.toUpperCase() }}</button>
-            <button class="btn-chip" :class="{ active: deadlineFilter === 'week' }" @click="toggleDeadlineFilter">本周截止</button>
-            <button class="btn-chip" :class="{ active: blockedFilter === 'blocked' }" @click="toggleBlockedFilter">仅阻塞</button>
-            <div style="margin-left: auto; display: flex; gap: 12px;">
-              <button class="btn-secondary" @click="openColumnModal('add')"><span class="material-symbols-outlined">add_box</span>添加列</button>
-              <button class="btn-primary" @click="openKanbanTaskModal('add', null, kanbanData[0]?.id)"><span class="material-symbols-outlined">add</span>新建任务</button>
+          <!-- 看板视图切换 -->
+          <div class="glass-panel" style="margin-bottom: 16px; padding: 16px 24px;">
+            <div class="logs-tabs">
+              <button class="logs-tab-btn" :class="{ active: kanbanView === 'my' }" @click="kanbanView = 'my'">
+                <span class="material-symbols-outlined">view_quilt</span>
+                我的看板
+              </button>
+              <button class="logs-tab-btn" :class="{ active: kanbanView === 'team' }" @click="kanbanView = 'team'">
+                <span class="material-symbols-outlined">group</span>
+                团队看板
+              </button>
             </div>
           </div>
+
+          <!-- 我的看板 -->
+          <div v-show="kanbanView === 'my'">
+            <div class="glass-panel filter-bar">
+              <button class="btn-chip" :class="{ active: isAllFilterActive }" @click="resetAllFilters">全部状态</button>
+              <button class="btn-chip" :class="{ active: priorityFilter !== 'all' }" @click="togglePriorityFilter">{{ priorityFilter === 'all' ? 'P0 / P1' : priorityFilter.toUpperCase() }}</button>
+              <button class="btn-chip" :class="{ active: deadlineFilter === 'week' }" @click="toggleDeadlineFilter">本周截止</button>
+              <button class="btn-chip" :class="{ active: blockedFilter === 'blocked' }" @click="toggleBlockedFilter">仅阻塞</button>
+              <div style="margin-left: auto; display: flex; gap: 12px;">
+                <button class="btn-secondary" @click="openColumnModal('add')"><span class="material-symbols-outlined">add_box</span>添加列</button>
+                <button class="btn-primary" @click="openKanbanTaskModal('add', null, kanbanData[0]?.id)"><span class="material-symbols-outlined">add</span>新建任务</button>
+              </div>
+            </div>
           
           <!-- 列管理提示 -->
           <div class="kanban-hint">
@@ -459,7 +475,135 @@
               </div>
             </div>
           </div>
+          </div>
+
+          <!-- 团队看板 -->
+          <div v-show="kanbanView === 'team'">
+            <div class="glass-panel filter-bar">
+              <span class="page-subtitle" style="margin: 0;">同项目组团队成员看板</span>
+            </div>
+            
+            <!-- 团队成员看板卡片列表 -->
+            <div class="team-kanban-list">
+              <div 
+                v-for="member in teamKanbanData" 
+                :key="member.id" 
+                class="team-kanban-card glass-panel"
+                @click="openTeamKanbanDetail(member)"
+              >
+                <div class="team-kanban-header">
+                  <img :src="member.avatar" class="team-kanban-avatar" />
+                  <div class="team-kanban-info">
+                    <h3>{{ member.name }}</h3>
+                    <p>{{ member.role }}</p>
+                  </div>
+                  <div class="team-kanban-stats">
+                    <div class="stat-item">
+                      <span class="stat-value">{{ member.totalTasks }}</span>
+                      <span class="stat-label">任务总数</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-value">{{ member.completedTasks }}</span>
+                      <span class="stat-label">已完成</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-value" :class="member.healthClass">{{ member.healthStatus }}</span>
+                      <span class="stat-label">健康度</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="team-kanban-preview">
+                  <div class="mini-columns">
+                    <div v-for="col in member.columns.slice(0, 3)" :key="col.name" class="mini-column">
+                      <span class="mini-column-title">{{ col.name }}</span>
+                      <div class="mini-tasks">
+                        <div 
+                          v-for="task in col.tasks.slice(0, 2)" 
+                          :key="task.id" 
+                          class="mini-task"
+                          :class="task.priority.toLowerCase()"
+                        >{{ task.title }}</div>
+                        <div v-if="col.tasks.length > 2" class="mini-task-more">+{{ col.tasks.length - 2 }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button class="btn-primary btn-sm" style="margin-top: 16px; width: 100%;">查看详情</button>
+              </div>
+            </div>
+          </div>
         </section>
+
+        <!-- 团队看板详情弹窗 -->
+        <div class="modal-shell" :class="{ open: showTeamKanbanDetail }">
+          <div class="modal-backdrop" @click="closeTeamKanbanDetail"></div>
+          <section class="modal-panel glass-panel-strong" style="max-width: 950px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="modal-header">
+              <div v-if="selectedTeamMember">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                  <img :src="selectedTeamMember.avatar" class="team-kanban-avatar" style="width: 48px; height: 48px;" />
+                  <div>
+                    <h2 class="section-title">{{ selectedTeamMember.name }} 的看板</h2>
+                    <p class="page-subtitle">{{ selectedTeamMember.role }} · {{ selectedTeamMember.project }}</p>
+                  </div>
+                </div>
+              </div>
+              <button class="icon-btn" @click="closeTeamKanbanDetail"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="modal-body" style="flex: 1; overflow: hidden;">
+              <!-- 水平滚动容器 -->
+              <div 
+                ref="teamKanbanScrollRef"
+                class="kanban-scroll-container"
+                :class="{ dragging: isTeamKanbanDragging }"
+                @mousedown="handleTeamKanbanMouseDown"
+                @mousemove="handleTeamKanbanMouseMove"
+                @mouseup="handleTeamKanbanMouseUp"
+                @mouseleave="handleTeamKanbanMouseLeave"
+              >
+                <div class="kanban kanban-4">
+                  <div 
+                    v-for="column in selectedTeamMember?.columns" 
+                    :key="column.id" 
+                    class="kanban-column glass-panel"
+                  >
+                    <div class="kanban-column-header">
+                      <div class="kanban-column-title">
+                        <h3>{{ column.name }}</h3>
+                        <span class="pill pill-neutral">{{ column.tasks.length }}</span>
+                      </div>
+                    </div>
+                    <div class="kanban-tasks">
+                      <div 
+                        v-for="task in column.tasks" 
+                        :key="task.id" 
+                        class="kanban-card"
+                      >
+                        <div class="kanban-card-header">
+                          <h4>{{ task.title }}</h4>
+                        </div>
+                        <div class="kanban-meta">
+                          <span :class="['micro-tag', task.priority.toLowerCase()]">{{ task.priority }}</span>
+                          <span v-if="task.tag" class="micro-tag">{{ task.tag }}</span>
+                        </div>
+                        <div class="kanban-progress">
+                          <div class="progress-bar">
+                            <div class="progress-fill" :style="{ width: task.progress }"></div>
+                          </div>
+                          <span class="progress-text">{{ task.progress }}</span>
+                        </div>
+                        <p class="task-note">{{ task.deadline }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-secondary" @click="closeTeamKanbanDetail"><span class="material-symbols-outlined">close</span>关闭</button>
+            </div>
+          </section>
+        </div>
 
         <!-- PBC模块 -->
         <section v-show="activeTab === 'pbc'">
@@ -467,9 +611,25 @@
           <div class="glass-panel filter-bar" style="margin-bottom: 24px; justify-content: space-between;">
             <div>
               <h2 class="section-title" style="margin: 0; font-size: 20px;">PBC - {{ pbcData.period }} ({{ pbcData.employeeName }})</h2>
-              <span class="page-subtitle" style="font-size: 14px; margin-top: 4px; display: block;">{{ pbcData.project }}</span>
             </div>
-            <button class="btn-primary" @click="startWritingPbc"><span class="material-symbols-outlined">add</span>编写 PBC</button>
+            <div class="pbc-header-actions">
+              <div class="pbc-period-selector">
+                <button 
+                  class="period-btn" 
+                  :class="{ active: currentPbcPeriod === period.id }"
+                  v-for="period in pbcPeriods" 
+                  :key="period.id"
+                  @click="switchPbcPeriod(period.id)"
+                >
+                  {{ period.label }}
+                </button>
+                <button class="period-btn add-period-btn" @click="createNewPbcPeriod">
+                  <span class="material-symbols-outlined">add</span>新建周期
+                </button>
+              </div>
+              <button class="btn-secondary" @click="showPbcTemplateModal = true"><span class="material-symbols-outlined">settings</span>编辑模板</button>
+              <button class="btn-primary" @click="startWritingPbc"><span class="material-symbols-outlined">edit</span>编辑目标</button>
+            </div>
           </div>
 
           <!-- PBC表格 -->
@@ -628,6 +788,121 @@
             </div>
           </div>
         </section>
+
+        <!-- PBC模板编辑弹窗 -->
+        <div class="modal-shell" :class="{ open: showPbcTemplateModal }">
+          <div class="modal-backdrop" @click="showPbcTemplateModal = false"></div>
+          <section class="modal-panel glass-panel-strong" style="max-width: 800px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="modal-header">
+              <h2 class="section-title">PBC模板设置</h2>
+              <button class="icon-btn" @click="showPbcTemplateModal = false"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 24px;">
+              <div class="template-section">
+                <h3 class="template-section-title">目标类型配置</h3>
+                <p class="template-section-desc">设置PBC目标中可选择的目标类型</p>
+                <div class="template-tags">
+                  <div 
+                    v-for="(tag, index) in pbcTemplate.objectiveCategories" 
+                    :key="index"
+                    class="template-tag"
+                  >
+                    <span>{{ tag.name }}</span>
+                    <span :class="['tag-color', tag.color]"></span>
+                    <button class="tag-remove" @click="removeCategory(index)">
+                      <span class="material-symbols-outlined">close</span>
+                    </button>
+                  </div>
+                  <button class="add-tag-btn" @click="addCategory">
+                    <span class="material-symbols-outlined">add</span>添加类型
+                  </button>
+                </div>
+              </div>
+              
+              <div class="template-section">
+                <h3 class="template-section-title">默认权重配置</h3>
+                <p class="template-section-desc">设置各目标类型的默认权重（总和应等于100%）</p>
+                <div class="weight-config">
+                  <div 
+                    v-for="(tag, index) in pbcTemplate.objectiveCategories" 
+                    :key="index"
+                    class="weight-item"
+                  >
+                    <div class="weight-label">
+                      <span :class="['tag-color', tag.color]"></span>
+                      <span>{{ tag.name }}</span>
+                    </div>
+                    <input 
+                      type="number" 
+                      v-model.number="tag.defaultWeight" 
+                      class="weight-input"
+                      min="0" 
+                      max="100"
+                    />
+                    <span class="weight-unit">%</span>
+                  </div>
+                  <div class="weight-total">
+                    <span class="weight-total-label">权重总和:</span>
+                    <span class="weight-total-value" :class="weightTotal === 100 ? 'valid' : 'invalid'">
+                      {{ weightTotal }}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="template-section">
+                <h3 class="template-section-title">模板预设目标</h3>
+                <p class="template-section-desc">设置新建PBC时默认包含的目标模板</p>
+                <div class="template-objectives">
+                  <div 
+                    v-for="(objective, index) in pbcTemplate.defaultObjectives" 
+                    :key="index"
+                    class="template-objective-card glass-panel"
+                  >
+                    <div class="template-objective-header">
+                      <span :class="['pill', getCategoryClass(objective.category)]">{{ objective.category }}</span>
+                      <button class="icon-btn" @click="removeObjective(index)"><span class="material-symbols-outlined">close</span></button>
+                    </div>
+                    <input 
+                      type="text" 
+                      v-model="objective.title" 
+                      class="objective-input"
+                      placeholder="目标名称"
+                    />
+                    <textarea 
+                      v-model="objective.keyTasks" 
+                      class="objective-textarea"
+                      placeholder="关键任务描述"
+                    ></textarea>
+                    <div class="objective-meta">
+                      <input 
+                        type="text" 
+                        v-model="objective.measurement" 
+                        class="meta-input"
+                        placeholder="衡量标准"
+                      />
+                      <input 
+                        type="number" 
+                        v-model.number="objective.weight" 
+                        class="meta-input weight"
+                        placeholder="权重"
+                        min="0" 
+                        max="100"
+                      />
+                    </div>
+                  </div>
+                  <button class="add-objective-btn btn-secondary" @click="addObjective">
+                    <span class="material-symbols-outlined">add</span>添加预设目标
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-secondary" @click="resetTemplate"><span class="material-symbols-outlined">rotate_ccw</span>重置为默认</button>
+              <button class="btn-primary" @click="saveTemplate"><span class="material-symbols-outlined">save</span>保存模板</button>
+            </div>
+          </section>
+        </div>
 
           <!-- 编写/编辑PBC弹窗 -->
           <div class="modal-shell" :class="{ open: isWritingPbc }">
@@ -1280,6 +1555,7 @@ const currentUser = {
 const activeTab = ref('logs')
 const logsView = ref('view')
 const logsFilter = ref('my')
+const kanbanView = ref('my') // 看板视图：my-我的看板，team-团队看板
 const isTaskModalOpen = ref(false)
 const isAiDrawerOpen = ref(false)
 const toast = ref({ show: false, title: '', message: '', icon: '' })
@@ -1506,6 +1782,204 @@ const resetAllFilters = () => {
   priorityFilter.value = 'all'
   deadlineFilter.value = 'all'
   blockedFilter.value = 'all'
+}
+
+// PBC周期列表
+const pbcPeriods = ref([
+  { id: 'current', label: '当前周期', period: '2026年5月' },
+  { id: 'prev1', label: '2026年4月', period: '2026年4月' },
+  { id: 'prev2', label: '2026年3月', period: '2026年3月' },
+  { id: 'prev3', label: '2026年2月', period: '2026年2月' }
+])
+
+const currentPbcPeriod = ref('current')
+
+// 历史PBC数据
+const historicalPbcData = {
+  current: {
+    employeeName: '绿凯',
+    period: '2026年5月',
+    project: 'PBC-tob项目-毕设',
+    objectives: [
+      { id: 1, category: 'KPI', title: 'AI项目管理系统MVP', keyTasks: '完成所有页面的功能保证后端接口与前端联系的上', deadline: '5月25日', measurement: '前端页面均可使用无明显bug', weight: 20, progress: 85 },
+      { id: 2, category: 'KPI', title: '毕设项目稳定性', keyTasks: '修复bug', deadline: '5月31日', measurement: '及时解决提出的问题，无重大bug', weight: 10, progress: 60 },
+      { id: 3, category: 'KPI', title: '项目管理项目', keyTasks: '一期MVP完成-5月30日完成', deadline: '5月31日', measurement: '验收可以通过', weight: 35, progress: 70 },
+      { id: 4, category: '重点工作', title: '毕设优化', keyTasks: '及时修复与优化', deadline: '5月31日', measurement: '在提出问题时可以一天内解决', weight: 20, progress: 45 },
+      { id: 5, category: '重点工作', title: '组织建设', keyTasks: '1、按时完成安排事项\n2、遵守公司规章制度\n3、打卡和日报', deadline: '5月31日', measurement: '1、leader满意度\n2、行为符合规章制度要求\n3、打卡记录与日报记录，需达到90%', weight: 15, progress: 90 }
+    ],
+    feedbacks: [
+      { id: 1, type: 'self', category: 'temporary', content: '本周期已完成 5 个关键任务，联调与日报效率改造推进正常，但成员负载治理仍需继续跟进。', time: '2024-01-15' },
+      { id: 2, type: 'self', category: 'summary', content: '总体来看，本周期工作进展顺利，各项任务按计划推进。团队协作效率提升明显，但在资源分配和成员负载管理方面仍有改进空间。建议下周期加强智能分配功能的开发，进一步优化工作流程。', time: '2024-01-15' },
+      { id: 3, type: 'manager', content: '方向正确，建议下周期把"负载热力图 + 智能分配"作为核心推进项，并补齐反馈闭环。', time: '2024-01-16' }
+    ],
+    aiTrend: { prediction: '73%', days: 7, suggestion: '建议优先绑定两项联调收尾任务。' }
+  },
+  prev1: {
+    employeeName: '绿凯',
+    period: '2026年4月',
+    project: 'PBC-tob项目-毕设',
+    objectives: [
+      { id: 1, category: 'KPI', title: '需求分析与设计', keyTasks: '完成项目需求文档和技术方案设计', deadline: '4月15日', measurement: '需求文档通过评审', weight: 30, progress: 100 },
+      { id: 2, category: 'KPI', title: '核心模块开发', keyTasks: '完成用户认证、任务管理、项目管理核心模块', deadline: '4月30日', measurement: '功能开发完成，单元测试通过', weight: 40, progress: 95 },
+      { id: 3, category: '重点工作', title: '技术调研', keyTasks: '完成AI能力集成方案调研', deadline: '4月10日', measurement: '输出调研报告', weight: 15, progress: 100 },
+      { id: 4, category: '重点工作', title: '代码规范制定', keyTasks: '制定前端开发规范和代码审查流程', deadline: '4月20日', measurement: '规范文档发布实施', weight: 15, progress: 100 }
+    ],
+    feedbacks: [
+      { id: 1, type: 'self', category: 'summary', content: '本月完成了需求分析、技术方案设计和核心模块开发，整体进度符合预期。AI能力集成方案已完成调研，为下阶段开发奠定了基础。', time: '2026-04-30' },
+      { id: 2, type: 'manager', content: '进度良好，核心模块开发接近完成。建议下周期重点推进AI能力集成和联调工作。', time: '2026-05-01' }
+    ],
+    aiTrend: { prediction: '95%', days: 0, suggestion: '本周期已结束，整体达成率良好。' }
+  },
+  prev2: {
+    employeeName: '绿凯',
+    period: '2026年3月',
+    project: 'PBC-tob项目-毕设',
+    objectives: [
+      { id: 1, category: 'KPI', title: '项目启动', keyTasks: '完成项目立项、团队组建、开发环境搭建', deadline: '3月10日', measurement: '项目正式启动', weight: 25, progress: 100 },
+      { id: 2, category: 'KPI', title: '技术选型', keyTasks: '完成前端框架、后端架构、数据库选型', deadline: '3月20日', measurement: '技术方案文档通过', weight: 35, progress: 100 },
+      { id: 3, category: '重点工作', title: '团队建设', keyTasks: '组织技术分享、建立沟通机制', deadline: '3月31日', measurement: '团队协作顺畅', weight: 20, progress: 85 },
+      { id: 4, category: '重点工作', title: '计划制定', keyTasks: '制定详细开发计划和里程碑', deadline: '3月25日', measurement: '计划文档审批通过', weight: 20, progress: 100 }
+    ],
+    feedbacks: [
+      { id: 1, type: 'self', category: 'summary', content: '本月顺利完成项目启动和技术选型工作，团队组建完成，开发计划已制定。为后续开发工作打下了良好基础。', time: '2026-03-31' },
+      { id: 2, type: 'manager', content: '项目启动顺利，团队积极性高。建议下周期加快核心功能开发进度。', time: '2026-04-01' }
+    ],
+    aiTrend: { prediction: '96%', days: 0, suggestion: '本周期已结束，达成率优秀。' }
+  },
+  prev3: {
+    employeeName: '绿凯',
+    period: '2026年2月',
+    project: 'PBC-tob项目-毕设',
+    objectives: [
+      { id: 1, category: 'KPI', title: '毕设选题', keyTasks: '确定毕设题目，完成开题报告', deadline: '2月15日', measurement: '开题报告通过', weight: 40, progress: 100 },
+      { id: 2, category: 'KPI', title: '文献调研', keyTasks: '完成相关技术文献调研', deadline: '2月28日', measurement: '调研文档完成', weight: 35, progress: 90 },
+      { id: 3, category: '重点工作', title: '方案构思', keyTasks: '构思系统架构和核心功能', deadline: '2月28日', measurement: '方案草稿完成', weight: 25, progress: 80 }
+    ],
+    feedbacks: [
+      { id: 1, type: 'self', category: 'summary', content: '本月完成了毕设选题和开题工作，文献调研基本完成，系统方案构思取得进展。', time: '2026-02-28' },
+      { id: 2, type: 'manager', content: '选题有创新性，调研工作扎实。建议加快方案设计进度，为后续开发争取时间。', time: '2026-03-01' }
+    ],
+    aiTrend: { prediction: '88%', days: 0, suggestion: '本周期已结束。' }
+  }
+}
+
+const switchPbcPeriod = (periodId) => {
+  currentPbcPeriod.value = periodId
+  const periodData = historicalPbcData[periodId]
+  if (periodData) {
+    pbcData.value = JSON.parse(JSON.stringify(periodData))
+  }
+}
+
+const createNewPbcPeriod = () => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
+  const defaultLabel = `${year}年${month}月`
+  
+  const periodLabel = prompt('请输入新周期名称：', defaultLabel)
+  if (!periodLabel) return
+  
+  const newPeriodId = `new_${Date.now()}`
+  
+  pbcPeriods.value.unshift({
+    id: newPeriodId,
+    label: periodLabel,
+    period: periodLabel
+  })
+  
+  historicalPbcData[newPeriodId] = {
+    employeeName: '绿凯',
+    period: periodLabel,
+    project: 'PBC-tob项目-毕设',
+    objectives: [],
+    feedbacks: [],
+    aiTrend: { prediction: '0%', days: 30, suggestion: '新周期已创建，请添加目标。' }
+  }
+  
+  switchPbcPeriod(newPeriodId)
+  showToast('PBC周期已创建', `已成功创建"${periodLabel}"周期`, 'add')
+}
+
+// PBC模板数据
+const showPbcTemplateModal = ref(false)
+
+const pbcTemplate = ref({
+  objectiveCategories: [
+    { name: 'KPI', color: 'success', defaultWeight: 60 },
+    { name: '重点工作', color: 'warning', defaultWeight: 40 }
+  ],
+  defaultObjectives: [
+    { category: 'KPI', title: '项目交付', keyTasks: '', measurement: '', weight: 40 },
+    { category: 'KPI', title: '质量保障', keyTasks: '', measurement: '', weight: 20 },
+    { category: '重点工作', title: '技术提升', keyTasks: '', measurement: '', weight: 20 },
+    { category: '重点工作', title: '团队协作', keyTasks: '', measurement: '', weight: 20 }
+  ]
+})
+
+const weightTotal = computed(() => {
+  return pbcTemplate.value.objectiveCategories.reduce((sum, cat) => sum + (cat.defaultWeight || 0), 0)
+})
+
+const getCategoryClass = (categoryName) => {
+  const category = pbcTemplate.value.objectiveCategories.find(c => c.name === categoryName)
+  return category?.color === 'success' ? 'pill-success' : 'pill-warning'
+}
+
+const addCategory = () => {
+  const colors = ['success', 'warning', 'primary', 'danger']
+  const newColor = colors[pbcTemplate.value.objectiveCategories.length % colors.length]
+  pbcTemplate.value.objectiveCategories.push({
+    name: `新类型${pbcTemplate.value.objectiveCategories.length + 1}`,
+    color: newColor,
+    defaultWeight: 0
+  })
+}
+
+const removeCategory = (index) => {
+  if (pbcTemplate.value.objectiveCategories.length > 1) {
+    pbcTemplate.value.objectiveCategories.splice(index, 1)
+  }
+}
+
+const addObjective = () => {
+  const defaultCategory = pbcTemplate.value.objectiveCategories[0]?.name || 'KPI'
+  pbcTemplate.value.defaultObjectives.push({
+    category: defaultCategory,
+    title: '',
+    keyTasks: '',
+    measurement: '',
+    weight: 20
+  })
+}
+
+const removeObjective = (index) => {
+  pbcTemplate.value.defaultObjectives.splice(index, 1)
+}
+
+const resetTemplate = () => {
+  pbcTemplate.value = {
+    objectiveCategories: [
+      { name: 'KPI', color: 'success', defaultWeight: 60 },
+      { name: '重点工作', color: 'warning', defaultWeight: 40 }
+    ],
+    defaultObjectives: [
+      { category: 'KPI', title: '项目交付', keyTasks: '', measurement: '', weight: 40 },
+      { category: 'KPI', title: '质量保障', keyTasks: '', measurement: '', weight: 20 },
+      { category: '重点工作', title: '技术提升', keyTasks: '', measurement: '', weight: 20 },
+      { category: '重点工作', title: '团队协作', keyTasks: '', measurement: '', weight: 20 }
+    ]
+  }
+  showToast('模板已重置', '已恢复为默认模板', 'update')
+}
+
+const saveTemplate = () => {
+  if (weightTotal.value !== 100) {
+    showToast('权重配置错误', `当前权重总和为${weightTotal.value}%，请调整为100%`, 'warning')
+    return
+  }
+  showToast('模板已保存', 'PBC模板设置已保存', 'add')
+  showPbcTemplateModal.value = false
 }
 
 // PBC数据结构
@@ -1760,6 +2234,215 @@ const kanbanData = ref([
   }
 ])
 
+// 团队看板数据
+const teamKanbanData = ref([
+  {
+    id: 1,
+    name: '陈思远',
+    role: '高级工程师',
+    project: 'AI项目管理系统',
+    avatar: 'https://i.pravatar.cc/80?img=22',
+    totalTasks: 12,
+    completedTasks: 5,
+    healthStatus: '健康',
+    healthClass: 'text-secondary',
+    columns: [
+      {
+        id: 1,
+        name: '待开始',
+        tasks: [
+          { id: 101, title: '优化算法性能', priority: 'P1', tag: '', deadline: '周四', progress: '0%' },
+          { id: 102, title: '代码重构', priority: 'P2', tag: '', deadline: '下周三', progress: '0%' }
+        ]
+      },
+      {
+        id: 2,
+        name: '进行中',
+        tasks: [
+          { id: 103, title: '接口联调', priority: 'P0', tag: '', deadline: '今天', progress: '60%' },
+          { id: 104, title: '单元测试', priority: 'P1', tag: '', deadline: '明天', progress: '30%' },
+          { id: 105, title: '文档编写', priority: 'P3', tag: '', deadline: '周五', progress: '20%' }
+        ]
+      },
+      {
+        id: 3,
+        name: '待评审',
+        tasks: [
+          { id: 106, title: '技术方案评审', priority: 'P1', tag: '', deadline: '周三', progress: '90%' }
+        ]
+      },
+      {
+        id: 4,
+        name: '已完成',
+        tasks: [
+          { id: 107, title: '需求分析', priority: 'P2', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 108, title: '架构设计', priority: 'P1', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 109, title: '数据库设计', priority: 'P2', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 110, title: 'API设计', priority: 'P1', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 111, title: '代码审查', priority: 'P2', tag: '', deadline: '已完成', progress: '100%' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 2,
+    name: '王雅婷',
+    role: '产品经理',
+    project: 'AI项目管理系统',
+    avatar: 'https://i.pravatar.cc/80?img=33',
+    totalTasks: 8,
+    completedTasks: 3,
+    healthStatus: '一般',
+    healthClass: 'text-warning',
+    columns: [
+      {
+        id: 1,
+        name: '待开始',
+        tasks: [
+          { id: 201, title: '竞品分析', priority: 'P2', tag: '', deadline: '下周一', progress: '0%' },
+          { id: 202, title: '用户调研', priority: 'P1', tag: '', deadline: '下周二', progress: '0%' }
+        ]
+      },
+      {
+        id: 2,
+        name: '进行中',
+        tasks: [
+          { id: 203, title: '需求文档编写', priority: 'P0', tag: '阻塞风险', deadline: '周三', progress: '70%' },
+          { id: 204, title: '原型设计', priority: 'P1', tag: '', deadline: '周四', progress: '40%' }
+        ]
+      },
+      {
+        id: 3,
+        name: '待评审',
+        tasks: [
+          { id: 205, title: 'PRD评审', priority: 'P1', tag: '', deadline: '周五', progress: '85%' }
+        ]
+      },
+      {
+        id: 4,
+        name: '已完成',
+        tasks: [
+          { id: 206, title: '需求收集', priority: 'P1', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 207, title: '产品规划', priority: 'P2', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 208, title: '路线图制定', priority: 'P1', tag: '', deadline: '已完成', progress: '100%' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 3,
+    name: '李明',
+    role: '测试工程师',
+    project: 'AI项目管理系统',
+    avatar: 'https://i.pravatar.cc/80?img=44',
+    totalTasks: 15,
+    completedTasks: 6,
+    healthStatus: '风险',
+    healthClass: 'text-danger',
+    columns: [
+      {
+        id: 1,
+        name: '待开始',
+        tasks: [
+          { id: 301, title: '自动化测试', priority: 'P1', tag: '', deadline: '周五', progress: '0%' },
+          { id: 302, title: '性能测试', priority: 'P2', tag: '', deadline: '下周二', progress: '0%' },
+          { id: 303, title: '安全测试', priority: 'P1', tag: '', deadline: '下周三', progress: '0%' }
+        ]
+      },
+      {
+        id: 2,
+        name: '进行中',
+        tasks: [
+          { id: 304, title: '功能测试', priority: 'P0', tag: '高负荷', deadline: '今天', progress: '50%' },
+          { id: 305, title: '回归测试', priority: 'P1', tag: '', deadline: '明天', progress: '30%' },
+          { id: 306, title: '兼容性测试', priority: 'P2', tag: '', deadline: '周三', progress: '25%' },
+          { id: 307, title: 'Bug修复验证', priority: 'P1', tag: '', deadline: '周四', progress: '40%' }
+        ]
+      },
+      {
+        id: 3,
+        name: '待评审',
+        tasks: [
+          { id: 308, title: '测试报告', priority: 'P1', tag: '', deadline: '周五', progress: '75%' }
+        ]
+      },
+      {
+        id: 4,
+        name: '已完成',
+        tasks: [
+          { id: 309, title: '测试计划', priority: 'P1', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 310, title: '测试用例编写', priority: 'P1', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 311, title: '冒烟测试', priority: 'P0', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 312, title: '环境搭建', priority: 'P2', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 313, title: '工具配置', priority: 'P3', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 314, title: '测试文档', priority: 'P2', tag: '', deadline: '已完成', progress: '100%' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 4,
+    name: '赵雪',
+    role: '前端工程师',
+    project: 'AI项目管理系统',
+    avatar: 'https://i.pravatar.cc/80?img=55',
+    totalTasks: 10,
+    completedTasks: 4,
+    healthStatus: '健康',
+    healthClass: 'text-secondary',
+    columns: [
+      {
+        id: 1,
+        name: '待开始',
+        tasks: [
+          { id: 401, title: '组件重构', priority: 'P2', tag: '', deadline: '下周一', progress: '0%' }
+        ]
+      },
+      {
+        id: 2,
+        name: '进行中',
+        tasks: [
+          { id: 402, title: '页面开发', priority: 'P1', tag: '', deadline: '周三', progress: '65%' },
+          { id: 403, title: '样式优化', priority: 'P2', tag: '', deadline: '周四', progress: '45%' },
+          { id: 404, title: '响应式适配', priority: 'P1', tag: '', deadline: '周五', progress: '30%' }
+        ]
+      },
+      {
+        id: 3,
+        name: '待评审',
+        tasks: [
+          { id: 405, title: '代码审查', priority: 'P1', tag: '', deadline: '周四', progress: '80%' }
+        ]
+      },
+      {
+        id: 4,
+        name: '已完成',
+        tasks: [
+          { id: 406, title: '框架搭建', priority: 'P1', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 407, title: '路由配置', priority: 'P2', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 408, title: '组件设计', priority: 'P1', tag: '', deadline: '已完成', progress: '100%' },
+          { id: 409, title: '静态页面', priority: 'P1', tag: '', deadline: '已完成', progress: '100%' }
+        ]
+      }
+    ]
+  }
+])
+
+// 团队看板详情弹窗状态
+const showTeamKanbanDetail = ref(false)
+const selectedTeamMember = ref(null)
+const teamKanbanRef = ref(null)
+
+const openTeamKanbanDetail = (member) => {
+  selectedTeamMember.value = member
+  showTeamKanbanDetail.value = true
+}
+
+const closeTeamKanbanDetail = () => {
+  showTeamKanbanDetail.value = false
+  selectedTeamMember.value = null
+}
+
 // 拖拽相关状态
 const draggedTask = ref(null)
 const draggedFromColumn = ref(null)
@@ -1832,6 +2515,71 @@ const handleMouseUp = () => {
 
 const handleMouseLeave = () => {
   isDragging.value = false
+}
+
+// 团队看板详情弹窗拖拽滚动相关
+const isTeamKanbanDragging = ref(false)
+const teamKanbanStartX = ref(0)
+const teamKanbanStartY = ref(0)
+const teamKanbanScrollLeft = ref(0)
+const teamKanbanScrollTop = ref(0)
+const teamKanbanScrollRef = ref(null)
+const teamKanbanDirectionLocked = ref('') // 'horizontal' | 'vertical' | ''
+
+const handleTeamKanbanMouseDown = (e) => {
+  if (!teamKanbanScrollRef.value) return
+  isTeamKanbanDragging.value = true
+  teamKanbanStartX.value = e.pageX - teamKanbanScrollRef.value.offsetLeft
+  teamKanbanStartY.value = e.pageY - teamKanbanScrollRef.value.offsetTop
+  teamKanbanScrollLeft.value = teamKanbanScrollRef.value.scrollLeft
+  teamKanbanScrollTop.value = teamKanbanScrollRef.value.scrollTop
+  teamKanbanDirectionLocked.value = ''
+  teamKanbanScrollRef.value.style.cursor = 'grabbing'
+}
+
+const handleTeamKanbanMouseMove = (e) => {
+  if (!isTeamKanbanDragging.value || !teamKanbanScrollRef.value) return
+  
+  const x = e.pageX - teamKanbanScrollRef.value.offsetLeft
+  const y = e.pageY - teamKanbanScrollRef.value.offsetTop
+  const deltaX = Math.abs(x - teamKanbanStartX.value)
+  const deltaY = Math.abs(y - teamKanbanStartY.value)
+  
+  // 方向锁：首次超过阈值后锁定方向
+  if (!teamKanbanDirectionLocked.value) {
+    if (deltaX > 10 && deltaX > deltaY) {
+      teamKanbanDirectionLocked.value = 'horizontal'
+    } else if (deltaY > 10 && deltaY > deltaX) {
+      teamKanbanDirectionLocked.value = 'vertical'
+    }
+  }
+  
+  // 根据锁定方向处理
+  if (teamKanbanDirectionLocked.value === 'horizontal') {
+    e.preventDefault()
+    const walk = (x - teamKanbanStartX.value) * 1.5
+    teamKanbanScrollRef.value.scrollLeft = teamKanbanScrollLeft.value - walk
+  } else if (teamKanbanDirectionLocked.value === 'vertical') {
+    // 垂直方向不拦截，让浏览器默认滚动
+    const walkY = y - teamKanbanStartY.value
+    teamKanbanScrollRef.value.scrollTop = teamKanbanScrollTop.value - walkY
+  }
+}
+
+const handleTeamKanbanMouseUp = () => {
+  isTeamKanbanDragging.value = false
+  teamKanbanDirectionLocked.value = ''
+  if (teamKanbanScrollRef.value) {
+    teamKanbanScrollRef.value.style.cursor = 'grab'
+  }
+}
+
+const handleTeamKanbanMouseLeave = () => {
+  isTeamKanbanDragging.value = false
+  teamKanbanDirectionLocked.value = ''
+  if (teamKanbanScrollRef.value) {
+    teamKanbanScrollRef.value.style.cursor = 'grab'
+  }
 }
 
 const handleNavigate = (path) => {
