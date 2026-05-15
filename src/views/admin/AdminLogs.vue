@@ -168,7 +168,7 @@
 <script setup>
 import { computed, getCurrentInstance, ref } from "vue";
 import { useRouter } from "vue-router";
-import { pushAppPath } from "../../utils/navigation";
+import { pushAppPath, pushNotificationPath } from "../../utils/navigation";
 import UserProfileHoverCard from "../../components/topbar/UserProfileHoverCard.vue";
 
 const router = useRouter();
@@ -423,7 +423,7 @@ const handleExportLogs = async () => {
 
 const handleOpenNotifications = () => {
   emit("open-notifications");
-  pushAppPath(router, "/notifications");
+  pushNotificationPath(router, router.currentRoute.value.fullPath);
 };
 
 const handleOpenAppSwitcher = () => {

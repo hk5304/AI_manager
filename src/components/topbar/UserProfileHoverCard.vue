@@ -5,16 +5,19 @@
     @mouseleave="close"
   >
     <button class="avatar-chip avatar-chip-button" type="button">
-      <img
-        v-if="hasAvatarImage"
-        :src="user.avatar"
-        :alt="user.name"
-        @error="handleImageError"
-      />
-      <div v-else class="avatar-chip-fallback">{{ userInitial }}</div>
+      <span class="avatar-visual" :class="{ loading: isAvatarLoading }">
+        <img
+          v-if="hasAvatarImage"
+          :src="displayAvatar"
+          :alt="effectiveUser.name"
+          @error="handleImageError"
+        />
+        <div v-else class="avatar-chip-fallback">{{ userInitial }}</div>
+        <span v-if="isAvatarLoading" class="avatar-loading" aria-hidden="true"></span>
+      </span>
       <div>
-        <strong>{{ user.name }}</strong>
-        <span>{{ user.role }}</span>
+        <strong>{{ effectiveUser.name }}</strong>
+        <span>{{ effectiveUser.role }}</span>
       </div>
     </button>
 
@@ -26,18 +29,19 @@
       @mouseleave="close"
     >
       <div class="user-profile-card-head">
-        <div class="user-profile-card-avatar">
+        <div class="user-profile-card-avatar" :class="{ loading: isAvatarLoading }">
           <img
             v-if="hasAvatarImage"
-            :src="user.avatar"
-            :alt="user.name"
+            :src="displayAvatar"
+            :alt="effectiveUser.name"
             @error="handleImageError"
           />
           <span v-else>{{ userInitial }}</span>
+          <span v-if="isAvatarLoading" class="avatar-loading" aria-hidden="true"></span>
         </div>
         <div class="user-profile-card-copy">
-          <strong>{{ user.name }}</strong>
-          <span>{{ user.role }}</span>
+          <strong>{{ effectiveUser.name }}</strong>
+          <span>{{ effectiveUser.role }}</span>
         </div>
       </div>
 
@@ -56,7 +60,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useHoverCard } from "../../composables/useHoverCard";
 
@@ -77,6 +81,13 @@ const props = defineProps({
 
 const router = useRouter();
 const imageLoadFailed = ref(false);
+const managedProfile = ref(null);
+const displayAvatar = ref("");
+const isAvatarLoading = ref(false);
+let avatarLoadToken = 0;
+
+const SETTINGS_STORAGE_KEY = "app-settings";
+const PROFILE_UPDATED_EVENT = "app-profile-updated";
 
 const {
   isOpen,
@@ -88,22 +99,124 @@ const {
   hideDelay: props.hideDelay,
 });
 
+const loadManagedProfile = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const rawSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!rawSettings) {
+      return null;
+    }
+
+    const parsedSettings = JSON.parse(rawSettings);
+    return parsedSettings?.profile || null;
+  } catch (error) {
+    console.error("Failed to load profile settings.", error);
+    return null;
+  }
+};
+
+managedProfile.value = loadManagedProfile();
+
+const effectiveUser = computed(() => {
+  const profile = managedProfile.value;
+
+  return {
+    name: profile?.name || props.user?.name || "用户",
+    role: props.user?.role || "用户",
+    avatar: profile?.avatar || "",
+  };
+});
+
 const userInitial = computed(() => {
-  const source = props.user?.name || "用";
+  const source = effectiveUser.value.name || "用";
   return source.charAt(0).toUpperCase();
 });
 
-const hasAvatarImage = computed(() => Boolean(props.user?.avatar) && !imageLoadFailed.value);
+const hasAvatarImage = computed(() => Boolean(displayAvatar.value) && !imageLoadFailed.value);
+
+const preloadAvatar = (src) => {
+  return new Promise((resolve, reject) => {
+    if (!src) {
+      resolve();
+      return;
+    }
+
+    const image = new Image();
+    image.onload = () => {
+      if (image.decode) {
+        image.decode().catch(() => undefined).then(resolve);
+        return;
+      }
+
+      resolve();
+    };
+    image.onerror = reject;
+    image.src = src;
+  });
+};
+
+const syncDisplayAvatar = async (nextAvatar) => {
+  const token = ++avatarLoadToken;
+  imageLoadFailed.value = false;
+
+  if (!nextAvatar) {
+    displayAvatar.value = "";
+    isAvatarLoading.value = false;
+    return;
+  }
+
+  isAvatarLoading.value = true;
+
+  try {
+    await preloadAvatar(nextAvatar);
+    if (token !== avatarLoadToken) {
+      return;
+    }
+
+    displayAvatar.value = nextAvatar;
+    imageLoadFailed.value = false;
+  } catch (error) {
+    if (token !== avatarLoadToken) {
+      return;
+    }
+
+    displayAvatar.value = "";
+    imageLoadFailed.value = true;
+  } finally {
+    if (token === avatarLoadToken) {
+      isAvatarLoading.value = false;
+    }
+  }
+};
 
 watch(
-  () => props.user?.avatar,
-  () => {
-    imageLoadFailed.value = false;
-  }
+  () => effectiveUser.value.avatar,
+  (nextAvatar) => {
+    syncDisplayAvatar(nextAvatar);
+  },
+  { immediate: true }
 );
 
 const handleImageError = () => {
   imageLoadFailed.value = true;
+  isAvatarLoading.value = false;
+};
+
+const refreshManagedProfile = (profile = null) => {
+  managedProfile.value = profile || loadManagedProfile();
+};
+
+const handleProfileUpdated = (event) => {
+  refreshManagedProfile(event.detail?.profile || null);
+};
+
+const handleStorage = (event) => {
+  if (event.key === SETTINGS_STORAGE_KEY) {
+    refreshManagedProfile();
+  }
 };
 
 const handleLogout = () => {
@@ -112,6 +225,17 @@ const handleLogout = () => {
   window.localStorage.removeItem("userRole");
   router.push("/login");
 };
+
+onMounted(() => {
+  refreshManagedProfile();
+  window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+  window.addEventListener("storage", handleStorage);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+  window.removeEventListener("storage", handleStorage);
+});
 </script>
 
 <style scoped>
@@ -142,6 +266,7 @@ const handleLogout = () => {
   outline-offset: 4px;
 }
 
+.avatar-visual,
 .avatar-chip-fallback,
 .user-profile-card-avatar {
   width: 38px;
@@ -150,6 +275,17 @@ const handleLogout = () => {
   display: grid;
   place-items: center;
   overflow: hidden;
+}
+
+.avatar-visual {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.avatar-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .avatar-chip-fallback {
@@ -193,6 +329,7 @@ const handleLogout = () => {
 }
 
 .user-profile-card-avatar {
+  position: relative;
   width: 46px;
   height: 46px;
   flex: 0 0 auto;
@@ -210,6 +347,37 @@ const handleLogout = () => {
   color: white;
   font-size: 16px;
   font-weight: 700;
+}
+
+.avatar-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.36);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.avatar-loading::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(20, 104, 199, 0.28);
+  border-top-color: var(--color-primary-700);
+  border-radius: 50%;
+  animation: avatarSpin 760ms linear infinite;
+}
+
+.user-profile-card-avatar .avatar-loading::after {
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes avatarSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .user-profile-card-copy {

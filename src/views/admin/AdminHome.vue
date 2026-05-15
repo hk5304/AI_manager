@@ -227,7 +227,7 @@
 
     <div class="modal-shell" :class="{ open: modalState.matrix }" data-modal-id="matrix-modal">
       <div class="modal-backdrop" data-modal-close @click="closeModal('matrix')"></div>
-      <section class="modal-panel glass-panel-strong admin-matrix-modal">
+      <section class="modal-panel glass-panel-strong classic-modal-panel admin-matrix-modal">
         <div class="modal-header">
           <div>
             <span class="pill pill-ai">权限矩阵</span>
@@ -241,7 +241,7 @@
           </button>
         </div>
 
-        <div class="matrix-section">
+        <div class="matrix-section matrix-card">
           <div class="chart-header" style="margin-bottom: 0;">
             <h3 class="section-title" style="font-size: 22px;">平台角色矩阵</h3>
             <span class="section-caption">后台访问与全局管理能力</span>
@@ -271,7 +271,7 @@
           </table>
         </div>
 
-        <div class="matrix-section">
+        <div class="matrix-section matrix-card">
           <div class="chart-header" style="margin-bottom: 0;">
             <h3 class="section-title" style="font-size: 22px;">项目角色矩阵</h3>
             <span class="section-caption">项目内默认权限集合</span>
@@ -323,7 +323,7 @@
 
     <div class="modal-shell" :class="{ open: modalState.createTemplate }" data-modal-id="create-template-modal">
       <div class="modal-backdrop" data-modal-close @click="closeModal('createTemplate')"></div>
-      <section class="modal-panel glass-panel-strong">
+      <section class="modal-panel glass-panel-strong classic-modal-panel role-template-modal">
         <div class="modal-header">
           <div>
             <span class="pill pill-success">模板编辑</span>
@@ -445,22 +445,24 @@
       </section>
     </div>
 
-    <div v-if="toasts.length" class="toast-stack" data-toast-stack>
-      <div v-for="toast in toasts" :key="toast.id" class="toast-card">
-        <span class="material-symbols-outlined">{{ toast.icon }}</span>
-        <div class="toast-body">
-          <strong>{{ toast.title }}</strong>
-          <span>{{ toast.message }}</span>
+    <Transition name="toast">
+      <div v-if="toasts.length" class="toast-stack" data-toast-stack>
+        <div v-for="toast in toasts" :key="toast.id" class="toast-card">
+          <span class="material-symbols-outlined">{{ toast.icon }}</span>
+          <div class="toast-body">
+            <strong>{{ toast.title }}</strong>
+            <span>{{ toast.message }}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
 import { onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import { pushAppPath } from "../../utils/navigation";
+import { pushAppPath, pushNotificationPath } from "../../utils/navigation";
 import UserProfileHoverCard from "../../components/topbar/UserProfileHoverCard.vue";
 
 const router = useRouter();
@@ -784,7 +786,7 @@ const handleNavigate = (path) => {
 
 const handleOpenNotifications = () => {
   emit("open-notifications");
-  pushAppPath(router, "/notifications");
+  pushNotificationPath(router, router.currentRoute.value.fullPath);
 };
 
 const handleOpenAppSwitcher = () => {
@@ -821,6 +823,7 @@ const handleExportMatrix = () => {
     message: "角色功能矩阵将按当前视图导出为 PDF 草稿。",
     icon: "download",
   });
+  closeModal("matrix");
 };
 
 // TODO: Connect the create-template save workflow.
@@ -933,13 +936,7 @@ onBeforeUnmount(() => {
   min-height: 100vh;
 }
 
-.admin-matrix-modal {
-  width: min(960px, calc(100vw - 40px));
-  max-height: min(90vh, 920px);
-  overflow-y: auto;
-}
-
-.matrix-section + .matrix-section {
-  margin-top: 28px;
+.role-template-modal {
+  width: min(1120px, calc(100vw - 48px));
 }
 </style>

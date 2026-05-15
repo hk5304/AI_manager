@@ -32,9 +32,9 @@
       </div>
       <div class="topbar-right">
         <label class="search-shell"><span class="material-symbols-outlined">search</span><input type="text" placeholder="搜索任务、里程碑或成员..." /></label>
-        <router-link class="icon-btn notification-link" to="/notifications" aria-label="打开通知中心">
+        <button class="icon-btn notification-link" type="button" aria-label="打开通知中心" @click="handleOpenNotifications">
           <span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span>
-        </router-link>
+        </button>
         <button class="icon-btn"><span class="material-symbols-outlined">apps</span></button>
         <button class="icon-btn" @click="isAiDrawerOpen = true"><span class="material-symbols-outlined">auto_awesome</span></button>
         <UserProfileHoverCard :user="currentUser" />
@@ -803,6 +803,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { pushNotificationPath } from '../utils/navigation'
 import UserProfileHoverCard from '../components/topbar/UserProfileHoverCard.vue'
 import { useProjects } from '../composables/useProjects'
 
@@ -836,6 +837,10 @@ const tabRoute = (tab) => {
 
 const goBack = () => {
   router.push('/projects')
+}
+
+const handleOpenNotifications = () => {
+  pushNotificationPath(router, route.fullPath)
 }
 
 const currentUser = {

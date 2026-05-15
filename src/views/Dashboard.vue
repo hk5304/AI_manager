@@ -38,7 +38,7 @@
           <span class="material-symbols-outlined">search</span>
           <input type="text" placeholder="搜索项目、任务、成员或报表..." />
         </label>
-        <a class="icon-btn notification-link" href="#" @click.prevent="handleNavigate('/notifications')" aria-label="打开通知中心"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></a>
+        <a class="icon-btn notification-link" href="#" @click.prevent="handleOpenNotifications" aria-label="打开通知中心"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></a>
         <button class="icon-btn"><span class="material-symbols-outlined">apps</span></button>
         <button class="icon-btn" @click="toggleAiDrawer"><span class="material-symbols-outlined">auto_awesome</span></button>
         <UserProfileHoverCard :user="currentUser" />
@@ -457,6 +457,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { pushNotificationPath } from '../utils/navigation'
 import UserProfileHoverCard from '../components/topbar/UserProfileHoverCard.vue'
 import { useProjects } from '../composables/useProjects'
 
@@ -488,6 +489,10 @@ const formData = ref({
 
 const handleNavigate = (path) => {
   router.push(path)
+}
+
+const handleOpenNotifications = () => {
+  pushNotificationPath(router, router.currentRoute.value.fullPath)
 }
 
 const openModal = () => {
@@ -794,13 +799,15 @@ const createProject = () => {
 /* Toast 动画 */
 .toast-enter-active,
 .toast-leave-active {
-  transition: all 0.3s ease;
+  transform-origin: top center;
 }
 
-.toast-enter-from,
-.toast-leave-to {
-  opacity: 0;
-  transform: translateY(-20px);
+.toast-enter-active {
+  animation: toastPopIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.toast-leave-active {
+  animation: toastPopOut 160ms ease-in both;
 }
 
 /* AI 智能摘要按钮 */

@@ -35,3 +35,23 @@ export const resolveAppPath = (path = '/dashboard') => {
 export const pushAppPath = (router, path) => {
   return router.push(resolveAppPath(path))
 }
+
+export const resolveNotificationReturnPath = (fromPath = '/dashboard') => {
+  const rawPath = Array.isArray(fromPath) ? fromPath[0] : fromPath
+  const resolvedPath = resolveAppPath(rawPath || '/dashboard')
+
+  if (!resolvedPath.startsWith('/') || resolvedPath.startsWith('/notifications')) {
+    return '/dashboard'
+  }
+
+  return resolvedPath
+}
+
+export const pushNotificationPath = (router, fromPath = '/dashboard') => {
+  return router.push({
+    path: '/notifications',
+    query: {
+      from: resolveNotificationReturnPath(fromPath)
+    }
+  })
+}

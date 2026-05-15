@@ -40,7 +40,7 @@
           <span class="material-symbols-outlined">search</span>
           <input type="text" placeholder="搜索项目、成员、图表..." />
         </label>
-        <a class="icon-btn notification-link" href="#" @click.prevent="handleNavigate('/notifications')" aria-label="打开通知中心"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></a>
+        <a class="icon-btn notification-link" href="#" @click.prevent="handleOpenNotifications" aria-label="打开通知中心"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></a>
         <button class="icon-btn"><span class="material-symbols-outlined">apps</span></button>
         <button class="icon-btn" @click="toggleAiDrawer"><span class="material-symbols-outlined">auto_awesome</span></button>
         <UserProfileHoverCard :user="currentUser" />
@@ -436,7 +436,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { pushAppPath } from '../utils/navigation'
+import { pushAppPath, pushNotificationPath } from '../utils/navigation'
 import UserProfileHoverCard from '../components/topbar/UserProfileHoverCard.vue'
 
 const router = useRouter()
@@ -595,6 +595,10 @@ const deliveryMethods = ref([
 
 const handleNavigate = (path) => {
   pushAppPath(router, path)
+}
+
+const handleOpenNotifications = () => {
+  pushNotificationPath(router, router.currentRoute.value.fullPath)
 }
 
 const toggleAiDrawer = () => {
