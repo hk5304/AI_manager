@@ -38,7 +38,7 @@
           <span class="material-symbols-outlined">search</span>
           <input type="text" placeholder="搜索个人任务或日志..." />
         </label>
-        <a class="icon-btn notification-link" href="#" @click.prevent="handleNavigate('/notifications')" aria-label="打开通知中心"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></a>
+        <a class="icon-btn notification-link" href="#" @click.prevent="handleOpenNotifications" aria-label="打开通知中心"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></a>
         <button class="icon-btn"><span class="material-symbols-outlined">apps</span></button>
         <button class="icon-btn" @click="toggleAiDrawer"><span class="material-symbols-outlined">auto_awesome</span></button>
         <UserProfileHoverCard :user="currentUser" />
@@ -1266,6 +1266,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { pushNotificationPath } from '../utils/navigation'
 import UserProfileHoverCard from '../components/topbar/UserProfileHoverCard.vue'
 
 const router = useRouter()
@@ -1836,6 +1837,10 @@ const handleMouseLeave = () => {
 
 const handleNavigate = (path) => {
   router.push(path)
+}
+
+const handleOpenNotifications = () => {
+  pushNotificationPath(router, router.currentRoute.value.fullPath)
 }
 
 onMounted(() => {
@@ -2627,7 +2632,7 @@ const updateTaskProgress = (taskId, progress) => {
 /* Toast 动画 */
 .toast-enter-active,
 .toast-leave-active {
-  transition: all 0.3s ease;
+  transform-origin: top center;
 }
 
 .toast-enter-from,

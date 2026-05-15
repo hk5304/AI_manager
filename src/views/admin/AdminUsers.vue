@@ -206,47 +206,7 @@
           </button>
         </div>
 
-        <div class="user-modal-grid">
-          <aside class="user-modal-side">
-            <article class="glass-panel user-note-card">
-              <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <span class="pill pill-ai">快速配置</span>
-                <span class="pill pill-neutral">管理员入口</span>
-              </div>
-              <h3 class="section-title" style="font-size: 24px; margin-top: 16px;">新用户创建草稿</h3>
-              <p class="page-subtitle" style="font-size: 14px; margin-top: 12px;">
-                创建后可继续在角色管理、系统配置和通知中心中扩展权限、启用状态与通知策略。
-              </p>
-              <div class="user-kpi-grid">
-                <div class="user-kpi"><span>默认状态</span><strong>待激活</strong></div>
-                <div class="user-kpi"><span>角色粒度</span><strong>平台级</strong></div>
-                <div class="user-kpi"><span>建议校验</span><strong>邮箱必填</strong></div>
-                <div class="user-kpi"><span>后续动作</span><strong>发送邀请</strong></div>
-              </div>
-            </article>
-
-            <article
-              class="glass-panel user-note-card"
-              style="background: linear-gradient(180deg, rgba(236,220,255,0.32), rgba(255,255,255,0.42));"
-            >
-              <h3 class="section-title" style="font-size: 22px;">填写建议</h3>
-              <div class="user-note-list">
-                <div class="user-note-item">
-                  <h4>优先保证邮箱与部门准确</h4>
-                  <p>这两个字段会直接影响后续邀请通知、组织筛选与导入校验结果。</p>
-                </div>
-                <div class="user-note-item">
-                  <h4>管理员角色谨慎授予</h4>
-                  <p>平台管理员默认拥有后台访问能力，建议仅在确有需要时开启。</p>
-                </div>
-                <div class="user-note-item">
-                  <h4>待激活状态更适合批量入场</h4>
-                  <p>如果需要和导入用户一起统一开通，可先保留待激活，后续批量发送邀请。</p>
-                </div>
-              </div>
-            </article>
-          </aside>
-
+        <div class="user-modal-grid" style="grid-template-columns: 1fr;">
           <div class="user-modal-main">
             <article class="glass-panel user-form-card">
               <div class="user-form-card-head">
@@ -261,10 +221,27 @@
               <form @submit.prevent="handleCreateUserSubmit">
                 <div class="field-inline" style="margin-top: 0;">
                   <div class="field-stack">
-                    <label class="field-label">姓名</label>
+                    <label class="field-label">真实姓名</label>
                     <div class="field-input">
                       <span class="material-symbols-outlined">person</span>
-                      <input v-model="createUserForm.name" type="text" placeholder="请输入姓名" required />
+                      <input v-model="createUserForm.realName" type="text" placeholder="请输入真实姓名" required />
+                    </div>
+                  </div>
+                  <div class="field-stack">
+                    <label class="field-label">用户名</label>
+                    <div class="field-input">
+                      <span class="material-symbols-outlined">alternate_email</span>
+                      <input v-model="createUserForm.username" type="text" placeholder="用于登录的唯一用户名" required />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field-inline">
+                  <div class="field-stack">
+                    <label class="field-label">昵称</label>
+                    <div class="field-input">
+                      <span class="material-symbols-outlined">badge</span>
+                      <input v-model="createUserForm.nickname" type="text" placeholder="请输入昵称" />
                     </div>
                   </div>
                   <div class="field-stack">
@@ -278,17 +255,17 @@
 
                 <div class="field-inline">
                   <div class="field-stack">
+                    <label class="field-label">电话号码</label>
+                    <div class="field-input">
+                      <span class="material-symbols-outlined">call</span>
+                      <input v-model="createUserForm.phone" type="tel" placeholder="请输入电话号码" />
+                    </div>
+                  </div>
+                  <div class="field-stack">
                     <label class="field-label">部门</label>
                     <div class="field-input">
                       <span class="material-symbols-outlined">apartment</span>
                       <input v-model="createUserForm.department" type="text" placeholder="请输入部门" />
-                    </div>
-                  </div>
-                  <div class="field-stack">
-                    <label class="field-label">加入日期</label>
-                    <div class="field-input">
-                      <span class="material-symbols-outlined">calendar_today</span>
-                      <input v-model="createUserForm.joinDate" type="text" />
                     </div>
                   </div>
                 </div>
@@ -299,7 +276,6 @@
                       <h3 class="section-title" style="font-size: 20px;">账户配置</h3>
                       <p class="section-caption" style="margin-top: 6px;">决定后台访问范围与初始启用状态</p>
                     </div>
-                    <span class="pill pill-warning">权限配置</span>
                   </div>
                   <div class="field-inline">
                     <div class="field-stack">
@@ -324,17 +300,7 @@
                     </div>
                   </div>
 
-                  <div class="field-stack" style="margin-top: 16px;">
-                    <label class="field-label">说明备注</label>
-                    <div class="field-input">
-                      <span class="material-symbols-outlined">notes</span>
-                      <input
-                        v-model="createUserForm.note"
-                        type="text"
-                        placeholder="可选：记录来源、协作组或分配说明"
-                      />
-                    </div>
-                  </div>
+
                 </article>
 
                 <div class="modal-footer">
@@ -505,22 +471,24 @@
       </section>
     </div>
 
-    <div v-if="toasts.length" class="toast-stack" data-toast-stack>
-      <div v-for="toast in toasts" :key="toast.id" class="toast-card">
-        <span class="material-symbols-outlined">{{ toast.icon }}</span>
-        <div class="toast-body">
-          <strong>{{ toast.title }}</strong>
-          <span>{{ toast.message }}</span>
+    <Transition name="toast">
+      <div v-if="toasts.length" class="toast-stack" data-toast-stack>
+        <div v-for="toast in toasts" :key="toast.id" class="toast-card">
+          <span class="material-symbols-outlined">{{ toast.icon }}</span>
+          <div class="toast-body">
+            <strong>{{ toast.title }}</strong>
+            <span>{{ toast.message }}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import { pushAppPath } from "../../utils/navigation";
+import { pushAppPath, pushNotificationPath } from "../../utils/navigation";
 import UserProfileHoverCard from "../../components/topbar/UserProfileHoverCard.vue";
 
 const router = useRouter();
@@ -553,13 +521,14 @@ const modalState = reactive({
 });
 
 const createUserForm = reactive({
-  name: "",
+  realName: "",
+  username: "",
+  nickname: "",
   email: "",
+  phone: "",
   department: "",
-  joinDate: "2026-04-28",
   role: "user",
   status: "待激活",
-  note: "",
 });
 
 const currentUser = {
@@ -681,13 +650,14 @@ const filteredUsers = computed(() => {
 });
 
 const resetCreateUserForm = () => {
-  createUserForm.name = "";
+  createUserForm.realName = "";
+  createUserForm.username = "";
+  createUserForm.nickname = "";
   createUserForm.email = "";
+  createUserForm.phone = "";
   createUserForm.department = "";
-  createUserForm.joinDate = "2026-04-28";
   createUserForm.role = "user";
   createUserForm.status = "待激活";
-  createUserForm.note = "";
 };
 
 const resetImportState = () => {
@@ -749,7 +719,7 @@ const handleNavigate = (path) => {
 
 const handleOpenNotifications = () => {
   emit("open-notifications");
-  pushAppPath(router, "/notifications");
+  pushNotificationPath(router, router.currentRoute.value.fullPath);
 };
 
 const handleOpenAppSwitcher = () => {
