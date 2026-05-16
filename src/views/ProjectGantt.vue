@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="app-shell">
     <aside class="app-sidebar">
       <div class="brand-box">
@@ -10,6 +10,7 @@
         <router-link class="nav-item" to="/dashboard"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></router-link>
         <router-link class="nav-item active" to="/projects"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></router-link>
         <router-link class="nav-item" to="/workbench"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></router-link>
+        <a class="nav-item notification-nav" href="#" @click.prevent="handleOpenNotifications"><span class="material-symbols-outlined">notifications</span><span>消息通知</span><span class="notification-badge">5</span></a>
         <router-link class="nav-item" to="/reports"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></router-link>
         <router-link class="nav-item" to="/settings"><span class="material-symbols-outlined">settings</span><span>系统设置</span></router-link>
         <router-link class="nav-item" to="/admin"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></router-link>

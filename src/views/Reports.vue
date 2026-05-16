@@ -13,6 +13,7 @@
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/dashboard')"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></a>
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/projects')"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></a>
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/workbench')"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></a>
+        <a class="nav-item notification-nav" href="#" @click.prevent="handleOpenNotifications"><span class="material-symbols-outlined">notifications</span><span>消息通知</span></a>
         <a class="nav-item active" href="#" @click.prevent="handleNavigate('/reports')"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></a>
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/settings')"><span class="material-symbols-outlined">settings</span><span>系统设置</span></a>
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/admin')"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></a>
@@ -40,7 +41,7 @@
           <span class="material-symbols-outlined">search</span>
           <input type="text" placeholder="搜索项目、成员、图表..." />
         </label>
-        <a class="icon-btn notification-link" href="#" @click.prevent="handleOpenNotifications" aria-label="打开通知中心"><span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span></a>
+        <a class="icon-btn notification-link" href="#" @click.prevent="handleOpenNotifications" aria-label="打开通知中心"><span class="material-symbols-outlined">notifications</span></a>
         <button class="icon-btn"><span class="material-symbols-outlined">apps</span></button>
         <button class="icon-btn" @click="toggleAiDrawer"><span class="material-symbols-outlined">auto_awesome</span></button>
         <UserProfileHoverCard :user="currentUser" />
@@ -67,7 +68,7 @@
             <h2 class="section-title" style="font-size:32px; margin-top:18px;">{{ aiInsight.title }}</h2>
             <p class="page-subtitle" style="margin-top:14px;">{{ aiInsight.recommendation }}</p>
             <div class="ai-actions" style="margin-top:20px;">
-              <button class="btn-primary" @click="generateWeeklyReport">生成周报</button>
+              <button class="btn-primary" @click="generateWeeklyReport">生成{{ reportTypeLabel }}</button>
               <button class="btn-secondary" @click="exportCSV">导出 CSV</button>
             </div>
           </div>
@@ -450,6 +451,14 @@ const isAiDrawerOpen = ref(false)
 const showProjectFilter = ref(false)
 const showSubscriptionModal = ref(false)
 const dateRange = ref('month')
+const reportTypeLabel = computed(() => {
+  const labels = {
+    week: '周报',
+    month: '月报',
+    quarter: '季报'
+  }
+  return labels[dateRange.value] || '报表'
+})
 const aiQuestion = ref('')
 const subscriptionFrequency = ref('weekly')
 const deliveryMethod = ref('email')

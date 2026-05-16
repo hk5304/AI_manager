@@ -16,6 +16,7 @@
         <a class="nav-item active" href="#" @click.prevent="handleNavigate('/dashboard')"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></a>
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/projects')"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></a>
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/workbench')"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></a>
+        <a class="nav-item notification-nav" href="#" @click.prevent="handleOpenNotifications"><span class="material-symbols-outlined">notifications</span><span>消息通知</span><span class="notification-badge">5</span></a>
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/reports')"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></a>
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/settings')"><span class="material-symbols-outlined">settings</span><span>系统设置</span></a>
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/admin')"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></a>
@@ -53,8 +54,8 @@
             <p class="page-subtitle">待办、AI 日报入口、团队动态与项目健康度的统一入口。</p>
           </div>
           <div class="page-actions">
-            <button class="btn-secondary"><span class="material-symbols-outlined">download</span>导出晨报</button>
-            <button class="btn-primary"><span class="material-symbols-outlined">bolt</span>生成 AI 日报</button>
+            <button class="btn-secondary" @click="showMorningReportModal = true"><span class="material-symbols-outlined">sunrise</span>生成晨报</button>
+            <button class="btn-primary" @click="generateAiReport"><span class="material-symbols-outlined">bolt</span>生成 AI 日报</button>
           </div>
         </div>
 
@@ -86,9 +87,9 @@
                 </div>
               </div>
               <div class="summary-actions">
-                <button class="btn-primary"><span class="material-symbols-outlined">arrow_forward</span>查看 AI 日报</button>
+                <button class="btn-primary" @click="viewAiReport"><span class="material-symbols-outlined">arrow_forward</span>查看 AI 日报</button>
                 <button class="btn-secondary" @click="handleNavigate('/workbench')"><span class="material-symbols-outlined">task_alt</span>进入个人工作台</button>
-                <button class="btn-secondary" @click="openModal"><span class="material-symbols-outlined">add_task</span>快速创建任务</button>
+                <button class="btn-secondary" @click="showQuickTaskModal = true"><span class="material-symbols-outlined">add_task</span>快速创建任务</button>
               </div>
             </div>
           </div>
@@ -407,6 +408,244 @@
     </section>
   </div>
 
+  <div class="modal-shell" :class="{ open: showAiReportModal }">
+    <div class="modal-backdrop" @click="showAiReportModal = false"></div>
+    <section class="modal-panel glass-panel-strong ai-report-modal">
+      <div class="modal-header">
+        <div>
+          <span class="pill pill-ai"><span class="material-symbols-outlined">bolt</span>AI 日报</span>
+          <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">AI 智能日报</h2>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">基于个人日志与看板更新自动生成的日报汇总</p>
+        </div>
+        <button class="icon-btn" @click="showAiReportModal = false"><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <div class="ai-report-content">
+        <div class="ai-report-header">
+          <div class="ai-report-date">
+            <span class="material-symbols-outlined">calendar_today</span>
+            <div>
+              <strong>{{ aiReportData.date }}</strong>
+              <span>作者：{{ aiReportData.author }}</span>
+            </div>
+          </div>
+          <div class="ai-report-score">
+            <span>效率评分</span>
+            <div class="score-circle">
+              <strong>{{ aiReportData.efficiencyScore }}%</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-report-summary">
+          <span class="material-symbols-outlined">lightbulb</span>
+          <p>{{ aiReportData.summary }}</p>
+        </div>
+
+        <div class="ai-report-sections">
+          <div 
+            v-for="(section, index) in aiReportData.sections" 
+            :key="index" 
+            class="ai-report-section glass-panel"
+          >
+            <div class="section-header">
+              <span class="material-symbols-outlined">{{ section.icon }}</span>
+              <h3>{{ section.title }}</h3>
+            </div>
+            <ul class="section-items">
+              <li 
+                v-for="(item, itemIndex) in section.items" 
+                :key="itemIndex"
+                :class="`item-${item.status}`"
+              >
+                <span class="status-dot" :class="`dot-${item.status}`"></span>
+                <span>{{ item.text }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="modal-status">
+          <span class="material-symbols-outlined">check_circle</span>
+          AI 日报已根据您的个人日志和看板更新自动生成
+        </div>
+        <div class="modal-footer-actions">
+          <button class="btn-secondary" @click="showAiReportModal = false"><span class="material-symbols-outlined">close</span>关闭</button>
+          <button class="btn-secondary"><span class="material-symbols-outlined">share</span>分享日报</button>
+          <button class="btn-primary"><span class="material-symbols-outlined">download</span>导出日报</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-shell" :class="{ open: showQuickTaskModal }">
+    <div class="modal-backdrop" @click="showQuickTaskModal = false"></div>
+    <section class="modal-panel glass-panel-strong quick-task-modal">
+      <div class="modal-header">
+        <div>
+          <span class="pill pill-primary"><span class="material-symbols-outlined">add_task</span>快速创建任务</span>
+          <h2 class="section-title" style="font-size: 24px; margin-top: 12px;">创建新任务</h2>
+          <p class="page-subtitle" style="font-size: 14px; margin-top: 8px;">创建的任务将自动进入看板的未完成状态</p>
+        </div>
+        <button class="icon-btn" @click="showQuickTaskModal = false"><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <div style="max-height: 50vh; overflow-y: auto; padding-right: 8px;">
+        <div class="quick-task-form">
+          <div>
+            <label class="field-label">任务标题 *</label>
+            <div class="field-input">
+              <span class="material-symbols-outlined">title</span>
+              <input type="text" v-model="quickTaskForm.title" placeholder="请输入任务标题" />
+            </div>
+          </div>
+
+          <div>
+            <label class="field-label">任务描述</label>
+            <div class="field-input">
+              <span class="material-symbols-outlined">description</span>
+              <textarea v-model="quickTaskForm.description" placeholder="请输入任务描述" rows="3"></textarea>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+            <div>
+              <label class="field-label">优先级</label>
+              <div class="field-input">
+                <span class="material-symbols-outlined">flag</span>
+                <select v-model="quickTaskForm.priority">
+                  <option value="P0">P0 - 紧急</option>
+                  <option value="P1">P1 - 高</option>
+                  <option value="P2">P2 - 中</option>
+                  <option value="P3">P3 - 低</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">截止日期</label>
+              <div class="field-input">
+                <span class="material-symbols-outlined">event</span>
+                <input type="date" v-model="quickTaskForm.dueDate" />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="field-label">负责人</label>
+            <div class="field-input">
+              <span class="material-symbols-outlined">person</span>
+              <input type="text" v-model="quickTaskForm.assignee" placeholder="请输入负责人" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="modal-status">
+          <span class="material-symbols-outlined">info</span>
+          任务创建后将显示在看板的「未完成」列中
+        </div>
+        <div class="modal-footer-actions">
+          <button class="btn-secondary" @click="showQuickTaskModal = false"><span class="material-symbols-outlined">close</span>取消</button>
+          <button class="btn-primary" @click="createQuickTask"><span class="material-symbols-outlined">add</span>创建任务</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-shell" :class="{ open: showMorningReportModal }">
+    <div class="modal-backdrop" @click="showMorningReportModal = false"></div>
+    <section class="modal-panel glass-panel-strong morning-report-modal">
+      <div class="modal-header">
+        <div>
+          <span class="pill pill-warning"><span class="material-symbols-outlined">sunrise</span>晨报</span>
+          <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">{{ morningReportData.greeting }}</h2>
+          <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">{{ morningReportData.date }} · {{ morningReportData.weather }} · {{ morningReportData.temperature }}</p>
+        </div>
+        <button class="icon-btn" @click="showMorningReportModal = false"><span class="material-symbols-outlined">close</span></button>
+      </div>
+
+      <div style="max-height: 70vh; overflow-y: auto; padding-right: 8px;">
+        <div class="morning-report-content">
+          <div 
+            v-for="(section, index) in morningReportData.sections" 
+            :key="index" 
+            class="morning-section glass-panel"
+          >
+            <div class="section-header">
+              <span class="material-symbols-outlined">{{ section.icon }}</span>
+              <h3>{{ section.title }}</h3>
+            </div>
+
+            <div v-if="section.tasks" class="task-list">
+              <div 
+                v-for="(task, taskIndex) in section.tasks" 
+                :key="taskIndex"
+                class="task-item"
+              >
+                <div class="task-checkbox">
+                  <span class="material-symbols-outlined">circle</span>
+                </div>
+                <div class="task-content">
+                  <p>{{ task.title }}</p>
+                  <div class="task-meta">
+                    <span :class="`priority-tag priority-${task.priority === '紧急' ? 'danger' : task.priority === '高' ? 'warning' : 'secondary'}`">
+                      {{ task.priority }}
+                    </span>
+                    <span>{{ task.dueTime }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="section.messages" class="message-list">
+              <div 
+                v-for="(msg, msgIndex) in section.messages" 
+                :key="msgIndex"
+                class="message-item"
+              >
+                <div class="message-avatar">
+                  <span class="material-symbols-outlined">{{ msg.type === 'meeting' ? 'group' : msg.type === 'alert' ? 'alert-circle' : 'person' }}</span>
+                </div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <span class="sender">{{ msg.sender }}</span>
+                    <span class="time">{{ msg.time }}</span>
+                  </div>
+                  <p>{{ msg.content }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="section.highlights" class="highlight-list">
+              <div 
+                v-for="(item, itemIndex) in section.highlights" 
+                :key="itemIndex"
+                :class="`highlight-item highlight-${item.type}`"
+              >
+                <span class="material-symbols-outlined">{{ item.type === 'success' ? 'check_circle' : item.type === 'warning' ? 'warning' : 'info' }}</span>
+                <span>{{ item.text }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="modal-status">
+          <span class="material-symbols-outlined">sunny</span>
+          今日晨报已生成，祝您工作顺利！
+        </div>
+        <div class="modal-footer-actions">
+          <button class="btn-secondary" @click="showMorningReportModal = false"><span class="material-symbols-outlined">close</span>关闭</button>
+          <button class="btn-primary"><span class="material-symbols-outlined">download</span>导出晨报</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <button class="floating-ai-btn" @click="toggleAiDrawer"><span class="material-symbols-outlined">auto_awesome</span></button>
   <div class="ai-overlay" :class="{ open: isAiDrawerOpen }" @click="closeAiDrawer"></div>
   <aside class="ai-drawer" :class="{ open: isAiDrawerOpen }">
@@ -473,7 +712,109 @@ const { addProject } = useProjects()
 
 const isModalOpen = ref(false)
 const isAiDrawerOpen = ref(false)
+const showAiReportModal = ref(false)
+const showQuickTaskModal = ref(false)
+const hasTodayReport = ref(false)
 const toast = ref({ show: false, title: '', message: '', icon: '' })
+
+const showMorningReportModal = ref(false)
+
+const quickTaskForm = ref({
+  title: '',
+  description: '',
+  priority: 'P1',
+  assignee: '张工',
+  dueDate: ''
+})
+
+const morningReportData = ref({
+  date: '2026年5月16日',
+  greeting: '早上好，张工',
+  weather: '晴',
+  temperature: '22°C',
+  sections: [
+    {
+      title: '今日待办任务',
+      icon: 'checklist',
+      tasks: [
+        { title: '完成Q3实验室能效评估报告', priority: '紧急', dueTime: '今天 18:00', status: 'pending' },
+        { title: '审批5号实验室设备维护申请', priority: '高', dueTime: '今天', status: 'pending' },
+        { title: '参加项目A周例会', priority: '高', dueTime: '今天 10:00', status: 'pending' },
+        { title: '指导实习生基础实验操作', priority: '中', dueTime: '今天 14:00', status: 'pending' }
+      ]
+    },
+    {
+      title: '今早收到的消息',
+      icon: 'mail',
+      messages: [
+        { sender: '李技术员', content: '5号实验室设备维护申请已提交，请审批', time: '08:30', type: 'work' },
+        { sender: '项目组', content: '项目A周例会时间调整为今天上午10点', time: '08:45', type: 'meeting' },
+        { sender: '系统通知', content: '2号恒温箱温度波动异常提醒', time: '09:00', type: 'alert' },
+        { sender: '王经理', content: '请尽快提交Q3能效评估报告初稿', time: '09:15', type: 'work' }
+      ]
+    },
+    {
+      title: '今日重点关注',
+      icon: 'star',
+      highlights: [
+        { text: '纳米材料项目A合成实验成功率已提升至88%', type: 'success' },
+        { text: '联调验证里程碑已延后2天，需优先处理', type: 'warning' },
+        { text: '本周共有3个P0任务待评审', type: 'info' },
+        { text: '实验二组周三负载峰值预计达92%', type: 'warning' }
+      ]
+    }
+  ]
+})
+
+const aiReportData = ref({
+  date: '2026年5月16日',
+  author: '张工',
+  status: '已生成',
+  sections: [
+    {
+      title: '今日工作完成情况',
+      icon: 'check_circle',
+      items: [
+        { text: '完成Q3实验室能效评估报告初稿', status: 'completed' },
+        { text: '审批5号实验室设备维护申请', status: 'completed' },
+        { text: '更新周报内容至系统', status: 'completed' },
+        { text: '参加项目A周例会', status: 'completed' }
+      ]
+    },
+    {
+      title: '任务看板更新',
+      icon: 'view_quilt',
+      items: [
+        { text: '项目A "联调验证"任务进度更新至85%', status: 'progress' },
+        { text: '新增"材料选型评审"任务（优先级P1）', status: 'new' },
+        { text: '完成"文档归档"任务', status: 'completed' },
+        { text: '"实验数据分析"任务延期风险提醒', status: 'warning' }
+      ]
+    },
+    {
+      title: '个人日志摘要',
+      icon: 'file_text',
+      items: [
+        { text: '纳米材料项目A合成实验成功率提升至88%', status: 'completed' },
+        { text: '实验二组负载均衡方案已提交审核', status: 'progress' },
+        { text: '整理Q2技术复盘文档', status: 'completed' },
+        { text: '指导实习生完成基础实验操作培训', status: 'completed' }
+      ]
+    },
+    {
+      title: 'AI智能建议',
+      icon: 'auto_awesome',
+      items: [
+        { text: '建议优先处理"联调验证"任务，当前延期2天', status: 'warning' },
+        { text: '实验二组周三负载峰值预计达92%，建议协调资源', status: 'warning' },
+        { text: 'PBC目标"提升团队协作效率"本周达成率可提升9%', status: 'completed' },
+        { text: '今日15:00前完成P0任务评审可将基线偏差收敛至0.6天', status: 'progress' }
+      ]
+    }
+  ],
+  summary: '今日共完成7项任务，3项任务进行中。看板显示1项任务存在延期风险，建议优先处理。整体工作效率良好，继续保持。',
+  efficiencyScore: 94
+})
 
 // 表单数据
 const formData = ref({
@@ -505,6 +846,39 @@ const closeModal = () => {
 
 const toggleAiDrawer = () => {
   isAiDrawerOpen.value = !isAiDrawerOpen.value
+}
+
+const viewAiReport = () => {
+  if (hasTodayReport.value) {
+    showAiReportModal.value = true
+  } else {
+    showToast('提示', '今日尚未生成AI日报，请先点击右上角"生成AI日报"按钮创建。', 'info')
+  }
+}
+
+const generateAiReport = () => {
+  hasTodayReport.value = true
+  showAiReportModal.value = true
+  showToast('AI日报已生成', '日报已根据您的个人日志和看板更新自动生成。', 'bolt')
+}
+
+const createQuickTask = () => {
+  if (!quickTaskForm.value.title.trim()) {
+    showToast('提示', '请输入任务标题', 'warning')
+    return
+  }
+
+  showToast('任务已创建', `任务「${quickTaskForm.value.title}」已添加到看板的未完成列表中。`, 'task_alt')
+  
+  quickTaskForm.value = {
+    title: '',
+    description: '',
+    priority: 'P1',
+    assignee: '张工',
+    dueDate: ''
+  }
+  
+  showQuickTaskModal.value = false
 }
 
 const closeAiDrawer = () => {
@@ -834,5 +1208,491 @@ const createProject = () => {
 
 .btn-ai-summary .material-symbols-outlined {
   font-size: 16px;
+}
+
+/* 侧边栏通知菜单样式 */
+.notification-nav {
+  position: relative;
+}
+
+.notification-nav .notification-badge {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--color-danger-500);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* AI 日报弹窗样式 */
+.ai-report-modal {
+  width: min(900px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-report-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
+}
+
+.ai-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(168, 113, 255, 0.12), rgba(113, 145, 255, 0.12));
+  border: 1px solid rgba(168, 113, 255, 0.2);
+  margin-bottom: 20px;
+}
+
+.ai-report-date {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ai-report-date .material-symbols-outlined {
+  font-size: 32px;
+  color: var(--color-tertiary-600);
+}
+
+.ai-report-date div strong {
+  display: block;
+  font-size: 20px;
+  color: var(--color-text-primary);
+}
+
+.ai-report-date div span {
+  display: block;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+.ai-report-score {
+  text-align: center;
+}
+
+.ai-report-score span {
+  display: block;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+
+.score-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2fc68a, #10b981);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(47, 198, 138, 0.3);
+}
+
+.score-circle strong {
+  font-size: 20px;
+  color: white;
+  font-weight: 700;
+}
+
+.ai-report-summary {
+  display: flex;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  margin-bottom: 20px;
+}
+
+.ai-report-summary .material-symbols-outlined {
+  font-size: 28px;
+  color: var(--color-warning-600);
+  flex-shrink: 0;
+}
+
+.ai-report-summary p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+}
+
+.ai-report-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ai-report-section {
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.section-header .material-symbols-outlined {
+  font-size: 20px;
+  color: var(--color-primary-600);
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.section-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-items li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.section-items .item-completed {
+  background: rgba(47, 198, 138, 0.08);
+  color: var(--color-secondary-700);
+}
+
+.section-items .item-progress {
+  background: rgba(20, 104, 199, 0.08);
+  color: var(--color-primary-700);
+}
+
+.section-items .item-new {
+  background: rgba(168, 113, 255, 0.08);
+  color: var(--color-tertiary-700);
+}
+
+.section-items .item-warning {
+  background: rgba(251, 191, 36, 0.08);
+  color: var(--color-warning-700);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-completed {
+  background: var(--color-secondary-500);
+  box-shadow: 0 0 8px rgba(47, 198, 138, 0.4);
+}
+
+.dot-progress {
+  background: var(--color-primary-500);
+  box-shadow: 0 0 8px rgba(20, 104, 199, 0.4);
+}
+
+.dot-new {
+  background: var(--color-tertiary-500);
+  box-shadow: 0 0 8px rgba(168, 113, 255, 0.4);
+}
+
+.dot-warning {
+  background: var(--color-warning-500);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+}
+
+/* 快速创建任务弹窗样式 */
+.quick-task-modal {
+  width: min(500px, calc(100vw - 48px));
+}
+
+.quick-task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.quick-task-form .field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+
+.quick-task-form .field-input {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(216, 221, 232, 0.6);
+}
+
+.quick-task-form .field-input .material-symbols-outlined {
+  font-size: 18px;
+  color: var(--color-primary-500);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.quick-task-form .field-input input,
+.quick-task-form .field-input select,
+.quick-task-form .field-input textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.quick-task-form .field-input textarea {
+  resize: none;
+  min-height: 60px;
+}
+
+.quick-task-form .field-input select {
+  cursor: pointer;
+}
+
+.quick-task-form .field-input input::placeholder,
+.quick-task-form .field-input textarea::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* 晨报弹窗样式 */
+.morning-report-modal {
+  width: min(700px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.morning-report-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-right: -8px;
+}
+
+.morning-section {
+  padding: 20px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+
+.morning-section:last-child {
+  margin-bottom: 0;
+}
+
+.morning-section .section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.morning-section .section-header .material-symbols-outlined {
+  font-size: 20px;
+  color: var(--color-warning-600);
+}
+
+.morning-section .section-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* 任务列表 */
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-item {
+  display: flex;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.task-checkbox {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.task-checkbox .material-symbols-outlined {
+  font-size: 20px;
+  color: var(--color-text-tertiary);
+}
+
+.task-content p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.task-meta span {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.priority-tag {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px !important;
+  font-weight: 600;
+}
+
+.priority-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger-600);
+}
+
+.priority-warning {
+  background: rgba(251, 191, 36, 0.1);
+  color: var(--color-warning-600);
+}
+
+.priority-secondary {
+  background: rgba(107, 114, 128, 0.1);
+  color: var(--color-text-secondary);
+}
+
+/* 消息列表 */
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.message-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.message-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 104, 199, 0.1);
+  flex-shrink: 0;
+}
+
+.message-avatar .material-symbols-outlined {
+  font-size: 18px;
+  color: var(--color-primary-600);
+}
+
+.message-content {
+  flex: 1;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.message-header .sender {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.message-header .time {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.message-content p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* 重点关注列表 */
+.highlight-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.highlight-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.highlight-success {
+  background: rgba(47, 198, 138, 0.08);
+  color: var(--color-secondary-700);
+}
+
+.highlight-warning {
+  background: rgba(251, 191, 36, 0.08);
+  color: var(--color-warning-700);
+}
+
+.highlight-info {
+  background: rgba(20, 104, 199, 0.08);
+  color: var(--color-primary-700);
+}
+
+.highlight-item .material-symbols-outlined {
+  font-size: 18px;
+  flex-shrink: 0;
 }
 </style>

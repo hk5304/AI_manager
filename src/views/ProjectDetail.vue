@@ -12,6 +12,7 @@
         <router-link class="nav-item" to="/dashboard"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></router-link>
         <router-link class="nav-item active" to="/projects"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></router-link>
         <router-link class="nav-item" to="/workbench"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></router-link>
+        <a class="nav-item notification-nav" href="#" @click.prevent="handleOpenNotifications"><span class="material-symbols-outlined">notifications</span><span>消息通知</span></a>
         <router-link class="nav-item" to="/reports"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></router-link>
         <router-link class="nav-item" to="/settings"><span class="material-symbols-outlined">settings</span><span>系统设置</span></router-link>
         <router-link class="nav-item" to="/admin"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></router-link>
@@ -33,7 +34,7 @@
       <div class="topbar-right">
         <label class="search-shell"><span class="material-symbols-outlined">search</span><input type="text" placeholder="搜索任务、里程碑或成员..." /></label>
         <button class="icon-btn notification-link" type="button" aria-label="打开通知中心" @click="handleOpenNotifications">
-          <span class="material-symbols-outlined">notifications</span><span class="notification-badge">5</span>
+          <span class="material-symbols-outlined">notifications</span>
         </button>
         <button class="icon-btn"><span class="material-symbols-outlined">apps</span></button>
         <button class="icon-btn" @click="isAiDrawerOpen = true"><span class="material-symbols-outlined">auto_awesome</span></button>
@@ -49,8 +50,8 @@
             <p class="page-subtitle">聚合项目状态、成员协作、任务流转、排期风险与报表数据，作为项目总工作区入口。</p>
           </div>
           <div class="page-actions">
-            <button class="btn-secondary"><span class="material-symbols-outlined">archive</span>归档项目</button>
-            <button class="btn-primary"><span class="material-symbols-outlined">track_changes</span>设置基线</button>
+            <button class="btn-secondary" @click="showArchiveModal = true"><span class="material-symbols-outlined">archive</span>归档项目</button>
+            <button class="btn-primary" @click="showBaselineModal = true"><span class="material-symbols-outlined">track_changes</span>设置基线</button>
           </div>
         </div>
 
@@ -119,8 +120,8 @@
                 </div>
                 <p class="page-subtitle" style="font-size:15px;margin-top:14px;">建议将“数据回灌校验”拆分为独立子任务，并从平台组借调 1 名 QA 参与联调，预计可将偏差从 2 天压缩至 1.2 天。</p>
                 <div class="ai-actions">
-                  <button class="btn-primary">一键采纳</button>
-                  <button class="btn-secondary">查看任务拆解</button>
+                  <button class="btn-primary" @click="showAiSuggestionModal = true">一键采纳</button>
+                  <button class="btn-secondary" @click="showTaskBreakdownModal = true">查看任务拆解</button>
                 </div>
               </div>
             </div>
@@ -196,8 +197,8 @@
                 <h2 class="section-title">AI 智能分配建议</h2>
                 <p class="page-subtitle" style="font-size:14px;margin-top:14px;">建议将“联调回灌日志补录”分配给 QA 成员王雅婷，置信度 91%；并将“测试环境参数冻结”交由赵扬处理，置信度 86%。</p>
                 <div class="ai-actions">
-                  <button class="btn-primary">一键采纳</button>
-                  <button class="btn-secondary">手动调整</button>
+                  <button class="btn-primary" @click="showAiAllocationModal = true">一键采纳</button>
+                  <button class="btn-secondary" @click="showManualAdjustModal = true">手动调整</button>
                 </div>
               </div>
               <div class="glass-panel panel-pad">
@@ -233,7 +234,6 @@
             <button class="btn-chip" :class="{ active: activeFilter === 'all' }" @click="setFilter('all')">全部状态</button>
             <button class="btn-chip" :class="{ active: activeFilter === 'priority' }" @click="togglePriorityFilter">重要程度 {{ activeFilter === 'priority' ? currentPriority : '' }}</button>
             <button class="btn-chip" :class="{ active: activeFilter === 'week' }" @click="setFilter('week')">本周截止</button>
-            <button class="btn-chip" :class="{ active: activeFilter === 'blocked' }" @click="setFilter('blocked')">仅阻塞</button>
             <button class="btn-chip" :class="{ active: activeFilter === 'milestone' }" @click="setFilter('milestone')">关联里程碑</button>
             <div class="report-chip-group" style="margin-left:auto;">
               <span class="pill pill-neutral">任务总数 {{ totalTasks }}</span>
@@ -266,11 +266,10 @@
               </table>
             </div>
             <div class="glass-panel panel-pad ai-gradient">
-              <h2 class="section-title">AI 分配建议</h2>
-              <p class="page-subtitle" style="font-size:14px;margin-top:14px;">建议把“联调回灌日志补录”从平台组调整给 QA 协作者王雅婷，置信度 91%，预计可在不影响主路径的情况下减少 0.4 天等待。</p>
+              <h2 class="section-title">AI 看板分析</h2>
+              <p class="page-subtitle" style="font-size:14px;margin-top:14px;">AI 已分析当前看板状态，发现潜在瓶颈和优化机会，点击查看详细分析报告。</p>
               <div class="ai-actions">
-                <button class="btn-primary">一键采纳</button>
-                <button class="btn-secondary">手动调整</button>
+                <button class="btn-primary" @click="showKanbanAnalysisModal = true">一键分析</button>
               </div>
             </div>
           </section>
@@ -434,8 +433,7 @@
                 </div>
               </div>
               <div class="ai-actions">
-                <button class="btn-primary">生成完整风险报告</button>
-                <button class="btn-secondary">点赞反馈</button>
+                <button class="btn-primary" @click="showRiskReportModal = true">生成完整风险报告</button>
               </div>
             </div>
           </section>
@@ -482,12 +480,14 @@
               <p class="page-subtitle" style="margin-top:14px;max-width:980px;">{{ aiSummaryContent }}</p>
               <div class="ai-actions" style="margin-top:20px;">
                 <button class="btn-primary" @click="exportMarkdown">一键导出 Markdown</button>
-                <button class="btn-secondary" :class="{ active: feedbackType === 'like' }" @click="submitFeedback('like')">
+                <button class="btn-secondary feedback-btn" :class="{ 'liked': feedbackType === 'like' }" @click="submitFeedback('like')">
                   <span class="material-symbols-outlined">thumb_up</span>点赞反馈 {{ feedbackCount.like > 0 ? feedbackCount.like : '' }}
                 </button>
-                <button class="btn-secondary" :class="{ active: feedbackType === 'dislike' }" @click="submitFeedback('dislike')">
+                <button class="btn-secondary feedback-btn" :class="{ 'disliked': feedbackType === 'dislike' }" @click="submitFeedback('dislike')">
                   <span class="material-symbols-outlined">thumb_down</span>点踩反馈 {{ feedbackCount.dislike > 0 ? feedbackCount.dislike : '' }}
                 </button>
+                <button class="btn-secondary" @click="showAddSuggestionModal = true"><span class="material-symbols-outlined">lightbulb</span>项目建议</button>
+                <button class="btn-secondary" @click="showSuggestionsModal = true"><span class="material-symbols-outlined">message_list</span>查看建议</button>
               </div>
             </div>
           </section>
@@ -790,6 +790,740 @@
       </div>
     </aside>
 
+    <!-- AI项目建议弹窗 -->
+    <div class="modal-shell" :class="{ open: showAiSuggestionModal }">
+      <div class="modal-backdrop" @click="showAiSuggestionModal = false"></div>
+      <section class="modal-panel glass-panel-strong ai-suggestion-modal">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-ai"><span class="material-symbols-outlined">psychology</span>AI 项目建议</span>
+            <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">{{ aiSuggestions.projectName }}</h2>
+            <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">{{ aiSuggestions.summary }}</p>
+          </div>
+          <button class="icon-btn" @click="showAiSuggestionModal = false"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <div style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
+          <div class="suggestion-list">
+            <div 
+              v-for="(suggestion, index) in aiSuggestions.suggestions" 
+              :key="suggestion.id" 
+              class="suggestion-item glass-panel"
+            >
+              <div class="suggestion-header">
+                <span class="suggestion-number">{{ index + 1 }}</span>
+                <h3>{{ suggestion.title }}</h3>
+                <span class="confidence-badge">{{ suggestion.confidence }}</span>
+              </div>
+              <p>{{ suggestion.content }}</p>
+              <div class="suggestion-impact">
+                <span class="material-symbols-outlined">trending_up</span>
+                <span>{{ suggestion.impact }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="conclusion-box">
+            <span class="material-symbols-outlined">lightbulb</span>
+            <p>{{ aiSuggestions.conclusion }}</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-status">
+            <span class="material-symbols-outlined">robot_2</span>
+            AI 分析基于项目历史数据与当前状态生成建议
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="showAiSuggestionModal = false"><span class="material-symbols-outlined">close</span>关闭</button>
+            <button class="btn-primary" @click="adoptSuggestion"><span class="material-symbols-outlined">check_circle</span>一键采纳</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 任务拆解弹窗 -->
+    <div class="modal-shell" :class="{ open: showTaskBreakdownModal }">
+      <div class="modal-backdrop" @click="showTaskBreakdownModal = false"></div>
+      <section class="modal-panel glass-panel-strong task-breakdown-modal">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-primary"><span class="material-symbols-outlined">splitscreen</span>任务拆解</span>
+            <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">{{ taskBreakdown.projectName }}</h2>
+            <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">共 {{ taskBreakdown.totalTasks }} 个任务，按阶段拆解展示</p>
+          </div>
+          <button class="icon-btn" @click="showTaskBreakdownModal = false"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <div style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
+          <div class="breakdown-list">
+            <div 
+              v-for="(phase, phaseIndex) in taskBreakdown.breakdown" 
+              :key="phaseIndex" 
+              class="phase-section"
+            >
+              <div class="phase-header">
+                <span class="phase-icon"><span class="material-symbols-outlined">folder</span></span>
+                <h3>{{ phase.phase }}</h3>
+                <span class="task-count">{{ phase.tasks.length }} 个任务</span>
+              </div>
+              <div class="task-grid">
+                <div 
+                  v-for="task in phase.tasks" 
+                  :key="task.name" 
+                  class="task-card glass-panel"
+                >
+                  <div class="task-header">
+                    <span :class="`priority-tag priority-${task.priority.toLowerCase()}`">{{ task.priority }}</span>
+                    <span :class="`status-tag status-${task.status === '已完成' ? 'success' : task.status === '进行中' ? 'warning' : 'neutral'}`">{{ task.status }}</span>
+                  </div>
+                  <h4>{{ task.name }}</h4>
+                  <div class="task-progress">
+                    <div class="progress-track"><div class="progress-fill" :style="{ width: task.progress + '%' }"></div></div>
+                    <span>{{ task.progress }}%</span>
+                  </div>
+                  <div class="task-assignee">
+                    <span class="material-symbols-outlined">person</span>
+                    <span>{{ task.assignee }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-status">
+            <span class="material-symbols-outlined">bar_chart</span>
+            任务拆解便于分析项目结构和资源分配
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="showTaskBreakdownModal = false"><span class="material-symbols-outlined">close</span>关闭</button>
+            <button class="btn-primary"><span class="material-symbols-outlined">download</span>导出拆解报告</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- AI智能分配建议弹窗 -->
+    <div class="modal-shell" :class="{ open: showAiAllocationModal }">
+      <div class="modal-backdrop" @click="showAiAllocationModal = false"></div>
+      <section class="modal-panel glass-panel-strong ai-allocation-modal">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-ai"><span class="material-symbols-outlined">psychology</span>AI 智能分配建议</span>
+            <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">{{ aiAllocationData.projectName }}</h2>
+            <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">{{ aiAllocationData.summary }}</p>
+          </div>
+          <button class="icon-btn" @click="showAiAllocationModal = false"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <div style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
+          <div class="allocation-list">
+            <div 
+              v-for="(suggestion, index) in aiAllocationData.suggestions" 
+              :key="suggestion.id" 
+              class="allocation-item glass-panel"
+            >
+              <div class="allocation-header">
+                <span class="suggestion-number">{{ index + 1 }}</span>
+                <h3>{{ suggestion.taskName }}</h3>
+                <span class="confidence-badge">置信度 {{ suggestion.confidence }}</span>
+              </div>
+              <div class="allocation-transfer">
+                <div class="transfer-item">
+                  <span class="transfer-label">当前负责人</span>
+                  <div class="transfer-info">
+                    <span class="material-symbols-outlined">person</span>
+                    <span>{{ suggestion.fromMember }}</span>
+                    <span class="dept-tag">{{ suggestion.fromDept }}</span>
+                  </div>
+                </div>
+                <span class="transfer-arrow"><span class="material-symbols-outlined">arrow_right_alt</span></span>
+                <div class="transfer-item">
+                  <span class="transfer-label">建议负责人</span>
+                  <div class="transfer-info">
+                    <span class="material-symbols-outlined">person</span>
+                    <span>{{ suggestion.toMember }}</span>
+                    <span class="dept-tag">{{ suggestion.toDept }}</span>
+                  </div>
+                </div>
+              </div>
+              <p class="allocation-reason">{{ suggestion.reason }}</p>
+              <div class="suggestion-impact">
+                <span class="material-symbols-outlined">trending_up</span>
+                <span>{{ suggestion.impact }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="conclusion-box">
+            <span class="material-symbols-outlined">lightbulb</span>
+            <p><strong>综合评估：</strong>{{ aiAllocationData.overallImpact }}</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-status">
+            <span class="material-symbols-outlined">swap_horiz</span>
+            AI 基于成员负载和任务特性智能分析生成分配建议
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="showAiAllocationModal = false"><span class="material-symbols-outlined">close</span>关闭</button>
+            <button class="btn-primary" @click="adoptAllocation"><span class="material-symbols-outlined">check_circle</span>一键采纳</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 手动调整弹窗 -->
+    <div class="modal-shell" :class="{ open: showManualAdjustModal }">
+      <div class="modal-backdrop" @click="showManualAdjustModal = false"></div>
+      <section class="modal-panel glass-panel-strong manual-adjust-modal">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-secondary"><span class="material-symbols-outlined">settings</span>手动调整分配</span>
+            <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">{{ project.name }}</h2>
+            <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">手动调整任务分配和负责人</p>
+          </div>
+          <button class="icon-btn" @click="showManualAdjustModal = false"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <div style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
+          <div class="adjust-list">
+            <div 
+              v-for="(member, index) in memberList" 
+              :key="member.id" 
+              class="adjust-item glass-panel"
+            >
+              <div class="member-info">
+                <img :src="member.avatar" :alt="member.name" class="member-avatar" />
+                <div class="member-details">
+                  <h3>{{ member.name }}</h3>
+                  <div class="member-meta">
+                    <span class="role-badge" :class="member.badge.toLowerCase()">{{ member.badgeLabel }}</span>
+                    <span>{{ member.dept }} · {{ member.role }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="member-stats">
+                <div class="stat-item">
+                  <span class="stat-label">任务数</span>
+                  <span class="stat-value">{{ member.tasks }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">预估工时</span>
+                  <span class="stat-value">{{ member.estimate }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">负载</span>
+                  <span :class="`stat-value load-${member.loadClass}`">{{ member.load }}%</span>
+                </div>
+              </div>
+              <button class="btn-secondary btn-sm" @click="showToast('调整功能', '任务分配调整功能已准备就绪，可在此修改任务负责人。', 'settings')">
+                <span class="material-symbols-outlined">edit</span>调整
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-status">
+            <span class="material-symbols-outlined">users</span>
+            当前共 {{ memberList.length }} 位成员，其中 {{ memberList.filter(m => m.joinStatus === '已加入').length }} 位已加入
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="showManualAdjustModal = false"><span class="material-symbols-outlined">close</span>关闭</button>
+            <button class="btn-primary"><span class="material-symbols-outlined">save</span>保存调整</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- AI看板分析弹窗 -->
+    <div class="modal-shell" :class="{ open: showKanbanAnalysisModal }">
+      <div class="modal-backdrop" @click="showKanbanAnalysisModal = false"></div>
+      <section class="modal-panel glass-panel-strong kanban-analysis-modal">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-ai"><span class="material-symbols-outlined">bar_chart</span>AI 看板分析</span>
+            <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">{{ kanbanAnalysisData.projectName }}</h2>
+            <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">{{ kanbanAnalysisData.summary }}</p>
+          </div>
+          <button class="icon-btn" @click="showKanbanAnalysisModal = false"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <!-- 概览统计 -->
+        <div class="analysis-overview">
+          <div class="overview-card">
+            <span class="overview-icon total"><span class="material-symbols-outlined">list</span></span>
+            <div>
+              <span class="overview-value">{{ kanbanAnalysisData.overview.totalTasks }}</span>
+              <span class="overview-label">总任务数</span>
+            </div>
+          </div>
+          <div class="overview-card">
+            <span class="overview-icon completed"><span class="material-symbols-outlined">check_circle</span></span>
+            <div>
+              <span class="overview-value">{{ kanbanAnalysisData.overview.completedTasks }}</span>
+              <span class="overview-label">已完成</span>
+            </div>
+          </div>
+          <div class="overview-card">
+            <span class="overview-icon progress"><span class="material-symbols-outlined">clock</span></span>
+            <div>
+              <span class="overview-value">{{ kanbanAnalysisData.overview.inProgressTasks }}</span>
+              <span class="overview-label">进行中</span>
+            </div>
+          </div>
+          <div class="overview-card">
+            <span class="overview-icon blocked"><span class="material-symbols-outlined">alert</span></span>
+            <div>
+              <span class="overview-value">{{ kanbanAnalysisData.overview.blockedTasks }}</span>
+              <span class="overview-label">已阻塞</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 分析洞察 -->
+        <div style="max-height: 45vh; overflow-y: auto; padding-right: 8px;">
+          <h3 style="margin-bottom: 16px; font-size: 16px; font-weight: 600; color: var(--color-text-primary);">分析洞察</h3>
+          <div class="insight-list">
+            <div 
+              v-for="insight in kanbanAnalysisData.insights" 
+              :key="insight.id" 
+              class="insight-item glass-panel"
+              :class="`insight-${insight.type}`"
+            >
+              <div class="insight-header">
+                <span class="insight-icon">
+                  <span v-if="insight.type === 'warning'" class="material-symbols-outlined">warning</span>
+                  <span v-else-if="insight.type === 'success'" class="material-symbols-outlined">check_circle</span>
+                  <span v-else class="material-symbols-outlined">info</span>
+                </span>
+                <h4>{{ insight.title }}</h4>
+              </div>
+              <p>{{ insight.content }}</p>
+              <div class="insight-impact">
+                <span class="material-symbols-outlined">trending_up</span>
+                <span>{{ insight.impact }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 建议 -->
+          <h3 style="margin-top: 24px; margin-bottom: 16px; font-size: 16px; font-weight: 600; color: var(--color-text-primary);">优化建议</h3>
+          <div class="recommendation-list">
+            <div 
+              v-for="rec in kanbanAnalysisData.recommendations" 
+              :key="rec.id" 
+              class="recommendation-item"
+            >
+              <span class="rec-number">{{ rec.id }}</span>
+              <div class="rec-content">
+                <strong>{{ rec.title }}</strong>
+                <span>{{ rec.action }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 结论 -->
+          <div class="conclusion-box" style="margin-top: 20px;">
+            <span class="material-symbols-outlined">lightbulb</span>
+            <p>{{ kanbanAnalysisData.conclusion }}</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-status">
+            <span class="material-symbols-outlined">brain</span>
+            AI 基于看板数据实时分析生成报告
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="showKanbanAnalysisModal = false"><span class="material-symbols-outlined">close</span>关闭</button>
+            <button class="btn-primary"><span class="material-symbols-outlined">download</span>导出分析报告</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 风险报告弹窗 -->
+    <div class="modal-shell" :class="{ open: showRiskReportModal }">
+      <div class="modal-backdrop" @click="showRiskReportModal = false"></div>
+      <section class="modal-panel glass-panel-strong risk-report-modal">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-warning"><span class="material-symbols-outlined">security</span>AI 风险分析报告</span>
+            <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">{{ riskReportData.projectName }}</h2>
+            <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">报告生成日期：{{ riskReportData.reportDate }}</p>
+          </div>
+          <button class="icon-btn" @click="showRiskReportModal = false"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <!-- 概览卡片 -->
+        <div class="risk-overview">
+          <div class="risk-card">
+            <div class="risk-card-icon high-risk">
+              <span class="material-symbols-outlined">alert</span>
+            </div>
+            <div>
+              <span class="risk-value">{{ riskReportData.overview.highRisk }}</span>
+              <span class="risk-label">高危任务</span>
+              <span class="risk-trend up">+2 较上周</span>
+            </div>
+          </div>
+          <div class="risk-card">
+            <div class="risk-card-icon medium-risk">
+              <span class="material-symbols-outlined">notification_important</span>
+            </div>
+            <div>
+              <span class="risk-value">{{ riskReportData.overview.mediumRisk }}</span>
+              <span class="risk-label">中度预警</span>
+              <span class="risk-trend stable">持平</span>
+            </div>
+          </div>
+          <div class="risk-card">
+            <div class="risk-card-icon stability">
+              <span class="material-symbols-outlined">check_circle</span>
+            </div>
+            <div>
+              <span class="risk-value">{{ riskReportData.overview.stability }}%</span>
+              <span class="risk-label">整体稳定度</span>
+              <span class="risk-status">{{ riskReportData.overview.status }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 执行摘要 -->
+        <div class="executive-summary">
+          <h3><span class="material-symbols-outlined">file_text</span>执行摘要</h3>
+          <p>{{ riskReportData.executiveSummary }}</p>
+        </div>
+
+        <!-- 风险分类 -->
+        <div style="max-height: 50vh; overflow-y: auto; padding-right: 8px;">
+          <h3 style="margin-bottom: 16px; font-size: 16px; font-weight: 600; color: var(--color-text-primary);">风险分类</h3>
+          <div class="risk-breakdown">
+            <div 
+              v-for="risk in riskReportData.riskBreakdown" 
+              :key="risk.level" 
+              class="risk-category"
+              :class="risk.level === '高危' ? 'high' : 'medium'"
+            >
+              <div class="risk-category-header">
+                <span class="risk-badge">{{ risk.level }}</span>
+                <span class="risk-count">{{ risk.count }} 项</span>
+                <span :class="`risk-trend-badge ${risk.trendType}`">{{ risk.trend }}</span>
+              </div>
+              <div class="risk-item-list">
+                <span v-for="(item, idx) in risk.items" :key="idx" class="risk-item">{{ item }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 关键发现 -->
+          <h3 style="margin-top: 24px; margin-bottom: 16px; font-size: 16px; font-weight: 600; color: var(--color-text-primary);">关键发现</h3>
+          <div class="findings-list">
+            <div 
+              v-for="finding in riskReportData.keyFindings" 
+              :key="finding.id" 
+              class="finding-item glass-panel"
+            >
+              <div class="finding-header">
+                <span :class="`severity-badge ${finding.severity}`">
+                  {{ finding.severity === 'high' ? '高危' : '中度' }}
+                </span>
+                <h4>{{ finding.title }}</h4>
+              </div>
+              <p class="finding-content">{{ finding.content }}</p>
+              <div class="finding-recommendation">
+                <span class="material-symbols-outlined">lightbulb</span>
+                <span>{{ finding.recommendation }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 资源冲突预警 -->
+          <div class="heatmap-summary">
+            <h3><span class="material-symbols-outlined">calendar</span>资源冲突预警</h3>
+            <div class="conflict-days">
+              <span 
+                v-for="day in riskReportData.heatmapSummary.highConflictDays" 
+                :key="day" 
+                class="conflict-day"
+              >
+                {{ day }}
+              </span>
+            </div>
+            <p>{{ riskReportData.heatmapSummary.warning }}</p>
+          </div>
+
+          <!-- 建议措施 -->
+          <h3 style="margin-top: 24px; margin-bottom: 16px; font-size: 16px; font-weight: 600; color: var(--color-text-primary);">建议措施</h3>
+          <div class="recommendation-list">
+            <div 
+              v-for="rec in riskReportData.recommendations" 
+              :key="rec.id" 
+              class="recommendation-item"
+            >
+              <span class="rec-number">{{ rec.id }}</span>
+              <span>{{ rec.action }}</span>
+            </div>
+          </div>
+
+          <!-- 结论 -->
+          <div class="conclusion-box" style="margin-top: 20px;">
+            <span class="material-symbols-outlined">flag</span>
+            <p><strong>综合结论：</strong>{{ riskReportData.conclusion }}</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-status">
+            <span class="material-symbols-outlined">shield</span>
+            AI 基于风险数据智能分析生成完整报告
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="showRiskReportModal = false"><span class="material-symbols-outlined">close</span>关闭</button>
+            <button class="btn-primary"><span class="material-symbols-outlined">download</span>导出报告</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 归档项目弹窗 -->
+    <div class="modal-shell" :class="{ open: showArchiveModal }">
+      <div class="modal-backdrop" @click="showArchiveModal = false"></div>
+      <section class="modal-panel glass-panel-strong archive-modal">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-danger"><span class="material-symbols-outlined">archive</span>归档项目</span>
+            <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">{{ project.name }}</h2>
+          </div>
+        </div>
+
+        <div class="archive-content">
+          <div class="warning-box">
+            <div class="warning-icon-wrap">
+              <span class="material-symbols-outlined warning-icon">warning</span>
+            </div>
+            <h3>归档后将影响以下内容：</h3>
+            <ul>
+              <li>项目将从项目列表中移除，不再参与日常统计</li>
+              <li>所有任务状态将被冻结，不再接收新任务</li>
+              <li>成员将收到项目归档通知</li>
+              <li>项目数据仍可在归档库中查询</li>
+            </ul>
+          </div>
+
+          <div class="confirm-check">
+            <label class="checkbox-label">
+              <input type="checkbox" v-model="archiveConfirm" />
+              <span class="checkmark"></span>
+              <span>我确认要归档此项目</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-status">
+            <span class="material-symbols-outlined">info</span>
+            归档操作不可逆，请谨慎操作
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="showArchiveModal = false"><span class="material-symbols-outlined">close</span>取消</button>
+            <button class="btn-danger" @click="archiveProject"><span class="material-symbols-outlined">archive</span>确认归档</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 设置基线弹窗 -->
+    <div class="modal-shell" :class="{ open: showBaselineModal }">
+      <div class="modal-backdrop" @click="showBaselineModal = false"></div>
+      <section class="modal-panel glass-panel-strong baseline-modal">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-primary"><span class="material-symbols-outlined">track_changes</span>设置基线</span>
+            <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">{{ project.name }}</h2>
+            <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">创建新的项目基线，用于后续进度对比</p>
+          </div>
+          <button class="icon-btn" @click="showBaselineModal = false"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <div style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
+          <div class="baseline-form">
+            <label>基线名称</label>
+            <input 
+              v-model="baselineName" 
+              type="text" 
+              placeholder="请输入基线名称，如：V1.0 正式版本" 
+            />
+          </div>
+
+          <div class="baseline-preview">
+            <h3>当前项目状态摘要</h3>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span class="material-symbols-outlined">checklist</span>
+                <div>
+                  <span class="value">38</span>
+                  <span class="label">总任务数</span>
+                </div>
+              </div>
+              <div class="summary-item">
+                <span class="material-symbols-outlined">check_circle</span>
+                <div>
+                  <span class="value">72%</span>
+                  <span class="label">完成进度</span>
+                </div>
+              </div>
+              <div class="summary-item">
+                <span class="material-symbols-outlined">users</span>
+                <div>
+                  <span class="value">12</span>
+                  <span class="label">团队成员</span>
+                </div>
+              </div>
+              <div class="summary-item">
+                <span class="material-symbols-outlined">flag</span>
+                <div>
+                  <span class="value">4</span>
+                  <span class="label">里程碑</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="baseline-history">
+            <h3>历史基线记录</h3>
+            <div class="history-list">
+              <div 
+                v-for="baseline in baselineHistory" 
+                :key="baseline.id" 
+                class="history-item"
+              >
+                <div class="history-info">
+                  <div class="history-name">
+                    {{ baseline.name }}
+                    <span v-if="baseline.status === '已激活'" class="status-tag active">{{ baseline.status }}</span>
+                    <span v-else class="status-tag">{{ baseline.status }}</span>
+                  </div>
+                  <div class="history-meta">
+                    <span>{{ baseline.creator }} · {{ baseline.date }}</span>
+                    <span>{{ baseline.tasks }} 个任务</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-status">
+            <span class="material-symbols-outlined">info</span>
+            新基线将作为后续进度对比的基准参照
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="showBaselineModal = false"><span class="material-symbols-outlined">close</span>取消</button>
+            <button class="btn-primary" @click="createBaseline"><span class="material-symbols-outlined">add</span>创建基线</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 添加项目建议弹窗 -->
+    <div class="modal-shell" :class="{ open: showAddSuggestionModal }">
+      <div class="modal-backdrop" @click="showAddSuggestionModal = false"></div>
+      <section class="modal-panel glass-panel-strong add-suggestion-modal">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-tertiary"><span class="material-symbols-outlined">lightbulb</span>提交项目建议</span>
+            <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">{{ project.name }}</h2>
+          </div>
+          <button class="icon-btn" @click="showAddSuggestionModal = false"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <div class="suggestion-form">
+          <label>您的建议</label>
+          <textarea 
+            v-model="newSuggestion" 
+            placeholder="请输入您对项目的建议或改进意见..." 
+            rows="6"
+          ></textarea>
+          <div class="form-footer">
+            <span class="form-hint">您的建议将匿名提交给项目负责人</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-status">
+            <span class="material-symbols-outlined">message</span>
+            提交您的宝贵建议，帮助项目更好地推进
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="showAddSuggestionModal = false"><span class="material-symbols-outlined">close</span>取消</button>
+            <button class="btn-primary" @click="addSuggestion"><span class="material-symbols-outlined">send</span>提交建议</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 查看项目建议弹窗 -->
+    <div class="modal-shell" :class="{ open: showSuggestionsModal }">
+      <div class="modal-backdrop" @click="showSuggestionsModal = false"></div>
+      <section class="modal-panel glass-panel-strong view-suggestions-modal">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-primary"><span class="material-symbols-outlined">message_list</span>项目建议列表</span>
+            <h2 class="section-title" style="font-size: 28px; margin-top: 14px;">{{ project.name }}</h2>
+            <p class="page-subtitle" style="font-size: 15px; margin-top: 10px;">共 {{ projectSuggestions.length }} 条建议</p>
+          </div>
+          <button class="icon-btn" @click="showSuggestionsModal = false"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <div style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
+          <div class="suggestions-list">
+            <div 
+              v-for="suggestion in projectSuggestions" 
+              :key="suggestion.id" 
+              class="suggestion-item glass-panel"
+            >
+              <div class="suggestion-content">
+                <p>{{ suggestion.content }}</p>
+              </div>
+              <div class="suggestion-footer">
+                <div class="suggestion-meta">
+                  <span class="suggestion-author">{{ suggestion.author }}</span>
+                  <span class="suggestion-time">{{ suggestion.time }}</span>
+                </div>
+                <button class="like-btn" @click="likeSuggestion(suggestion)">
+                  <span class="material-symbols-outlined">thumb_up</span>
+                  <span>{{ suggestion.likes }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="projectSuggestions.length === 0" class="empty-state">
+            <span class="material-symbols-outlined">inbox</span>
+            <p>暂无项目建议，快来提交第一条吧！</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-status">
+            <span class="material-symbols-outlined">users</span>
+            团队成员共同贡献的项目改进建议
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="showSuggestionsModal = false"><span class="material-symbols-outlined">close</span>关闭</button>
+            <button class="btn-primary" @click="showSuggestionsModal = false; showAddSuggestionModal = true"><span class="material-symbols-outlined">add</span>提交建议</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
     <!-- Toast -->
     <Transition name="toast">
       <div v-if="toast.show" class="toast">
@@ -847,6 +1581,255 @@ const currentUser = {
   name: '王志强',
   role: '项目负责人',
   avatar: 'https://i.pravatar.cc/80?img=47'
+}
+
+// AI项目建议弹窗
+const showAiSuggestionModal = ref(false)
+const showTaskBreakdownModal = ref(false)
+
+// AI智能分配建议弹窗（已废弃，改用看板分析）
+const showAiAllocationModal = ref(false)
+const showManualAdjustModal = ref(false)
+
+// AI看板分析弹窗
+const showKanbanAnalysisModal = ref(false)
+
+// 风险报告弹窗
+const showRiskReportModal = ref(false)
+
+// 风险报告数据
+const riskReportData = computed(() => {
+  return {
+    projectName: project.value.name,
+    reportDate: new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }),
+    overview: {
+      totalRisks: 17,
+      highRisk: 6,
+      mediumRisk: 11,
+      stability: 81,
+      status: '仍可控'
+    },
+    executiveSummary: '当前项目整体稳定度为 81%，处于「仍可控」状态。本周新增高危任务 2 项，与上周持平。资源冲突预警显示周三和周五存在潜在资源冲突风险，建议提前协调。',
+    riskBreakdown: [
+      { level: '高危', count: 6, trend: '+2', trendType: 'up', items: ['联调环境参数回灌阻塞', '样本误差回归验证超时风险', '测试环境配置未完成', '日志补录任务延迟', '基线对比视图同步', '性能指标未达标'] },
+      { level: '中度预警', count: 11, trend: '持平', trendType: 'stable', items: ['文档更新滞后', '接口联调等待', '数据准备延迟', '测试用例编写中', '环境准备中', '评审待安排'] }
+    ],
+    keyFindings: [
+      {
+        id: 1,
+        title: '资源冲突预警',
+        severity: 'high',
+        content: '周三存在「联调环境参数回灌」与「样本误差回归验证」共享同一测试窗口的资源冲突，预测概率 92%，可能造成 0.8 天额外延迟。',
+        recommendation: '建议将「日志补录」任务临时调配给 QA 协作成员，并提前冻结周三的联调资源窗口。'
+      },
+      {
+        id: 2,
+        title: '阻塞任务堆积',
+        severity: 'medium',
+        content: '当前有 2 个任务处于阻塞状态超过 24 小时，阻塞原因主要是测试环境配置未完成。',
+        recommendation: '协调平台组优先完成测试环境配置，确保阻塞任务尽快解除。'
+      },
+      {
+        id: 3,
+        title: '临近截止任务',
+        severity: 'medium',
+        content: '「样本误差回归验证」任务预计今天完成，但当前进度仅 48%，存在超时风险。',
+        recommendation: '增加资源投入或协调调整截止时间。'
+      }
+    ],
+    heatmapSummary: {
+      highConflictDays: ['周三', '周五'],
+      warning: '周三和周五存在较高资源冲突风险，建议重点关注'
+    },
+    recommendations: [
+      { id: 1, action: '优先解决测试环境配置问题，解除阻塞任务' },
+      { id: 2, action: '协调 QA 资源支持联调任务' },
+      { id: 3, action: '重新评估「样本误差回归验证」任务的截止时间' },
+      { id: 4, action: '提前冻结周三联调资源窗口' },
+      { id: 5, action: '设置每日风险同步例会，跟踪阻塞问题' }
+    ],
+    conclusion: '综合评估：项目当前处于可控状态，但存在资源分配和任务阻塞问题。建议立即协调解决测试环境配置，优先处理阻塞任务，并进行适当的资源调配。整体风险等级：中等。'
+  }
+})
+
+// 看板分析数据
+const kanbanAnalysisData = computed(() => {
+  return {
+    projectName: project.value.name,
+    summary: '基于当前看板状态的AI分析报告',
+    overview: {
+      totalTasks: 12,
+      completedTasks: 3,
+      inProgressTasks: 4,
+      blockedTasks: 2,
+      pendingTasks: 3,
+      completionRate: '25%',
+      blockedRate: '17%'
+    },
+    insights: [
+      {
+        id: 1,
+        type: 'warning',
+        title: '阻塞任务预警',
+        content: '「联调环境参数回灌」任务已阻塞超过 24 小时，阻塞原因是测试环境配置未完成。建议优先协调平台组完成环境准备。',
+        impact: '可能导致联调验证阶段延迟 0.6 天'
+      },
+      {
+        id: 2,
+        type: 'info',
+        title: '任务分布不均',
+        content: '陈思远当前负载高达 91%，负责 7 个任务；而赵扬仅负责 2 个任务，负载仅 35%。建议考虑任务再分配。',
+        impact: '负载均衡后预计可提升整体效率 15%'
+      },
+      {
+        id: 3,
+        type: 'success',
+        title: '良好进展',
+        content: '「晶格样本归一化策略更新」已提前完成并同步至基线对比视图，为后续联调打下良好基础。',
+        impact: '提前完成可释放部分测试资源'
+      },
+      {
+        id: 4,
+        type: 'warning',
+        title: '临近截止任务',
+        content: '「样本误差回归验证」任务预计今天完成，但当前进度仅 48%，存在超时风险。',
+        impact: '建议增加资源投入或调整截止时间'
+      }
+    ],
+    recommendations: [
+      { id: 1, title: '优先处理阻塞任务', action: '协调平台组优先完成测试环境配置' },
+      { id: 2, title: '任务再分配', action: '将部分任务从陈思远调整至赵扬' },
+      { id: 3, title: '增加回归验证资源', action: '安排额外 QA 资源支持样本验证' },
+      { id: 4, title: '设置每日阻塞例会', action: '每天同步阻塞问题解决进展' }
+    ],
+    conclusion: '综合评估：当前项目整体可控，但存在资源分配不均和阻塞任务问题。建议优先解决阻塞任务，并进行适当的任务再分配以平衡负载。'
+  }
+})
+
+// AI智能分配建议数据
+const aiAllocationData = computed(() => {
+  return {
+    projectName: project.value.name,
+    summary: 'AI 基于成员负载和任务特性分析，建议如下人员调配方案：',
+    suggestions: [
+      {
+        id: 1,
+        taskName: '联调回灌日志补录',
+        fromMember: '陈思远',
+        toMember: '王雅婷',
+        fromDept: '平台组',
+        toDept: 'QA',
+        confidence: '91%',
+        reason: '王雅婷当前负载较低（58%），且具备回归验证经验，适合接手日志补录工作。',
+        impact: '预计可减少 0.4 天等待时间'
+      },
+      {
+        id: 2,
+        taskName: '测试环境参数冻结',
+        fromMember: '陈思远',
+        toMember: '赵扬',
+        fromDept: '平台组',
+        toDept: '平台组',
+        confidence: '86%',
+        reason: '赵扬负责配置维护，对测试环境更熟悉，且当前任务量较少（2个任务）。',
+        impact: '预计可提前 0.3 天完成'
+      }
+    ],
+    overallImpact: '综合调整后，预计可将联调验证阶段的偏差从 2 天压缩至 1.3 天。'
+  }
+})
+
+// 采纳分配建议
+const adoptAllocation = () => {
+  showToast('分配建议已采纳', 'AI 智能分配建议已应用，相关任务负责人已更新。', 'check_circle')
+  showAiAllocationModal.value = false
+}
+
+// AI项目建议数据（根据当前项目信息生成）
+const aiSuggestions = computed(() => {
+  return {
+    projectName: project.value.name,
+    summary: `基于项目「${project.value.name}」的当前状态（进度${project.value.progress}%），AI 分析后提供以下优化建议：`,
+    suggestions: [
+      {
+        id: 1,
+        title: '任务拆分优化',
+        content: '建议将「数据回灌校验」拆分为独立子任务，便于并行执行和进度追踪。',
+        confidence: '置信度 94%',
+        impact: '预计可缩短 0.8 天'
+      },
+      {
+        id: 2,
+        title: '资源调配建议',
+        content: '从平台组借调 1 名 QA 参与联调，提升测试覆盖度和问题发现效率。',
+        confidence: '置信度 89%',
+        impact: '预计可将偏差从 2 天压缩至 1.2 天'
+      },
+      {
+        id: 3,
+        title: '风险预警',
+        content: '联调环境参数回灌与样本误差回归验证共用测试窗口，周三将出现资源冲突。',
+        confidence: '置信度 92%',
+        impact: '可能造成 0.6 天额外延迟'
+      },
+      {
+        id: 4,
+        title: '进度优化',
+        content: '提前释放算力资源，压缩联调窗口，可追回 0.8 天进度。',
+        confidence: '置信度 87%',
+        impact: '将偏差控制在 1.2 天内'
+      }
+    ],
+    conclusion: '综合评估：当前项目整体可控，建议优先处理联调资源冲突问题。'
+  }
+})
+
+// 任务拆解数据
+const taskBreakdown = computed(() => {
+  return {
+    projectName: project.value.name,
+    totalTasks: 12,
+    breakdown: [
+      {
+        phase: '数据回灌校验',
+        tasks: [
+          { name: '联调环境参数回灌', status: '进行中', progress: 62, assignee: '陈思远', priority: 'P0' },
+          { name: '样本误差回归验证', status: '进行中', progress: 48, assignee: '王雅婷', priority: 'P1' },
+          { name: '测试环境配置冻结', status: '待开始', progress: 0, assignee: '赵扬', priority: 'P1' }
+        ]
+      },
+      {
+        phase: '开发实现',
+        tasks: [
+          { name: '回归样本对齐', status: '进行中', progress: 85, assignee: '韩诚', priority: 'P1' },
+          { name: '异常样本校验', status: '待开始', progress: 0, assignee: '韩诚', priority: 'P2' },
+          { name: '晶格样本归一化', status: '已完成', progress: 100, assignee: '韩诚', priority: 'P2' }
+        ]
+      },
+      {
+        phase: '联调验证',
+        tasks: [
+          { name: '联调验证清单整理', status: '待开始', progress: 0, assignee: '赵扬', priority: 'P2' },
+          { name: '联调回灌日志补录', status: '待开始', progress: 0, assignee: '王雅婷', priority: 'P1' },
+          { name: '测试环境参数冻结', status: '待开始', progress: 0, assignee: '赵扬', priority: 'P1' }
+        ]
+      },
+      {
+        phase: '上线验收',
+        tasks: [
+          { name: '上线部署', status: '待开始', progress: 0, assignee: '周雅楠', priority: 'P0' },
+          { name: '验收测试', status: '待开始', progress: 0, assignee: '王雅婷', priority: 'P1' },
+          { name: '文档归档', status: '待开始', progress: 0, assignee: '陈思远', priority: 'P3' }
+        ]
+      }
+    ]
+  }
+})
+
+// 一键采纳AI建议
+const adoptSuggestion = () => {
+  showToast('建议已采纳', 'AI 项目建议已应用到项目计划中，相关任务已自动更新。', 'check_circle')
+  showAiSuggestionModal.value = false
 }
 
 // 使用共享的项目数据
@@ -988,7 +1971,7 @@ const setReportTimeFilter = (filter) => {
 }
 
 // 报表类型
-const reportType = ref('all')
+const reportType = ref('progress')
 const setReportType = (type) => {
   reportType.value = type
   updateSummary()
@@ -1014,6 +1997,142 @@ const submitFeedback = (type) => {
     feedbackType.value = type
     feedbackCount.value[type]++
   }
+}
+
+// 归档项目相关
+const showArchiveModal = ref(false)
+const archiveConfirm = ref(false)
+
+const archiveProject = () => {
+  if (!archiveConfirm.value) {
+    showToast('提示', '请先确认归档操作', 'info')
+    return
+  }
+  
+  showToast('成功', '项目已归档', 'check_circle')
+  showArchiveModal.value = false
+  archiveConfirm.value = false
+}
+
+// 设置基线相关
+const showBaselineModal = ref(false)
+const baselineName = ref('')
+
+// 历史基线列表
+const baselineHistory = ref([
+  {
+    id: 1,
+    name: 'V1.0 初始基线',
+    date: '2024-04-14 10:00',
+    creator: '王志强',
+    tasks: 28,
+    status: '已激活'
+  },
+  {
+    id: 2,
+    name: 'V1.1 需求评审后',
+    date: '2024-04-18 16:30',
+    creator: '陈思远',
+    tasks: 32,
+    status: '已过期'
+  },
+  {
+    id: 3,
+    name: 'V1.2 开发完成',
+    date: '2024-05-05 09:00',
+    creator: '王志强',
+    tasks: 35,
+    status: '已过期'
+  }
+])
+
+const createBaseline = () => {
+  if (!baselineName.value.trim()) {
+    showToast('提示', '请输入基线名称', 'info')
+    return
+  }
+  
+  baselineHistory.value.unshift({
+    id: Date.now(),
+    name: baselineName.value,
+    date: new Date().toLocaleString('zh-CN'),
+    creator: '张工',
+    tasks: 38,
+    status: '已激活'
+  })
+  
+  // 将之前的激活状态改为过期
+  baselineHistory.value.forEach((item, index) => {
+    if (index > 0 && item.status === '已激活') {
+      item.status = '已过期'
+    }
+  })
+  
+  baselineName.value = ''
+  showBaselineModal.value = false
+  showToast('成功', '基线已创建', 'check_circle')
+}
+
+// 项目建议相关
+const showAddSuggestionModal = ref(false)
+const showSuggestionsModal = ref(false)
+const newSuggestion = ref('')
+
+// 项目建议列表数据
+const projectSuggestions = ref([
+  {
+    id: 1,
+    content: '建议增加每日站会，同步阻塞问题进展，提高团队协作效率。',
+    author: '陈思远',
+    time: '2024-01-15 10:30',
+    likes: 5
+  },
+  {
+    id: 2,
+    content: '测试环境配置经常成为瓶颈，建议提前准备备用环境。',
+    author: '王雅婷',
+    time: '2024-01-14 14:20',
+    likes: 8
+  },
+  {
+    id: 3,
+    content: '联调阶段任务分配不均，建议根据成员负载动态调整。',
+    author: '王志强',
+    time: '2024-01-13 09:15',
+    likes: 12
+  },
+  {
+    id: 4,
+    content: '建议每周五下午进行项目复盘，总结本周问题和改进点。',
+    author: '赵扬',
+    time: '2024-01-12 16:45',
+    likes: 3
+  }
+])
+
+// 添加新建议
+const addSuggestion = () => {
+  if (!newSuggestion.value.trim()) {
+    showToast('提示', '请输入建议内容', 'info')
+    return
+  }
+  
+  projectSuggestions.value.unshift({
+    id: Date.now(),
+    content: newSuggestion.value,
+    author: '张工',
+    time: new Date().toLocaleString('zh-CN'),
+    likes: 0
+  })
+  
+  newSuggestion.value = ''
+  showAddSuggestionModal.value = false
+  showToast('成功', '建议已提交', 'check_circle')
+}
+
+// 点赞建议
+const likeSuggestion = (suggestion) => {
+  suggestion.likes++
 }
 
 // 导出Markdown
@@ -1550,6 +2669,1536 @@ watch(() => route.params.tab, () => { isAiDrawerOpen.value = false })
 .priority-p0 { color: #ef4444; }
 .priority-p1 { color: #f59e0b; }
 .priority-p2 { color: #9ca3af; }
+
+/* AI项目建议弹窗样式 */
+.ai-suggestion-modal {
+  width: min(750px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.suggestion-item {
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.suggestion-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.suggestion-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-tertiary-400), var(--color-tertiary-600));
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.suggestion-header h3 {
+  flex: 1;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.confidence-badge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(56, 197, 155, 0.1);
+  color: var(--color-secondary-700);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.suggestion-item p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.suggestion-impact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.suggestion-impact .material-symbols-outlined {
+  font-size: 16px;
+  color: var(--color-warning-600);
+}
+
+.suggestion-impact span {
+  font-size: 13px;
+  color: var(--color-warning-700);
+  font-weight: 500;
+}
+
+.conclusion-box {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(20, 104, 199, 0.08), rgba(168, 113, 255, 0.08));
+  display: flex;
+  gap: 14px;
+}
+
+.conclusion-box .material-symbols-outlined {
+  font-size: 24px;
+  color: var(--color-primary-600);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.conclusion-box p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* 任务拆解弹窗样式 */
+.task-breakdown-modal {
+  width: min(800px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.phase-section {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid rgba(216, 221, 232, 0.4);
+}
+
+.phase-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(20, 104, 199, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phase-icon .material-symbols-outlined {
+  font-size: 16px;
+  color: var(--color-primary-600);
+}
+
+.phase-header h3 {
+  flex: 1;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.task-count {
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(233, 236, 241, 0.8);
+}
+
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.task-card {
+  padding: 16px;
+  border-radius: 16px;
+}
+
+.task-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.priority-tag {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.priority-p0 {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger-600);
+}
+
+.priority-p1 {
+  background: rgba(251, 191, 36, 0.1);
+  color: var(--color-warning-600);
+}
+
+.priority-p2 {
+  background: rgba(107, 114, 128, 0.1);
+  color: var(--color-text-secondary);
+}
+
+.priority-p3 {
+  background: rgba(107, 114, 128, 0.08);
+  color: var(--color-text-tertiary);
+}
+
+.status-tag {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-success {
+  background: rgba(47, 198, 138, 0.1);
+  color: var(--color-secondary-600);
+}
+
+.status-warning {
+  background: rgba(251, 191, 36, 0.1);
+  color: var(--color-warning-600);
+}
+
+.status-neutral {
+  background: rgba(107, 114, 128, 0.08);
+  color: var(--color-text-tertiary);
+}
+
+.task-card h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.task-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.task-progress .progress-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(233, 236, 241, 0.8);
+}
+
+.task-progress .progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--color-primary-400), var(--color-primary-600));
+}
+
+.task-progress span {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  min-width: 36px;
+  text-align: right;
+}
+
+.task-assignee {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.task-assignee .material-symbols-outlined {
+  font-size: 14px;
+  color: var(--color-text-tertiary);
+}
+
+.task-assignee span {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+/* AI智能分配建议弹窗样式 */
+.ai-allocation-modal {
+  width: min(750px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.allocation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.allocation-item {
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.allocation-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.allocation-header h3 {
+  flex: 1;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.allocation-transfer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.3);
+  margin-bottom: 12px;
+}
+
+.transfer-item {
+  flex: 1;
+  text-align: center;
+}
+
+.transfer-label {
+  display: block;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  margin-bottom: 8px;
+}
+
+.transfer-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.transfer-info .material-symbols-outlined {
+  font-size: 18px;
+  color: var(--color-text-secondary);
+}
+
+.transfer-info span {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.dept-tag {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(20, 104, 199, 0.1);
+  color: var(--color-primary-600);
+  font-size: 11px;
+}
+
+.transfer-arrow {
+  padding: 8px;
+  color: var(--color-text-tertiary);
+}
+
+.allocation-reason {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* 手动调整弹窗样式 */
+.manual-adjust-modal {
+  width: min(700px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.adjust-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.adjust-item {
+  padding: 16px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.member-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.member-details {
+  flex: 1;
+}
+
+.member-details h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.member-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.member-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-label {
+  display: block;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.stat-value.load-danger {
+  color: var(--color-danger-600);
+}
+
+.stat-value.load-warning {
+  color: var(--color-warning-600);
+}
+
+.stat-value.load-success {
+  color: var(--color-secondary-600);
+}
+
+.stat-value.load-neutral {
+  color: var(--color-text-secondary);
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.btn-sm .material-symbols-outlined {
+  font-size: 16px;
+}
+
+/* AI看板分析弹窗样式 */
+.kanban-analysis-modal {
+  width: min(800px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.analysis-overview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+}
+
+.overview-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+}
+
+.overview-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overview-icon.total {
+  background: rgba(20, 104, 199, 0.1);
+}
+
+.overview-icon.total .material-symbols-outlined {
+  color: var(--color-primary-600);
+}
+
+.overview-icon.completed {
+  background: rgba(47, 198, 138, 0.1);
+}
+
+.overview-icon.completed .material-symbols-outlined {
+  color: var(--color-secondary-600);
+}
+
+.overview-icon.progress {
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.overview-icon.progress .material-symbols-outlined {
+  color: var(--color-warning-600);
+}
+
+.overview-icon.blocked {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.overview-icon.blocked .material-symbols-outlined {
+  color: var(--color-danger-600);
+}
+
+.overview-icon .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.overview-value {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.overview-label {
+  display: block;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.insight-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.insight-item {
+  padding: 16px;
+  border-radius: 16px;
+  border-left: 4px solid transparent;
+}
+
+.insight-warning {
+  border-left-color: var(--color-warning-600);
+  background: rgba(251, 191, 36, 0.05);
+}
+
+.insight-success {
+  border-left-color: var(--color-secondary-600);
+  background: rgba(47, 198, 138, 0.05);
+}
+
+.insight-info {
+  border-left-color: var(--color-primary-600);
+  background: rgba(20, 104, 199, 0.05);
+}
+
+.insight-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.insight-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.insight-warning .insight-icon {
+  background: rgba(251, 191, 36, 0.15);
+}
+
+.insight-warning .insight-icon .material-symbols-outlined {
+  color: var(--color-warning-600);
+}
+
+.insight-success .insight-icon {
+  background: rgba(47, 198, 138, 0.15);
+}
+
+.insight-success .insight-icon .material-symbols-outlined {
+  color: var(--color-secondary-600);
+}
+
+.insight-info .insight-icon {
+  background: rgba(20, 104, 199, 0.15);
+}
+
+.insight-info .insight-icon .material-symbols-outlined {
+  color: var(--color-primary-600);
+}
+
+.insight-icon .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.insight-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.insight-item p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.insight-impact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  width: fit-content;
+}
+
+.insight-impact .material-symbols-outlined {
+  font-size: 14px;
+  color: var(--color-text-tertiary);
+}
+
+.insight-impact span {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.recommendation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recommendation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+}
+
+.rec-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-tertiary-400), var(--color-tertiary-600));
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rec-content {
+  flex: 1;
+}
+
+.rec-content strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.rec-content span {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+/* 风险报告弹窗样式 */
+.risk-report-modal {
+  width: min(850px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.risk-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.risk-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 16px;
+}
+
+.risk-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.risk-card-icon.high-risk {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.risk-card-icon.high-risk .material-symbols-outlined {
+  color: var(--color-danger-600);
+}
+
+.risk-card-icon.medium-risk {
+  background: rgba(251, 191, 36, 0.15);
+}
+
+.risk-card-icon.medium-risk .material-symbols-outlined {
+  color: var(--color-warning-600);
+}
+
+.risk-card-icon.stability {
+  background: rgba(47, 198, 138, 0.15);
+}
+
+.risk-card-icon.stability .material-symbols-outlined {
+  color: var(--color-secondary-600);
+}
+
+.risk-card-icon .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.risk-value {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.risk-label {
+  display: block;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.risk-trend {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.risk-trend.up {
+  color: var(--color-danger-600);
+}
+
+.risk-trend.stable {
+  color: var(--color-text-secondary);
+}
+
+.risk-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(47, 198, 138, 0.15);
+  color: var(--color-secondary-600);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.executive-summary {
+  padding: 16px;
+  background: rgba(20, 104, 199, 0.08);
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+.executive-summary h3 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary-600);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.executive-summary h3 .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.executive-summary p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.risk-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.risk-category {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.risk-category.high {
+  border-left: 4px solid var(--color-danger-600);
+}
+
+.risk-category.medium {
+  border-left: 4px solid var(--color-warning-600);
+}
+
+.risk-category-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.risk-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.risk-category.high .risk-badge {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-danger-600);
+}
+
+.risk-category.medium .risk-badge {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--color-warning-600);
+}
+
+.risk-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.risk-trend-badge {
+  margin-left: auto;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.risk-trend-badge.up {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger-600);
+}
+
+.risk-trend-badge.stable {
+  background: rgba(156, 163, 175, 0.1);
+  color: var(--color-text-secondary);
+}
+
+.risk-item-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.risk-item {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.findings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.finding-item {
+  padding: 16px;
+  border-radius: 16px;
+}
+
+.finding-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.severity-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.severity-badge.high {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-danger-600);
+}
+
+.severity-badge.medium {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--color-warning-600);
+}
+
+.finding-header h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.finding-content {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.finding-recommendation {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.finding-recommendation .material-symbols-outlined {
+  font-size: 16px;
+  color: var(--color-warning-600);
+  flex-shrink: 0;
+}
+
+.finding-recommendation span {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.heatmap-summary {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(239, 68, 68, 0.05);
+  border-radius: 16px;
+}
+
+.heatmap-summary h3 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-danger-600);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.heatmap-summary h3 .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.conflict-days {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.conflict-day {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-danger-600);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.heatmap-summary p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+/* 归档项目弹窗样式 */
+.archive-modal, .baseline-modal {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.archive-modal .modal-header,
+.baseline-modal .modal-header {
+  padding: 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.archive-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.warning-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.06) 0%, rgba(239, 68, 68, 0.02) 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(239, 68, 68, 0.12);
+  box-shadow: 0 8px 30px rgba(239, 68, 68, 0.06);
+}
+
+.warning-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.18), rgba(239, 68, 68, 0.08));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.12);
+}
+
+.warning-icon {
+  font-size: 32px;
+  color: var(--color-danger-500);
+}
+
+.warning-box h3 {
+  margin: 0 0 18px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-align: center;
+}
+
+.warning-box ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  width: 100%;
+}
+
+.warning-box li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.warning-box li:last-child {
+  margin-bottom: 0;
+}
+
+.warning-box li::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-danger-400), var(--color-danger-500));
+  flex-shrink: 0;
+  margin-top: 4px;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.confirm-check {
+  margin-top: 24px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.25s;
+}
+
+.checkbox-label:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(239, 68, 68, 0.2);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.checkbox-label input[type="checkbox"] {
+  display: none;
+}
+
+.checkmark {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  position: relative;
+  transition: all 0.25s;
+  flex-shrink: 0;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+  background: linear-gradient(135deg, var(--color-danger-500), var(--color-danger-600));
+  border-color: var(--color-danger-600);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 4px;
+  width: 6px;
+  height: 12px;
+  border: solid white;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+
+.archive-modal .modal-footer,
+.baseline-modal .modal-footer {
+  margin: 0;
+  padding: 18px 24px;
+  border-radius: 0 0 24px 24px;
+  position: relative;
+  background: rgba(255, 255, 255, 0.85);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(20px);
+}
+
+.archive-modal .modal-status,
+.baseline-modal .modal-status {
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
+.archive-modal .modal-footer-actions,
+.baseline-modal .modal-footer-actions {
+  gap: 14px;
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--color-danger-500), var(--color-danger-600));
+  color: white;
+  border: none;
+  border-color: transparent;
+  box-shadow: 0 4px 18px rgba(239, 68, 68, 0.35);
+  padding: 13px 24px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+  min-width: 130px;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, var(--color-danger-600), var(--color-danger-700));
+  box-shadow: 0 6px 22px rgba(239, 68, 68, 0.45);
+  transform: translateY(-2px);
+}
+
+.btn-danger:active {
+  transform: translateY(0);
+}
+
+.btn-danger .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* 设置基线弹窗样式 */
+.baseline-form {
+  margin-bottom: 22px;
+  padding: 0 8px;
+}
+
+.baseline-form label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 10px;
+}
+
+.baseline-form input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1.5px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.baseline-form input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(79, 143, 246, 0.1);
+}
+
+.baseline-preview {
+  margin-bottom: 26px;
+  padding: 0 8px;
+}
+
+.baseline-preview h3 {
+  margin: 0 0 16px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
+}
+
+.summary-item:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+}
+
+.summary-item .material-symbols-outlined {
+  font-size: 22px;
+  color: var(--color-primary-500);
+  margin-bottom: 10px;
+}
+
+.summary-item .value {
+  display: block;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.summary-item .label {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  margin-top: 4px;
+}
+
+.baseline-history {
+  margin-bottom: 16px;
+  padding: 0 8px;
+}
+
+.baseline-history h3 {
+  margin: 0 0 14px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
+}
+
+.history-item:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.history-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.history-name .status-tag {
+  padding: 3px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(114, 119, 133, 0.15);
+  color: var(--color-text-tertiary);
+}
+
+.history-name .status-tag.active {
+  background: linear-gradient(135deg, rgba(56, 197, 155, 0.15), rgba(56, 197, 155, 0.08));
+  color: var(--color-secondary-600);
+}
+
+.history-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
+/* 反馈按钮样式 */
+.feedback-btn {
+  transition: all 0.3s ease;
+}
+
+.btn-secondary.feedback-btn.liked .material-symbols-outlined {
+  color: var(--color-secondary-600) !important;
+}
+
+.btn-secondary.feedback-btn.disliked .material-symbols-outlined {
+  color: var(--color-danger-600) !important;
+}
+
+/* 项目建议弹窗样式 */
+.add-suggestion-modal, .view-suggestions-modal {
+  width: min(650px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.suggestion-form {
+  margin-top: 16px;
+}
+
+.suggestion-form label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 10px;
+}
+
+.suggestion-form textarea {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  line-height: 1.6;
+  resize: none;
+  transition: border-color 0.2s;
+}
+
+.suggestion-form textarea:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+}
+
+.suggestion-form textarea::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.form-footer {
+  margin-top: 10px;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.suggestions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.suggestion-item {
+  padding: 16px;
+  border-radius: 16px;
+}
+
+.suggestion-content p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+.suggestion-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.suggestion-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.suggestion-author {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.suggestion-time {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.like-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.like-btn:hover {
+  background: rgba(47, 198, 138, 0.1);
+  border-color: var(--color-secondary-400);
+  color: var(--color-secondary-600);
+}
+
+.like-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+}
+
+.empty-state .material-symbols-outlined {
+  font-size: 48px;
+  color: var(--color-text-tertiary);
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-tertiary);
+}
 
 @media (max-width: 1279px) {
   .project-edit-layout, .project-edit-field-grid { grid-template-columns: 1fr; }

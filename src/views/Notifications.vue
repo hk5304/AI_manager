@@ -25,12 +25,13 @@
             v-for="item in sidebarNavItems"
             :key="item.path"
             class="nav-item"
-            :class="{ active: item.active }"
+            :class="{ active: item.active, 'notification-nav': item.badge }"
             href="#"
             @click.prevent="handleNavigate(item.path)"
           >
             <span class="material-symbols-outlined">{{ item.icon }}</span>
             <span>{{ item.label }}</span>
+            <span v-if="item.badge" class="notification-badge">{{ item.badge }}</span>
           </a>
         </nav>
       </aside>
@@ -298,9 +299,10 @@ const currentUser = {
 };
 
 const sidebarNavItems = [
-  { label: "全局工作台", icon: "dashboard", path: "./dashboard.html", active: true },
+  { label: "全局工作台", icon: "dashboard", path: "./dashboard.html", active: false },
   { label: "项目列表", icon: "account_tree", path: "./projects.html", active: false },
   { label: "个人工作台", icon: "space_dashboard", path: "./workbench.html", active: false },
+  { label: "消息通知", icon: "notifications", path: "./notifications.html", active: true, badge: 5 },
   { label: "全局报表", icon: "query_stats", path: "./reports.html", active: false },
   { label: "系统设置", icon: "settings", path: "./settings.html", active: false },
   { label: "后台管理", icon: "admin_panel_settings", path: "./admin.html", active: false },
