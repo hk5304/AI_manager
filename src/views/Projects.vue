@@ -74,7 +74,7 @@
           <button class="btn-chip" :class="{ active: sortField === 'owner' }" @click="sortByOwner"><span class="material-symbols-outlined">person_search</span>负责人 <span v-if="sortField === 'owner'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span></button>
           <button class="btn-chip" :class="{ active: sortField === 'health' }" @click="sortByHealth"><span class="material-symbols-outlined">sell</span>标签 <span v-if="sortField === 'health'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span></button>
           <button class="btn-chip" :class="{ active: sortField === 'deadline' }" @click="sortByDeadline"><span class="material-symbols-outlined">calendar_today</span>截止日期 <span v-if="sortField === 'deadline'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span></button>
-          <button class="btn-chip"><span class="material-symbols-outlined">sort</span>权重排序</button>
+          <button class="btn-chip" :class="{ active: sortField === 'priority' }" @click="sortByPriority"><span class="material-symbols-outlined">sort</span>权重排序 <span v-if="sortField === 'priority'">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span></button>
         </section>
 
         <section style="display: flex; flex-direction: column; gap: 16px;">
@@ -110,7 +110,9 @@
               <strong>{{ project.deadline }}</strong>
               <p class="task-note" style="margin-top: 6px;">成员数：{{ project.memberCount }}</p>
             </div>
-            <span class="icon-btn"><span class="material-symbols-outlined">more_vert</span></span>
+            <div class="priority-indicator" :class="project.priority">
+              <span v-for="i in getPriorityCount(project.priority)" :key="i" class="priority-bar"></span>
+            </div>
           </a>
         </section>
 
@@ -148,329 +150,148 @@
         <button class="icon-btn" @click="closeModal"><span class="material-symbols-outlined">close</span></button>
       </div>
 
-      <div class="project-create-layout">
-        <aside class="project-create-side">
-          <article class="glass-panel project-create-card">
-            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-              <span class="pill pill-neutral">待启动</span>
-              <span class="pill pill-ai">快速创建</span>
+      <div style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
+        <div class="glass-panel" style="padding: 20px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div>
+              <h3 class="section-title" style="font-size: 18px; margin: 0;">基础信息</h3>
+              <p class="section-caption" style="margin-top: 4px; font-size: 12px;">对齐项目矩阵页的核心字段展示</p>
             </div>
-            <h3 class="section-title" style="font-size: 26px; margin-top: 16px;">新建项目草稿</h3>
-            <p class="page-subtitle" style="font-size: 14px; margin-top: 12px;">适合作为项目矩阵页的快捷创建入口，先生成结构化草稿，再在项目详情、甘特图、风险和报表中逐步补全。</p>
+            <span class="pill pill-neutral" style="font-size: 11px;">列表主字段</span>
+          </div>
 
-            <div class="project-create-kpis">
-              <div class="project-create-kpi">
-                <span>默认状态</span>
-                <strong>进行中</strong>
-              </div>
-              <div class="project-create-kpi">
-                <span>初始健康度</span>
-                <strong style="color: var(--color-secondary-600);">良好</strong>
-              </div>
-              <div class="project-create-kpi">
-                <span>推荐成员数</span>
-                <strong>6 - 12 人</strong>
-              </div>
-              <div class="project-create-kpi">
-                <span>建议周期</span>
-                <strong>4 - 8 周</strong>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+            <div>
+              <label class="field-label" style="font-size: 13px;">项目名称</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">title</span>
+                <input type="text" v-model="formData.name" placeholder="请输入项目名称" />
               </div>
             </div>
+            <div>
+              <label class="field-label" style="font-size: 13px;">项目编号</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">tag</span>
+                <input type="text" v-model="formData.code" placeholder="请输入项目编号" />
+              </div>
+            </div>
+            <div>
+              <label class="field-label" style="font-size: 13px;">项目负责人</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">person</span>
+                <input type="text" v-model="formData.owner" placeholder="请输入项目负责人" />
+              </div>
+            </div>
+            <div>
+              <label class="field-label" style="font-size: 13px;">预计成员数</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">group_add</span>
+                <input type="text" v-model="formData.memberCount" placeholder="请输入预计成员数" />
+              </div>
+            </div>
+          </div>
+        </div>
 
-            <div class="project-create-step-list">
-              <div class="project-create-step">
-                <div class="project-create-step-index">1</div>
-                <div>
-                  <h4>填写基础信息</h4>
-                  <p>项目名称、编号、归属团队和负责人会直接决定项目矩阵页的首屏展示结构。</p>
-                </div>
-              </div>
-              <div class="project-create-step">
-                <div class="project-create-step-index">2</div>
-                <div>
-                  <h4>设定计划与标签</h4>
-                  <p>开始时间、截止日期、健康度与标签会同步影响筛选栏、排序维度和状态表达。</p>
-                </div>
-              </div>
-              <div class="project-create-step">
-                <div class="project-create-step-index">3</div>
-                <div>
-                  <h4>配置成员与同步页</h4>
-                  <p>创建后可默认开启概览、看板、甘特、风险与报表页，便于后续继续细化模板内容。</p>
-                </div>
-              </div>
+        <div class="glass-panel" style="padding: 20px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div>
+              <h3 class="section-title" style="font-size: 18px; margin: 0;">计划与状态</h3>
+              <p class="section-caption" style="margin-top: 4px; font-size: 12px;">用于项目矩阵页的筛选、排序和状态展示</p>
             </div>
-          </article>
+            <span class="pill pill-success" style="font-size: 11px;">计划信息</span>
+          </div>
 
-          <article class="glass-panel project-create-card" style="background: linear-gradient(180deg, rgba(236,220,255,0.32), rgba(255,255,255,0.42));">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span class="material-symbols-outlined" style="color: var(--color-tertiary-600);">psychology</span>
-              <h3 class="section-title" style="font-size: 22px;">AI 创建建议</h3>
-            </div>
-            <div class="project-create-step-list">
-              <div class="project-create-step">
-                <div class="project-create-step-index">A</div>
-                <div>
-                  <h4>优先选择模板</h4>
-                  <p>如果是需求迭代类项目，建议优先使用“需求评审 → 开发 → 测试 → 上线 → 验收”的模板，后续更容易对齐看板和甘特页。</p>
-                </div>
-              </div>
-              <div class="project-create-step">
-                <div class="project-create-step-index">B</div>
-                <div>
-                  <h4>提前锁定负责人</h4>
-                  <p>材料组与平台组在下周二至周四存在资源交叉峰值，新建阶段就锁定负责人可以减少项目矩阵里的风险外溢。</p>
-                </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+            <div>
+              <label class="field-label" style="font-size: 13px;">开始日期</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">calendar_today</span>
+                <input type="date" v-model="formData.startDate" />
               </div>
             </div>
-            <div class="project-create-owner-grid">
-              <span class="project-create-owner"><img src="https://i.pravatar.cc/80?img=47" alt="王志强" />王志强</span>
-              <span class="project-create-owner"><img src="https://i.pravatar.cc/80?img=22" alt="陈思远" />陈思远</span>
-              <span class="project-create-owner"><img src="https://i.pravatar.cc/80?img=35" alt="周雅楠" />周雅楠</span>
+            <div>
+              <label class="field-label" style="font-size: 13px;">截止日期</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">event</span>
+                <input type="date" v-model="formData.deadline" />
+              </div>
             </div>
-          </article>
-        </aside>
+          </div>
 
-        <div class="project-create-main">
-          <article class="glass-panel project-create-card">
-            <div class="project-create-card-head">
-              <div>
-                <h3 class="section-title" style="font-size: 22px;">基础信息</h3>
-                <p class="section-caption" style="margin-top: 6px;">对齐项目矩阵页的核心字段展示</p>
-              </div>
-              <span class="pill pill-neutral">列表主字段</span>
+          <div style="margin-top: 12px;">
+            <label class="field-label" style="font-size: 13px;">项目优先级</label>
+            <div class="field-input" style="margin-top: 6px;">
+              <span class="material-symbols-outlined">flag</span>
+              <select v-model="formData.priority">
+                <option value="P0">P0</option>
+                <option value="P1">P1</option>
+                <option value="P2">P2</option>
+              </select>
             </div>
+          </div>
 
-            <div class="field-inline">
-              <div class="field-stack">
-                <label class="field-label">项目名称</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">title</span>
-                  <input type="text" value="新型复合材料热稳定性验证" />
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">项目编号</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">tag</span>
-                  <input type="text" value="RD-2026-318" />
-                </div>
-              </div>
+          <div style="margin-top: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label class="field-label" style="font-size: 13px;">项目摘要</label>
+              <button class="btn-ai-summary" @click="generateAiSummary" style="padding: 4px 10px; font-size: 12px;">
+                <span class="material-symbols-outlined" style="font-size: 14px;">auto_awesome</span>
+                AI 智能摘要
+              </button>
             </div>
+            <div class="field-input" style="margin-top: 6px;">
+              <span class="material-symbols-outlined" style="margin-top: 8px;">article</span>
+              <textarea v-model="formData.summary" placeholder="请输入项目摘要" style="min-height: 60px;"></textarea>
+            </div>
+          </div>
+        </div>
 
-            <div class="project-create-field-grid" style="margin-top: 16px;">
-              <div class="field-stack">
-                <label class="field-label">归属团队</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">groups</span>
-                  <select>
-                    <option>材料科学部</option>
-                    <option>平台组</option>
-                    <option>计算物理组</option>
-                  </select>
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">项目负责人</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">person</span>
-                  <select>
-                    <option>王志强</option>
-                    <option>陈思远</option>
-                    <option>周雅楠</option>
-                  </select>
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">预计成员数</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">group_add</span>
-                  <input type="text" value="8 人" />
-                </div>
-              </div>
+        <div class="glass-panel" style="padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div>
+              <h3 class="section-title" style="font-size: 18px; margin: 0;">成员与同步配置</h3>
+              <p class="section-caption" style="margin-top: 4px; font-size: 12px;">创建后默认影响成员字段、矩阵页筛选项和各详情页入口</p>
             </div>
+            <span class="pill pill-warning" style="font-size: 11px;">协作配置</span>
+          </div>
 
-            <div class="project-create-template-grid">
-              <div class="project-create-template active">
-                <h4>需求迭代模板</h4>
-                <p>适合需要概览、项目看板、甘特、风险和报表全链路协同的研发项目。</p>
-              </div>
-              <div class="project-create-template">
-                <h4>平台交付模板</h4>
-                <p>强调联调窗口、里程碑节点和负责人资源约束，适合平台改造类任务。</p>
-              </div>
-              <div class="project-create-template">
-                <h4>验证实验模板</h4>
-                <p>更适合实验验证、样本归档和阶段性结果汇总场景。</p>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+            <div>
+              <label class="field-label" style="font-size: 13px;">核心成员</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">group</span>
+                <input type="text" placeholder="请输入核心成员" />
               </div>
             </div>
-          </article>
-
-          <article class="glass-panel project-create-card">
-            <div class="project-create-card-head">
-              <div>
-                <h3 class="section-title" style="font-size: 22px;">计划与状态</h3>
-                <p class="section-caption" style="margin-top: 6px;">用于项目矩阵页的筛选、排序和状态展示</p>
-              </div>
-              <span class="pill pill-success">计划信息</span>
-            </div>
-
-            <div class="field-inline">
-              <div class="field-stack">
-                <label class="field-label">开始日期</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">calendar_today</span>
-                  <input type="text" value="2026-05-06" />
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">截止日期</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">event</span>
-                  <input type="text" value="2026-06-20" />
-                </div>
+            <div>
+              <label class="field-label" style="font-size: 13px;">报告订阅人</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">forward_to_inbox</span>
+                <input type="text" placeholder="请输入报告订阅人" />
               </div>
             </div>
-
-            <div class="project-create-field-grid" style="margin-top: 16px;">
-              <div class="field-stack">
-                <label class="field-label">项目状态</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">pending_actions</span>
-                  <select>
-                    <option>进行中</option>
-                    <option>待启动</option>
-                    <option>已暂停</option>
-                  </select>
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">健康度</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">favorite</span>
-                  <select>
-                    <option>良好</option>
-                    <option>风险</option>
-                    <option>严重</option>
-                  </select>
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">初始完成度</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">progress_activity</span>
-                  <input type="text" value="0%" />
-                </div>
+            <div>
+              <label class="field-label" style="font-size: 13px;">风险提醒频率</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">warning</span>
+                <select>
+                  <option>每日同步</option>
+                  <option>每周同步</option>
+                  <option>仅异常提醒</option>
+                </select>
               </div>
             </div>
-
-            <div class="project-create-status-grid">
-              <div class="project-create-status-card">
-                <span>项目优先级</span>
-                <strong>P1</strong>
-              </div>
-              <div class="project-create-status-card">
-                <span>风险同步</span>
-                <strong>已开启</strong>
-              </div>
-              <div class="project-create-status-card">
-                <span>报告订阅</span>
-                <strong>每周一</strong>
-              </div>
-              <div class="project-create-status-card">
-                <span>默认视图</span>
-                <strong>概览页</strong>
+            <div>
+              <label class="field-label" style="font-size: 13px;">模板初始化</label>
+              <div class="field-input" style="margin-top: 6px;">
+                <span class="material-symbols-outlined">auto_fix_high</span>
+                <select>
+                  <option>自动生成默认结构</option>
+                  <option>仅创建空白项目</option>
+                  <option>复制最近项目配置</option>
+                </select>
               </div>
             </div>
-
-            <div class="field-stack project-create-textarea" style="margin-top: 16px;">
-              <label class="field-label">项目摘要</label>
-              <div class="field-input">
-                <span class="material-symbols-outlined" style="margin-top: 16px;">article</span>
-                <textarea>围绕新型复合材料热稳定性验证展开，预期在 6 周内完成需求评审、实验方案对齐、验证实施与结果复盘，并同步沉淀到项目矩阵与风险页。</textarea>
-              </div>
-            </div>
-
-            <div class="project-create-chip-row">
-              <button class="permission-chip on" type="button">结构迭代</button>
-              <button class="permission-chip on" type="button">性能验证</button>
-              <button class="permission-chip on" type="button">AI 预测</button>
-              <button class="permission-chip" type="button">高风险</button>
-              <button class="permission-chip" type="button">平台改造</button>
-            </div>
-          </article>
-
-          <article class="glass-panel project-create-card">
-            <div class="project-create-card-head">
-              <div>
-                <h3 class="section-title" style="font-size: 22px;">成员与同步配置</h3>
-                <p class="section-caption" style="margin-top: 6px;">创建后默认影响成员字段、矩阵页筛选项和各详情页入口</p>
-              </div>
-              <span class="pill pill-warning">协作配置</span>
-            </div>
-
-            <div class="field-inline">
-              <div class="field-stack">
-                <label class="field-label">核心成员</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">group</span>
-                  <input type="text" value="王志强、陈思远、王雅婷、赵扬" />
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">报告订阅人</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">forward_to_inbox</span>
-                  <input type="text" value="PM、QA、平台主管" />
-                </div>
-              </div>
-            </div>
-
-            <div class="project-create-field-grid" style="margin-top: 16px;">
-              <div class="field-stack">
-                <label class="field-label">默认详情入口</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">open_in_new</span>
-                  <select>
-                    <option>项目概览</option>
-                    <option>项目看板</option>
-                    <option>项目甘特图</option>
-                  </select>
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">风险提醒频率</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">warning</span>
-                  <select>
-                    <option>每日同步</option>
-                    <option>每周同步</option>
-                    <option>仅异常提醒</option>
-                  </select>
-                </div>
-              </div>
-              <div class="field-stack">
-                <label class="field-label">模板初始化</label>
-                <div class="field-input">
-                  <span class="material-symbols-outlined">auto_fix_high</span>
-                  <select>
-                    <option>自动生成默认结构</option>
-                    <option>仅创建空白项目</option>
-                    <option>复制最近项目配置</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div class="project-create-chip-row">
-              <button class="permission-chip on" type="button">启用概览页</button>
-              <button class="permission-chip on" type="button">启用项目看板</button>
-              <button class="permission-chip on" type="button">启用甘特图</button>
-              <button class="permission-chip on" type="button">启用风险页</button>
-              <button class="permission-chip on" type="button">启用报表页</button>
-              <button class="permission-chip" type="button">通知全员</button>
-            </div>
-          </article>
+          </div>
         </div>
       </div>
 
@@ -482,7 +303,7 @@
         <div class="modal-footer-actions">
           <button class="btn-secondary" @click="closeModal"><span class="material-symbols-outlined">close</span>取消</button>
           <button class="btn-secondary" @click="showToast('项目草稿已保存', '新建项目弹窗中的当前内容已保存为创建草稿，可继续调整字段与布局。', 'draft')"><span class="material-symbols-outlined">draft</span>保存草稿</button>
-          <button class="btn-primary" @click="showToast('项目已创建', '项目草稿已按当前模板创建，并预留概览、看板、甘特、风险和报表页入口。', 'task_alt')"><span class="material-symbols-outlined">rocket_launch</span>创建项目</button>
+          <button class="btn-primary" @click="createProject"><span class="material-symbols-outlined">rocket_launch</span>创建项目</button>
         </div>
       </div>
     </section>
@@ -536,6 +357,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { pushNotificationPath } from '../utils/navigation'
 import UserProfileHoverCard from '../components/topbar/UserProfileHoverCard.vue'
+import { useProjects } from '../composables/useProjects'
 
 const router = useRouter()
 
@@ -545,69 +367,23 @@ const currentUser = {
   avatar: 'https://i.pravatar.cc/80?img=12'
 }
 
+const { projects, addProject } = useProjects()
+
 const isModalOpen = ref(false)
 const isAiDrawerOpen = ref(false)
 const toast = ref({ show: false, title: '', message: '', icon: '' })
 
-// 项目数据
-const projects = ref([
-  {
-    id: 1,
-    name: '纳米晶体结构优化',
-    department: '材料科学部',
-    code: 'RD-2026-089',
-    tags: ['结构迭代', 'AI 预测'],
-    progress: 72,
-    health: '良好',
-    status: '进行中',
-    owner: { name: '王志强', avatar: 'https://i.pravatar.cc/80?img=47' },
-    deadline: '2026-05-16',
-    memberCount: 12,
-    color: 'var(--color-primary-600)'
-  },
-  {
-    id: 2,
-    name: '深度学习实验室自动化',
-    department: '计算物理组',
-    code: 'RD-2026-112',
-    tags: ['平台改造', '自动化'],
-    progress: 45,
-    health: '风险',
-    status: '进行中',
-    owner: { name: '陈思远', avatar: 'https://i.pravatar.cc/80?img=22' },
-    deadline: '2026-05-30',
-    memberCount: 9,
-    color: 'var(--color-tertiary-600)'
-  },
-  {
-    id: 3,
-    name: '量子纠缠通信协议 V2',
-    department: '前沿实验室',
-    code: 'RD-2025-456',
-    tags: ['协议升级', '高风险'],
-    progress: 15,
-    health: '严重',
-    status: '已暂停',
-    owner: { name: '林博士', avatar: 'https://i.pravatar.cc/80?img=11' },
-    deadline: '2026-06-08',
-    memberCount: 7,
-    color: 'var(--color-danger-600)'
-  },
-  {
-    id: 4,
-    name: '生物聚合材料耐久性测试',
-    department: '生物工程组',
-    code: 'RD-2026-201',
-    tags: ['性能验证', '已交付'],
-    progress: 100,
-    health: '完成',
-    status: '已归档',
-    owner: { name: '周雅楠', avatar: 'https://i.pravatar.cc/80?img=35' },
-    deadline: '2026-04-18',
-    memberCount: 5,
-    color: 'var(--color-secondary-600)'
-  }
-])
+// 表单数据
+const formData = ref({
+  name: '',
+  code: '',
+  owner: '',
+  memberCount: '',
+  startDate: '',
+  deadline: '',
+  priority: 'P1',
+  summary: ''
+})
 
 // 搜索关键词
 const searchKeyword = ref('')
@@ -658,6 +434,14 @@ const sortedProjects = computed(() => {
       const compare = nameA.localeCompare(nameB, 'zh-CN')
       return sortOrder.value === 'asc' ? compare : -compare
     })
+  } else if (sortField.value === 'priority') {
+    // 优先级排序：P0 > P1 > P2
+    const priorityOrder = { 'P0': 0, 'P1': 1, 'P2': 2 }
+    list.sort((a, b) => {
+      const priorityA = priorityOrder[a.priority] || 2
+      const priorityB = priorityOrder[b.priority] || 2
+      return sortOrder.value === 'asc' ? priorityA - priorityB : priorityB - priorityA
+    })
   }
   
   return list
@@ -697,6 +481,24 @@ const sortByOwner = () => {
     sortField.value = 'owner'
     sortOrder.value = 'asc'
   }
+}
+
+// 按优先级排序（P0 > P1 > P2）
+const sortByPriority = () => {
+  if (sortField.value === 'priority') {
+    // 切换排序方向
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    // 设置为按优先级升序（P0优先）
+    sortField.value = 'priority'
+    sortOrder.value = 'asc'
+  }
+}
+
+// 根据优先级获取竖杠数量
+const getPriorityCount = (priority) => {
+  const countMap = { 'P0': 3, 'P1': 2, 'P2': 1 }
+  return countMap[priority] || 1
 }
 
 // 获取健康度对应的标签类名
@@ -740,6 +542,43 @@ const showToast = (title, message, icon) => {
     toast.value.show = false
   }, 3000)
 }
+
+// AI 智能摘要生成
+const generateAiSummary = () => {
+  const aiSummaries = [
+    '基于项目目标与资源配置，本项目将系统性地推进核心技术攻关，通过多轮迭代验证确保交付质量。预期在既定时间窗口内完成关键里程碑，并为后续规模化推广奠定基础。',
+    '聚焦核心业务痛点，本项目旨在通过技术创新实现效率提升与成本优化。项目团队将采用敏捷迭代方式，快速响应需求变化，确保交付物满足预期目标。',
+    '本项目致力于突破关键技术瓶颈，通过跨团队协作与资源整合，推动技术方案落地实施。项目周期内将完成从需求分析到成果交付的全流程闭环。',
+    '围绕业务战略目标，本项目将分阶段推进各项任务，重点关注核心指标达成。通过建立有效的沟通机制与风险管控体系，确保项目按计划顺利推进。',
+    '本项目聚焦于技术能力建设与业务流程优化，通过引入先进方法论与工具链，提升整体交付能力。预期在项目周期内实现既定的技术目标与业务价值。'
+  ]
+  const randomIndex = Math.floor(Math.random() * aiSummaries.length)
+  formData.value.summary = aiSummaries[randomIndex]
+  showToast('AI 摘要已生成', '已为您生成智能项目摘要。', 'auto_awesome')
+}
+
+const createProject = () => {
+  addProject({
+    name: formData.value.name || '新项目',
+    code: formData.value.code,
+    owner: formData.value.owner || '未指定',
+    memberCount: formData.value.memberCount,
+    deadline: formData.value.deadline
+  })
+  showToast('项目已创建', '新项目已成功添加到项目矩阵中。', 'task_alt')
+  closeModal()
+  // 重置表单
+  formData.value = {
+    name: '',
+    code: '',
+    owner: '',
+    memberCount: '',
+    startDate: '',
+    deadline: '',
+    priority: 'P1',
+    summary: ''
+  }
+}
 </script>
 
 <style scoped>
@@ -748,21 +587,16 @@ const showToast = (title, message, icon) => {
 }
 
 .project-create-layout {
-  display: grid;
-  grid-template-columns: minmax(300px, 0.95fr) minmax(0, 1.45fr);
-  gap: 20px;
-}
-
-.project-create-side {
   display: flex;
-  flex-direction: column;
-  gap: 18px;
+  justify-content: center;
 }
 
 .project-create-main {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 24px;
+  width: 100%;
+  max-width: 720px;
 }
 
 .project-create-card {
@@ -998,4 +832,61 @@ const showToast = (title, message, icon) => {
 .toast-leave-active {
   animation: toastPopOut 160ms ease-in both;
 }
+
+/* 优先级指示器 */
+.priority-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.06);
+  min-width: 48px;
+  justify-content: center;
+}
+
+.priority-bar {
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+  background: #9ca3af;
+}
+
+.priority-indicator.P0 .priority-bar {
+  background: #ef4444;
+}
+
+.priority-indicator.P1 .priority-bar {
+  background: #f59e0b;
+}
+
+.priority-indicator.P2 .priority-bar {
+  background: #9ca3af;
+}
+
+/* AI 智能摘要按钮 */
+.btn-ai-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(168, 113, 255, 0.14), rgba(113, 145, 255, 0.14));
+  border: 1px solid rgba(168, 113, 255, 0.28);
+  color: var(--color-tertiary-600);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-ai-summary:hover {
+  background: linear-gradient(135deg, rgba(168, 113, 255, 0.22), rgba(113, 145, 255, 0.22));
+  border-color: rgba(168, 113, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-ai-summary .material-symbols-outlined {
+  font-size: 16px;
+}
+
 </style>
