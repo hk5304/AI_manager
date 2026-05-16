@@ -33,6 +33,11 @@
             <span class="material-symbols-outlined">space_dashboard</span>
             <span>个人工作台</span>
           </a>
+          <a class="nav-item notification-nav" href="#" @click.prevent="handleOpenNotifications">
+            <span class="material-symbols-outlined">notifications</span>
+            <span>消息通知</span>
+            <span class="notification-badge">5</span>
+          </a>
           <a class="nav-item" href="#" @click.prevent="handleNavigate('/reports')">
             <span class="material-symbols-outlined">query_stats</span>
             <span>全局报表</span>

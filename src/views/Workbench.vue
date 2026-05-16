@@ -16,6 +16,7 @@
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/dashboard')"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></a>
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/projects')"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></a>
         <a class="nav-item active" href="#" @click.prevent="handleNavigate('/workbench')"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></a>
+        <a class="nav-item notification-nav" href="#" @click.prevent="handleOpenNotifications"><span class="material-symbols-outlined">notifications</span><span>消息通知</span><span class="notification-badge">5</span></a>
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/reports')"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></a>
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/settings')"><span class="material-symbols-outlined">settings</span><span>系统设置</span></a>
         <a class="nav-item" href="#" @click.prevent="handleNavigate('/admin')"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></a>
@@ -127,9 +128,9 @@
                     <span class="material-symbols-outlined">message</span>
                     <span>{{ log.comments }}</span>
                   </button>
-                  <button class="log-action-btn">
+                  <button class="log-action-btn" @click="openReadersModal(log)">
                     <span class="material-symbols-outlined">visibility</span>
-                    <span>{{ log.readCount }}</span>
+                    <span>{{ log.readers?.length || log.readCount }}</span>
                   </button>
                 </div>
               </div>
@@ -231,7 +232,7 @@
                       <span>{{ recipient.name }}</span>
                       <span v-if="recipient.isSelected" class="material-symbols-outlined check-icon">check</span>
                     </div>
-                    <button class="add-recipient">
+                    <button class="add-recipient" @click="openRecipientModal">
                       <span class="material-symbols-outlined">add</span>
                     </button>
                   </div>
@@ -244,9 +245,10 @@
                       <input type="checkbox" v-model="logForm.onlyReceiverCanSee" />
                       <span>仅接收人可见，不可转发</span>
                     </label>
-                    <label class="send-option">
-                      <input type="checkbox" v-model="logForm.scheduledSend" />
+                    <label class="send-option scheduled-option">
+                      <input type="checkbox" v-model="logForm.scheduledSend" @change="handleScheduledChange" />
                       <span>定时发送</span>
+                      <span v-if="logForm.scheduledSend && scheduledTime" class="scheduled-time">{{ scheduledTime }}</span>
                     </label>
                   </div>
                 </div>
@@ -284,7 +286,7 @@
                 <div class="glass-panel" style="padding: 24px; border-radius: 24px; background: linear-gradient(180deg, rgba(236,220,255,0.28), rgba(255,255,255,0.42));">
                   <h2 class="section-title" style="font-size: 18px;">AI 日志建议</h2>
                   <p class="page-subtitle" style="font-size: 14px; margin-top: 14px;">你今天完成的 3 个任务中，有 2 个可自动映射到日报“今日完成”模块，并自动补齐风险项描述。</p>
-                  <button class="btn-primary" style="margin-top: 16px;" @click="autoFillLog">一键填充</button>
+                  <button class="btn-primary" style="margin-top: 16px;" @click="openAiFillModal">一键填充</button>
                 </div>
               </div>
             </div>
@@ -333,6 +335,216 @@
                 @keyup.enter="addComment"
               />
               <button class="btn-primary" @click="addComment"><span class="material-symbols-outlined">send</span>发送</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- 查看者弹窗 -->
+        <div class="modal-shell" :class="{ open: showReadersModal }">
+          <div class="modal-backdrop" @click="closeReadersModal"></div>
+          <section class="modal-panel glass-panel-strong readers-modal">
+            <div class="modal-header">
+              <div>
+                <h2 class="section-title">查看者</h2>
+                <p class="page-subtitle">{{ currentLogAuthor }}的日志已有 {{ currentLogReaders.length }} 人查看</p>
+              </div>
+              <button class="icon-btn" @click="closeReadersModal"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="modal-body readers-list">
+              <div v-if="currentLogReaders.length > 0">
+                <div 
+                  v-for="reader in currentLogReaders" 
+                  :key="reader.id"
+                  class="reader-item"
+                >
+                  <img :src="reader.avatar" class="reader-avatar" />
+                  <div class="reader-info">
+                    <span class="reader-name">{{ reader.name }}</span>
+                    <span class="reader-time">{{ reader.readTime }} 查看</span>
+                  </div>
+                  <span class="material-symbols-outlined reader-icon">visibility</span>
+                </div>
+              </div>
+              <div v-else class="empty-readers">
+                <span class="material-symbols-outlined">visibility_off</span>
+                <p>暂无查看记录</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- AI日志润色弹窗 -->
+        <div class="modal-shell" :class="{ open: showAiFillModal }">
+          <div class="modal-backdrop" @click="closeAiFillModal"></div>
+          <section class="modal-panel glass-panel-strong ai-fill-modal">
+            <div class="modal-header">
+              <div>
+                <h2 class="section-title">AI 日志润色</h2>
+                <p class="page-subtitle">输入日志内容，AI 将为您润色优化</p>
+              </div>
+              <button class="icon-btn" @click="closeAiFillModal"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="modal-body ai-fill-body">
+              <div class="ai-fill-section">
+                <label class="field-label">输入日志内容</label>
+                <textarea 
+                  v-model="aiFillInput" 
+                  class="ai-fill-input" 
+                  placeholder="请输入今天的工作内容，例如：&#10;1. 完成了项目文档编写&#10;2. 参加了技术评审会议&#10;3. 修复了几个bug"
+                  rows="5"
+                ></textarea>
+              </div>
+              <button 
+                class="btn-primary ai-fill-btn" 
+                @click="aiPolishLog" 
+                :disabled="!aiFillInput.trim() || isAiProcessing"
+              >
+                <span v-if="isAiProcessing" class="material-symbols-outlined">loading</span>
+                <span v-else class="material-symbols-outlined">sparkles</span>
+                {{ isAiProcessing ? 'AI润色中...' : 'AI润色' }}
+              </button>
+              <div v-if="aiFillResult" class="ai-fill-result">
+                <label class="field-label">润色结果</label>
+                <div class="result-content">
+                  <p>{{ aiFillResult }}</p>
+                </div>
+                <div class="result-actions">
+                  <button class="btn-secondary" @click="fillToCompleted">填入「今日完成」</button>
+                  <button class="btn-secondary" @click="fillToPending">填入「未完成」</button>
+                  <button class="btn-secondary" @click="fillToNeedHelp">填入「需协调」</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- 选择发送对象弹窗 -->
+        <div class="modal-shell" :class="{ open: showRecipientModal }">
+          <div class="modal-backdrop" @click="closeRecipientModal"></div>
+          <section class="modal-panel glass-panel-strong recipient-modal">
+            <div class="modal-header">
+              <div>
+                <h2 class="section-title">选择发送对象</h2>
+                <p class="page-subtitle">已选择 {{ logForm.recipients.length }} 人</p>
+              </div>
+              <button class="icon-btn" @click="closeRecipientModal"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="modal-body recipient-body">
+              <!-- 搜索框 -->
+              <div class="search-box">
+                <span class="material-symbols-outlined">search</span>
+                <input 
+                  v-model="recipientSearch" 
+                  type="text" 
+                  class="search-input" 
+                  placeholder="搜索姓名或部门..."
+                />
+                <button v-if="recipientSearch" class="clear-search" @click="recipientSearch = ''">
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </div>
+              
+              <!-- 已选择标签 -->
+              <div v-if="logForm.recipients.length > 0" class="selected-tags">
+                <span class="tags-label">已选择：</span>
+                <div class="tags">
+                  <span 
+                    v-for="recipient in availableRecipients.filter(r => logForm.recipients.includes(r.id))" 
+                    :key="recipient.id"
+                    class="selected-tag"
+                  >
+                    <img :src="recipient.avatar" />
+                    <span>{{ recipient.name }}</span>
+                    <button @click="toggleRecipient(recipient.id)">
+                      <span class="material-symbols-outlined">close</span>
+                    </button>
+                  </span>
+                </div>
+              </div>
+              
+              <!-- 分组列表 -->
+              <div class="recipient-groups">
+                <div v-for="(recipients, department) in groupedRecipients" :key="department" class="recipient-group">
+                  <h4 class="group-title">{{ department }}</h4>
+                  <div class="group-list">
+                    <div 
+                      v-for="recipient in recipients" 
+                      :key="recipient.id"
+                      class="recipient-option"
+                      :class="{ selected: logForm.recipients.includes(recipient.id) }"
+                      @click="toggleRecipient(recipient.id)"
+                    >
+                      <img :src="recipient.avatar" :alt="recipient.name" />
+                      <span class="recipient-name">{{ recipient.name }}</span>
+                      <span v-if="logForm.recipients.includes(recipient.id)" class="material-symbols-outlined check-icon">check</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 无结果提示 -->
+                <div v-if="Object.keys(groupedRecipients).length === 0" class="no-results">
+                  <span class="material-symbols-outlined">search_off</span>
+                  <p>未找到匹配的人员</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- 定时发送时间选择弹窗 -->
+        <div class="modal-shell" :class="{ open: showTimePickerModal }">
+          <div class="modal-backdrop" @click="closeTimePickerModal"></div>
+          <section class="modal-panel glass-panel-strong time-picker-modal">
+            <div class="modal-header">
+              <div>
+                <h2 class="section-title">选择发送时间</h2>
+                <p class="page-subtitle">设置日志定时发送的时间</p>
+              </div>
+              <button class="icon-btn" @click="closeTimePickerModal"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="modal-body time-picker-body">
+              <!-- 预设时间快捷选择 -->
+              <div class="preset-times">
+                <h4 class="preset-title">快捷选择</h4>
+                <div class="preset-grid">
+                  <button 
+                    v-for="preset in presetTimes" 
+                    :key="preset.value"
+                    class="preset-btn"
+                    :class="{ active: scheduledTime === preset.value }"
+                    @click="selectPresetTime(preset.value)"
+                  >
+                    {{ preset.label }}
+                  </button>
+                </div>
+              </div>
+              
+              <!-- 自定义时间选择 -->
+              <div class="custom-time">
+                <h4 class="preset-title">自定义时间</h4>
+                <div class="time-inputs">
+                  <div class="date-input">
+                    <label>日期</label>
+                    <input 
+                      type="date" 
+                      v-model="customDate" 
+                      :min="minDate"
+                      class="time-input"
+                    />
+                  </div>
+                  <div class="time-input">
+                    <label>时间</label>
+                    <input 
+                      type="time" 
+                      v-model="customTime" 
+                      class="time-input"
+                    />
+                  </div>
+                </div>
+                <button class="btn-primary custom-confirm-btn" @click="confirmCustomTime">
+                  确认自定义时间
+                </button>
+              </div>
             </div>
           </section>
         </div>
@@ -528,7 +740,7 @@
                     </div>
                   </div>
                 </div>
-                <button class="btn-primary btn-sm" style="margin-top: 16px; width: 100%;">查看详情</button>
+                <button class="btn-primary btn-sm team-kanban-btn">查看详情</button>
               </div>
             </div>
           </div>
@@ -778,16 +990,99 @@
 
               <!-- AI操作按钮 -->
               <div class="ai-actions">
-                <button class="btn-primary">
+                <button class="btn-primary" @click="generateAiSelfReview">
                   <span class="material-symbols-outlined">bolt</span>AI 生成自评
                 </button>
-                <button class="btn-secondary">
+                <button class="btn-secondary" @click="openTrendChart">
                   <span class="material-symbols-outlined">bar_chart</span>查看趋势图
                 </button>
               </div>
             </div>
           </div>
         </section>
+
+        <!-- AI生成自评弹窗 -->
+        <div class="modal-shell" :class="{ open: showAiSelfReviewModal }">
+          <div class="modal-backdrop" @click="showAiSelfReviewModal = false"></div>
+          <section class="modal-panel glass-panel-strong ai-review-modal">
+            <div class="modal-header">
+              <div>
+                <h2 class="section-title">AI 生成自评</h2>
+                <p class="page-subtitle">基于PBC完成情况自动生成</p>
+              </div>
+              <button class="icon-btn" @click="showAiSelfReviewModal = false"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="modal-body ai-review-body">
+              <div v-if="isGeneratingReview" class="generating-state">
+                <div class="loading-spinner"></div>
+                <p>AI正在分析您的PBC数据...</p>
+              </div>
+              <div v-else class="review-content">
+                <pre class="review-text">{{ aiGeneratedReview }}</pre>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-secondary" @click="showAiSelfReviewModal = false">关闭</button>
+              <button class="btn-primary" @click="applyAiReview" :disabled="!aiGeneratedReview">应用自评</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- 趋势图弹窗 -->
+        <div class="modal-shell" :class="{ open: showTrendChartModal }">
+          <div class="modal-backdrop" @click="showTrendChartModal = false"></div>
+          <section class="modal-panel glass-panel-strong trend-chart-modal">
+            <div class="modal-header">
+              <div>
+                <h2 class="section-title">PBC 趋势分析</h2>
+                <p class="page-subtitle">{{ pbcData.period }} 目标完成趋势</p>
+              </div>
+              <button class="icon-btn" @click="showTrendChartModal = false"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="modal-body trend-chart-body">
+              <div class="chart-container">
+                <div class="chart-header">
+                  <span class="chart-title">目标完成趋势</span>
+                  <span class="chart-period">{{ pbcData.period }}</span>
+                </div>
+                <div class="chart-bars">
+                  <div v-for="(obj, index) in pbcData.objectives" :key="obj.id" class="chart-bar-item">
+                    <div class="bar-label">{{ obj.title }}</div>
+                    <div class="bar-track">
+                      <div 
+                        class="bar-fill" 
+                        :style="{ width: obj.progress + '%' }"
+                        :class="getBarColor(obj.progress)"
+                      ></div>
+                    </div>
+                    <div class="bar-value">{{ obj.progress }}%</div>
+                  </div>
+                </div>
+                <div class="chart-summary">
+                  <div class="summary-item">
+                    <span class="summary-label">总目标数</span>
+                    <span class="summary-value">{{ pbcData.objectives.length }}</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">已完成</span>
+                    <span class="summary-value completed">{{ pbcData.objectives.filter(o => o.progress >= 80).length }}</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">进行中</span>
+                    <span class="summary-value progress">{{ pbcData.objectives.filter(o => o.progress >= 50 && o.progress < 80).length }}</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">待推进</span>
+                    <span class="summary-value pending">{{ pbcData.objectives.filter(o => o.progress < 50).length }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-primary" @click="showTrendChartModal = false">关闭</button>
+            </div>
+          </section>
+        </div>
 
         <!-- PBC模板编辑弹窗 -->
         <div class="modal-shell" :class="{ open: showPbcTemplateModal }">
@@ -1560,6 +1855,18 @@ const kanbanView = ref('my') // 看板视图：my-我的看板，team-团队看�
 const isTaskModalOpen = ref(false)
 const isAiDrawerOpen = ref(false)
 const toast = ref({ show: false, title: '', message: '', icon: '' })
+const showReadersModal = ref(false)
+const currentLogReaders = ref([])
+const currentLogAuthor = ref('')
+const showAiFillModal = ref(false)
+const aiFillInput = ref('')
+const aiFillResult = ref('')
+const isAiProcessing = ref(false)
+const showRecipientModal = ref(false)
+const recipientSearch = ref('')
+const showTimePickerModal = ref(false)
+const scheduledTime = ref('')
+const draftSavedTime = ref('')
 
 // 日志模板配置
 const templates = {
@@ -1611,12 +1918,46 @@ const logForm = ref({
 
 // 可选接收人列表
 const availableRecipients = ref([
-  { id: 1, name: '陈思远', avatar: 'https://i.pravatar.cc/80?img=22', isSelected: false },
-  { id: 2, name: '王雅婷', avatar: 'https://i.pravatar.cc/80?img=33', isSelected: false },
-  { id: 3, name: '李明', avatar: 'https://i.pravatar.cc/80?img=44', isSelected: false },
-  { id: 4, name: '赵雪', avatar: 'https://i.pravatar.cc/80?img=55', isSelected: false },
-  { id: 5, name: '周杰', avatar: 'https://i.pravatar.cc/80?img=66', isSelected: false }
+  { id: 1, name: '陈思远', avatar: 'https://i.pravatar.cc/80?img=22', isSelected: false, department: '技术部' },
+  { id: 2, name: '王雅婷', avatar: 'https://i.pravatar.cc/80?img=33', isSelected: false, department: '设计部' },
+  { id: 3, name: '李明', avatar: 'https://i.pravatar.cc/80?img=44', isSelected: false, department: '产品部' },
+  { id: 4, name: '赵雪', avatar: 'https://i.pravatar.cc/80?img=55', isSelected: false, department: '测试部' },
+  { id: 5, name: '周杰', avatar: 'https://i.pravatar.cc/80?img=66', isSelected: false, department: '运维部' },
+  { id: 6, name: '孙伟', avatar: 'https://i.pravatar.cc/80?img=77', isSelected: false, department: '技术部' },
+  { id: 7, name: '吴芳', avatar: 'https://i.pravatar.cc/80?img=88', isSelected: false, department: '设计部' },
+  { id: 8, name: '郑强', avatar: 'https://i.pravatar.cc/80?img=99', isSelected: false, department: '产品部' },
+  { id: 9, name: '杨帆', avatar: 'https://i.pravatar.cc/80?img=101', isSelected: false, department: '测试部' },
+  { id: 10, name: '刘敏', avatar: 'https://i.pravatar.cc/80?img=102', isSelected: false, department: '运维部' },
+  { id: 11, name: '黄丽', avatar: 'https://i.pravatar.cc/80?img=103', isSelected: false, department: '人事部' },
+  { id: 12, name: '马超', avatar: 'https://i.pravatar.cc/80?img=104', isSelected: false, department: '财务部' },
+  { id: 13, name: '林静', avatar: 'https://i.pravatar.cc/80?img=105', isSelected: false, department: '市场部' },
+  { id: 14, name: '何勇', avatar: 'https://i.pravatar.cc/80?img=106', isSelected: false, department: '销售部' },
+  { id: 15, name: '罗涛', avatar: 'https://i.pravatar.cc/80?img=107', isSelected: false, department: '技术部' }
 ])
+
+// 搜索过滤后的接收人列表
+const filteredRecipients = computed(() => {
+  if (!recipientSearch.value.trim()) {
+    return availableRecipients.value
+  }
+  const search = recipientSearch.value.toLowerCase()
+  return availableRecipients.value.filter(r => 
+    r.name.toLowerCase().includes(search) || 
+    r.department.toLowerCase().includes(search)
+  )
+})
+
+// 按部门分组的接收人
+const groupedRecipients = computed(() => {
+  const groups = {}
+  filteredRecipients.value.forEach(r => {
+    if (!groups[r.department]) {
+      groups[r.department] = []
+    }
+    groups[r.department].push(r)
+  })
+  return groups
+})
 
 // 模拟日志数据
 const logsData = ref([
@@ -1633,12 +1974,19 @@ const logsData = ref([
     attachments: ['Q3能效评估报告.docx'],
     likes: 5,
     comments: 2,
-    readCount: 12,
+    readCount: 5,
     liked: false,
     isMine: true,
     commentList: [
       { id: 1, author: '李经理', avatar: 'https://i.pravatar.cc/80?img=44', content: '报告写得很详细，继续加油！', time: '18:45' },
       { id: 2, author: '王小芳', avatar: 'https://i.pravatar.cc/80?img=55', content: '已收到，会尽快确认资源窗口。', time: '19:00' }
+    ],
+    readers: [
+      { id: 1, name: '李经理', avatar: 'https://i.pravatar.cc/80?img=44', readTime: '18:40' },
+      { id: 2, name: '王小芳', avatar: 'https://i.pravatar.cc/80?img=55', readTime: '18:45' },
+      { id: 3, name: '赵主管', avatar: 'https://i.pravatar.cc/80?img=66', readTime: '18:50' },
+      { id: 4, name: '孙技术员', avatar: 'https://i.pravatar.cc/80?img=77', readTime: '19:00' },
+      { id: 5, name: '周测试', avatar: 'https://i.pravatar.cc/80?img=88', readTime: '19:10' }
     ]
   },
   {
@@ -1661,6 +2009,13 @@ const logsData = ref([
       { id: 1, author: '张工', avatar: 'https://i.pravatar.cc/80?img=12', content: 'bug修复得很及时，赞！', time: '18:00' },
       { id: 2, author: '技术组', avatar: 'https://i.pravatar.cc/80?img=66', content: '方案已收到，正在评估中。', time: '18:30' },
       { id: 3, author: '产品组', avatar: 'https://i.pravatar.cc/80?img=77', content: '期待后续进展。', time: '18:45' }
+    ],
+    readers: [
+      { id: 1, name: '张工', avatar: 'https://i.pravatar.cc/80?img=12', readTime: '17:50' },
+      { id: 2, name: '技术组', avatar: 'https://i.pravatar.cc/80?img=66', readTime: '18:00' },
+      { id: 3, name: '产品组', avatar: 'https://i.pravatar.cc/80?img=77', readTime: '18:15' },
+      { id: 4, name: '测试组', avatar: 'https://i.pravatar.cc/80?img=88', readTime: '18:30' },
+      { id: 5, name: '运维组', avatar: 'https://i.pravatar.cc/80?img=99', readTime: '18:45' }
     ]
   },
   {
@@ -1708,6 +2063,30 @@ const logsData = ref([
       { id: 2, author: '团队成员', avatar: 'https://i.pravatar.cc/80?img=101', content: '任务已收到，会按时完成。', time: '20:00' },
       { id: 3, author: '架构师', avatar: 'https://i.pravatar.cc/80?img=102', content: '技术方案已审核通过。', time: '20:30' },
       { id: 4, author: 'QA负责人', avatar: 'https://i.pravatar.cc/80?img=103', content: '测试计划已制定，同步给大家。', time: '21:00' }
+    ],
+    readers: [
+      { id: 1, name: '李经理', avatar: 'https://i.pravatar.cc/80?img=44', readTime: '19:10' },
+      { id: 2, name: '王小芳', avatar: 'https://i.pravatar.cc/80?img=55', readTime: '19:15' },
+      { id: 3, name: '赵主管', avatar: 'https://i.pravatar.cc/80?img=66', readTime: '19:20' },
+      { id: 4, name: '孙技术员', avatar: 'https://i.pravatar.cc/80?img=77', readTime: '19:30' },
+      { id: 5, name: '周测试', avatar: 'https://i.pravatar.cc/80?img=88', readTime: '19:45' },
+      { id: 6, name: '架构师', avatar: 'https://i.pravatar.cc/80?img=102', readTime: '20:00' },
+      { id: 7, name: 'QA负责人', avatar: 'https://i.pravatar.cc/80?img=103', readTime: '20:15' },
+      { id: 8, name: '前端组', avatar: 'https://i.pravatar.cc/80?img=104', readTime: '20:30' },
+      { id: 9, name: '后端组', avatar: 'https://i.pravatar.cc/80?img=105', readTime: '20:45' },
+      { id: 10, name: '运维组', avatar: 'https://i.pravatar.cc/80?img=99', readTime: '21:00' },
+      { id: 11, name: '产品组', avatar: 'https://i.pravatar.cc/80?img=106', readTime: '21:15' },
+      { id: 12, name: '设计组', avatar: 'https://i.pravatar.cc/80?img=107', readTime: '21:30' },
+      { id: 13, name: '数据组', avatar: 'https://i.pravatar.cc/80?img=108', readTime: '21:45' },
+      { id: 14, name: '安全组', avatar: 'https://i.pravatar.cc/80?img=109', readTime: '22:00' },
+      { id: 15, name: '测试组', avatar: 'https://i.pravatar.cc/80?img=110', readTime: '22:15' },
+      { id: 16, name: '项目组', avatar: 'https://i.pravatar.cc/80?img=111', readTime: '22:30' },
+      { id: 17, name: '市场组', avatar: 'https://i.pravatar.cc/80?img=112', readTime: '22:45' },
+      { id: 18, name: '销售组', avatar: 'https://i.pravatar.cc/80?img=113', readTime: '23:00' },
+      { id: 19, name: '客服组', avatar: 'https://i.pravatar.cc/80?img=114', readTime: '23:15' },
+      { id: 20, name: '财务组', avatar: 'https://i.pravatar.cc/80?img=115', readTime: '23:30' },
+      { id: 21, name: 'HR组', avatar: 'https://i.pravatar.cc/80?img=116', readTime: '23:45' },
+      { id: 22, name: '行政组', avatar: 'https://i.pravatar.cc/80?img=117', readTime: '00:00' }
     ]
   }
 ])
@@ -1736,6 +2115,151 @@ const closeCommentModal = () => {
   showCommentModal.value = false
   currentLogId.value = null
   newComment.value = ''
+}
+
+const openReadersModal = (log) => {
+  currentLogAuthor.value = log.author
+  currentLogReaders.value = log.readers || []
+  showReadersModal.value = true
+}
+
+const closeReadersModal = () => {
+  showReadersModal.value = false
+}
+
+const openAiFillModal = () => {
+  aiFillInput.value = ''
+  aiFillResult.value = ''
+  isAiProcessing.value = false
+  showAiFillModal.value = true
+}
+
+const closeAiFillModal = () => {
+  showAiFillModal.value = false
+  aiFillInput.value = ''
+  aiFillResult.value = ''
+  isAiProcessing.value = false
+}
+
+const aiPolishLog = () => {
+  if (!aiFillInput.value.trim()) return
+  
+  isAiProcessing.value = true
+  
+  setTimeout(() => {
+    aiFillResult.value = aiFillInput.value
+      .replace(/完成了/g, '已完成')
+      .replace(/做了/g, '完成')
+      .replace(/写了/g, '编写')
+      .replace(/改了/g, '修复')
+      .replace(/参加了/g, '参与')
+      .replace(/开了/g, '组织')
+      .replace(/讨论了/g, '研讨')
+      .replace(/沟通了/g, '协调')
+      .replace(/解决了/g, '处理')
+      .replace(/搞定/g, '完成')
+      .replace(/弄好了/g, '完成')
+      .replace(/忙了一天/g, '完成多项工作')
+      .replace(/没啥事/g, '无特殊事项')
+    
+    if (!aiFillResult.value.startsWith('1. ') && !aiFillResult.value.startsWith('- ')) {
+      aiFillResult.value = '1. ' + aiFillResult.value.replace(/\n/g, '\n2. ')
+    }
+    
+    isAiProcessing.value = false
+    showToast('润色完成', 'AI已为您优化日志内容', 'sparkles')
+  }, 1500)
+}
+
+const fillToCompleted = () => {
+  logForm.value.completed = aiFillResult.value
+  closeAiFillModal()
+  showToast('已填入', '内容已填入「今日完成」', 'check_circle')
+}
+
+const fillToPending = () => {
+  logForm.value.pending = aiFillResult.value
+  closeAiFillModal()
+  showToast('已填入', '内容已填入「未完成」', 'check_circle')
+}
+
+const fillToNeedHelp = () => {
+  logForm.value.needHelp = aiFillResult.value
+  closeAiFillModal()
+  showToast('已填入', '内容已填入「需协调」', 'check_circle')
+}
+
+const openRecipientModal = () => {
+  recipientSearch.value = ''
+  showRecipientModal.value = true
+}
+
+const closeRecipientModal = () => {
+  showRecipientModal.value = false
+  recipientSearch.value = ''
+}
+
+// 预设时间选项
+const presetTimes = [
+  { label: '今天 18:00', value: 'today 18:00' },
+  { label: '今天 19:00', value: 'today 19:00' },
+  { label: '今天 20:00', value: 'today 20:00' },
+  { label: '明天 09:00', value: 'tomorrow 09:00' },
+  { label: '明天 12:00', value: 'tomorrow 12:00' },
+  { label: '明天 18:00', value: 'tomorrow 18:00' },
+  { label: '本周六 09:00', value: 'saturday 09:00' },
+  { label: '下周一 09:00', value: 'nextmonday 09:00' }
+]
+
+const customDate = ref('')
+const customTime = ref('')
+
+const minDate = computed(() => {
+  const today = new Date()
+  return today.toISOString().split('T')[0]
+})
+
+const handleScheduledChange = (event) => {
+  if (event.target.checked) {
+    if (!scheduledTime.value) {
+      showTimePickerModal.value = true
+    }
+  } else {
+    scheduledTime.value = ''
+  }
+}
+
+const openTimePickerModal = () => {
+  showTimePickerModal.value = true
+}
+
+const closeTimePickerModal = () => {
+  showTimePickerModal.value = false
+}
+
+const selectPresetTime = (value) => {
+  scheduledTime.value = value
+  closeTimePickerModal()
+  showToast('时间已设置', `定时发送时间已设置为 ${getPresetLabel(value)}`, 'schedule')
+}
+
+const getPresetLabel = (value) => {
+  const preset = presetTimes.find(p => p.value === value)
+  return preset ? preset.label : value
+}
+
+const confirmCustomTime = () => {
+  if (!customDate.value) {
+    showToast('请选择日期', '请先选择日期', 'warning')
+    return
+  }
+  if (!customTime.value) {
+    showToast('请选择时间', '请先选择时间', 'warning')
+    return
+  }
+  scheduledTime.value = `${customDate.value} ${customTime.value}`
+  closeTimePickerModal()
+  showToast('时间已设置', `定时发送时间已设置为 ${scheduledTime.value}`, 'schedule')
 }
 
 const addComment = () => {
@@ -2076,6 +2600,14 @@ const newSelfFeedback = ref({
   content: ''
 })
 
+// AI生成自评弹窗
+const showAiSelfReviewModal = ref(false)
+const aiGeneratedReview = ref('')
+const isGeneratingReview = ref(false)
+
+// 趋势图弹窗
+const showTrendChartModal = ref(false)
+
 const addSelfFeedback = () => {
   if (!newSelfFeedback.value.content.trim()) {
     showToast('请输入评价内容', '评价内容不能为空', 'warning')
@@ -2100,6 +2632,79 @@ const cancelAddSelfFeedback = () => {
     category: 'temporary',
     content: ''
   }
+}
+
+// AI生成自评
+const generateAiSelfReview = () => {
+  isGeneratingReview.value = true
+  aiGeneratedReview.value = ''
+  showAiSelfReviewModal.value = true
+  
+  setTimeout(() => {
+    const objectives = pbcData.value.objectives
+    const completedCount = objectives.filter(o => o.progress >= 80).length
+    const totalWeight = objectives.reduce((sum, o) => sum + o.weight, 0)
+    const weightedProgress = objectives.reduce((sum, o) => sum + (o.progress * o.weight), 0) / totalWeight
+    
+    aiGeneratedReview.value = `## 本周期自评报告
+
+### 一、目标完成情况
+
+根据当前PBC目标完成数据，本周期整体达成情况如下：
+
+| 目标名称 | 权重 | 完成进度 | 状态 |
+|---------|------|---------|------|
+${objectives.map(o => `| ${o.title} | ${o.weight}% | ${o.progress}% | ${o.progress >= 80 ? '✅ 已完成' : o.progress >= 50 ? '🔄 进行中' : '⏳ 待推进'} |`).join('\n')}
+
+### 二、综合评价
+
+本周期共设定 **${objectives.length}** 个目标，其中 **${completedCount}** 个目标已基本完成（进度≥80%），整体加权完成率为 **${weightedProgress.toFixed(1)}%**。
+
+### 三、亮点与不足
+
+**亮点：**
+${objectives.filter(o => o.progress >= 80).map(o => `- ✅ ${o.title}：进度良好，已完成目标`).join('\n') || '- 暂无突出亮点'}
+
+**待改进：**
+${objectives.filter(o => o.progress < 80).map(o => `- ⚠️ ${o.title}：当前进度 ${o.progress}%，建议加快推进`).join('\n') || '- 暂无待改进项'}
+
+### 四、下一周期计划
+
+基于当前完成情况，建议下一周期：
+1. 重点推进进度较慢的任务，确保按期完成
+2. 保持已完成目标的稳定性
+3. 持续优化工作流程，提升效率
+
+---
+*本自评由AI根据PBC数据自动生成*`
+    
+    isGeneratingReview.value = false
+  }, 1500)
+}
+
+// 应用AI生成的自评
+const applyAiReview = () => {
+  pbcData.value.feedbacks.push({
+    id: pbcData.value.feedbacks.length + 1,
+    type: 'self',
+    category: 'temporary',
+    content: aiGeneratedReview.value.replace(/[#|`]/g, '').replace(/\n\n/g, '\n').trim(),
+    time: new Date().toISOString().split('T')[0]
+  })
+  showAiSelfReviewModal.value = false
+  showToast('自评已应用', 'AI生成的自评已添加到周期评估对话', 'add')
+}
+
+// 查看趋势图
+const openTrendChart = () => {
+  showTrendChartModal.value = true
+}
+
+// 获取进度条颜色
+const getBarColor = (progress) => {
+  if (progress >= 80) return 'bar-completed'
+  if (progress >= 50) return 'bar-progress'
+  return 'bar-pending'
 }
 
 // 编写/编辑PBC相关
@@ -2246,7 +2851,7 @@ const teamKanbanData = ref([
     totalTasks: 12,
     completedTasks: 5,
     healthStatus: '健康',
-    healthClass: 'text-secondary',
+    healthClass: 'health normal',
     columns: [
       {
         id: 1,
@@ -2294,7 +2899,7 @@ const teamKanbanData = ref([
     totalTasks: 8,
     completedTasks: 3,
     healthStatus: '一般',
-    healthClass: 'text-warning',
+    healthClass: 'health warning',
     columns: [
       {
         id: 1,
@@ -2339,7 +2944,7 @@ const teamKanbanData = ref([
     totalTasks: 15,
     completedTasks: 6,
     healthStatus: '风险',
-    healthClass: 'text-danger',
+    healthClass: 'health danger',
     columns: [
       {
         id: 1,
@@ -2390,7 +2995,7 @@ const teamKanbanData = ref([
     totalTasks: 10,
     completedTasks: 4,
     healthStatus: '健康',
-    healthClass: 'text-secondary',
+    healthClass: 'health normal',
     columns: [
       {
         id: 1,
@@ -2669,8 +3274,60 @@ const autoFillLog = () => {
 }
 
 const saveDraft = () => {
-  showToast('草稿已保存', '日志草稿已保存，可稍后继续编辑', 'save')
+  const draft = {
+    ...logForm.value,
+    scheduledTime: scheduledTime.value,
+    savedAt: new Date().toISOString()
+  }
+  
+  localStorage.setItem('dailyLogDraft', JSON.stringify(draft))
+  draftSavedTime.value = new Date().toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+  
+  showToast('草稿已保存', `日志草稿已保存，保存时间：${draftSavedTime.value}`, 'save')
 }
+
+// 加载草稿
+const loadDraft = () => {
+  const draft = localStorage.getItem('dailyLogDraft')
+  if (draft) {
+    try {
+      const data = JSON.parse(draft)
+      logForm.value = {
+        completed: data.completed || '',
+        pending: data.pending || '',
+        needHelp: data.needHelp || '',
+        images: data.images || [],
+        attachments: data.attachments || [],
+        recipients: data.recipients || [],
+        sendToChat: data.sendToChat || false,
+        onlyReceiverCanSee: data.onlyReceiverCanSee || false,
+        scheduledSend: data.scheduledSend || false
+      }
+      if (data.scheduledTime) {
+        scheduledTime.value = data.scheduledTime
+      }
+      if (data.savedAt) {
+        draftSavedTime.value = new Date(data.savedAt).toLocaleString('zh-CN', {
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+        showToast('草稿已加载', `已加载上次保存的草稿（${draftSavedTime.value}）`, 'save')
+      }
+    } catch (e) {
+      console.error('Failed to load draft:', e)
+    }
+  }
+}
+
+// 页面加载时自动加载草稿
+loadDraft()
 
 const submitLog = () => {
   if (!logForm.value.completed.trim()) {
@@ -3151,6 +3808,483 @@ const updateTaskProgress = (taskId, progress) => {
   line-height: 1.5;
   color: var(--color-text-primary);
   margin: 0;
+}
+
+/* 查看者弹窗样式 */
+.readers-modal {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.readers-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.reader-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 24px;
+  transition: background-color 0.2s;
+}
+
+.reader-item:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.reader-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid rgba(0, 0, 0, 0.05);
+}
+
+.reader-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reader-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.reader-time {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.reader-icon {
+  font-size: 18px;
+  color: var(--color-primary-400);
+}
+
+.empty-readers {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: var(--color-text-tertiary);
+}
+
+.empty-readers .material-symbols-outlined {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.empty-readers p {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* AI日志润色弹窗样式 */
+.ai-fill-modal {
+  width: min(580px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.ai-fill-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.ai-fill-section {
+  margin-bottom: 20px;
+}
+
+.ai-fill-input {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  background: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.ai-fill-input:focus {
+  outline: none;
+  border-color: var(--color-primary-400);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.ai-fill-btn {
+  width: 100%;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  margin-bottom: 24px;
+}
+
+.ai-fill-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ai-fill-result {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0.02) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.result-content {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.result-content p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+}
+
+.result-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.result-actions .btn-secondary {
+  flex: 1;
+  min-width: 120px;
+  justify-content: center;
+}
+
+/* 选择发送对象弹窗样式 */
+.recipient-modal {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.recipient-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+.search-box .material-symbols-outlined {
+  font-size: 18px;
+  color: var(--color-text-secondary);
+  margin-right: 10px;
+}
+
+.search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.search-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.clear-search {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.clear-search:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.selected-tags {
+  margin-bottom: 20px;
+}
+
+.tags-label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 10px;
+  display: block;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.selected-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 20px;
+  padding: 6px 12px 6px 6px;
+}
+
+.selected-tag img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.selected-tag span {
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.selected-tag button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.selected-tag button:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.selected-tag button .material-symbols-outlined {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.recipient-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.recipient-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.group-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-left: 8px;
+}
+
+.group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recipient-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recipient-option:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.recipient-option.selected {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(99, 102, 241, 0.04));
+  border: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+.recipient-option img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.recipient-option .recipient-name {
+  flex: 1;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.recipient-option .check-icon {
+  font-size: 18px;
+  color: var(--color-primary-500);
+}
+
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: var(--color-text-tertiary);
+}
+
+.no-results .material-symbols-outlined {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.no-results p {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 定时发送时间选择弹窗样式 */
+.time-picker-modal {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.time-picker-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.preset-times,
+.custom-time {
+  margin-bottom: 28px;
+}
+
+.preset-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 14px;
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.preset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.preset-btn:hover {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.preset-btn.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(99, 102, 241, 0.06));
+  border-color: var(--color-primary-400);
+  color: var(--color-primary-600);
+}
+
+.time-inputs {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.date-input,
+.time-input {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.date-input label,
+.time-input label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.time-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.time-input:focus {
+  outline: none;
+  border-color: var(--color-primary-400);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.custom-confirm-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 14px 24px;
+}
+
+/* 定时发送选项样式 */
+.scheduled-option {
+  position: relative;
+}
+
+.scheduled-time {
+  margin-left: 8px;
+  font-size: 13px;
+  color: var(--color-primary-500);
+  font-weight: 500;
 }
 
 .empty-comments {
