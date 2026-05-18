@@ -10,7 +10,6 @@
         <router-link class="nav-item" to="/dashboard"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></router-link>
         <router-link class="nav-item active" to="/projects"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></router-link>
         <router-link class="nav-item" to="/workbench"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></router-link>
-        <a class="nav-item notification-nav" href="#" @click.prevent="handleOpenNotifications"><span class="material-symbols-outlined">notifications</span><span>消息通知</span><span class="notification-badge">5</span></a>
         <router-link class="nav-item" to="/reports"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></router-link>
         <router-link class="nav-item" to="/settings"><span class="material-symbols-outlined">settings</span><span>系统设置</span></router-link>
         <router-link class="nav-item" to="/admin"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></router-link>
@@ -105,9 +104,89 @@
         </section>
 
         <section v-else-if="currentTab === 'gantt'" class="glass-panel" style="padding:24px;border-radius:24px;">
-          <h2 class="section-title">项目甘特图</h2>
-          <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px;">
-            <div v-for="item in ganttItems" :key="item.id" class="mini-bar-row"><span>{{ item.name }}</span><div class="progress-track"><div class="progress-fill" :style="{ width: `${item.progress}%` }"></div></div><strong>{{ item.progress }}%</strong></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h2 class="section-title">项目甘特图</h2>
+            <div v-if="isProjectLeader" class="gantt-actions">
+              <button class="btn-secondary" @click="openTaskModal('add')"><span class="material-symbols-outlined">add</span>添加任务</button>
+              <button class="btn-secondary" @click="showImportModal = true"><span class="material-symbols-outlined">upload</span>批量导入</button>
+              <button class="btn-primary" @click="setBaseline"><span class="material-symbols-outlined">track_changes</span>设置基线</button>
+            </div>
+          </div>
+
+          <!-- 时间轴视图切换 -->
+          <div class="gantt-toolbar">
+            <div class="view-toggle">
+              <button :class="{ active: viewMode === 'week' }" @click="viewMode = 'week'">按周</button>
+              <button :class="{ active: viewMode === 'day' }" @click="viewMode = 'day'">按日</button>
+              <button :class="{ active: viewMode === 'month' }" @click="viewMode = 'month'">按月</button>
+            </div>
+            <div class="gantt-controls">
+              <button class="icon-btn" @click="toggleBaseline"><span class="material-symbols-outlined">{{ showBaseline ? 'visibility' : 'visibility_off' }}</span>{{ showBaseline ? '隐藏基线' : '显示基线' }}</button>
+              <button class="icon-btn" @click="toggleDependencies"><span class="material-symbols-outlined">link</span>依赖关系</button>
+              <button class="icon-btn" @click="zoomIn"><span class="material-symbols-outlined">zoom_in</span></button>
+              <button class="icon-btn" @click="zoomOut"><span class="material-symbols-outlined">zoom_out</span></button>
+            </div>
+          </div>
+
+          <!-- 关键路径信息 -->
+          <div class="gantt-summary">
+            <div class="summary-item"><span class="material-symbols-outlined">timeline</span><strong>关键路径</strong><span>{{ criticalPathCount }} 段</span></div>
+            <div class="summary-item"><span class="material-symbols-outlined">version</span><strong>基线版本</strong><span>V{{ baselineVersion }}</span></div>
+            <div class="summary-item warning"><span class="material-symbols-outlined">alert_triangle</span><strong>超期节点</strong><span>{{ overdueCount }} 个</span></div>
+          </div>
+
+          <!-- 甘特图表格 -->
+          <div class="gantt-container">
+            <div class="gantt-table">
+              <div class="gantt-header">
+                <div class="gantt-col task-col"><strong>里程碑/任务</strong></div>
+                <div class="gantt-col owner-col"><strong>负责人</strong></div>
+                <div class="gantt-col progress-col"><strong>进度</strong></div>
+                <div class="gantt-col timeline-col">
+                  <div class="timeline-header" v-for="period in timelinePeriods" :key="period.key">{{ period.label }}</div>
+                </div>
+              </div>
+              <div class="gantt-body">
+                <div v-for="task in ganttTasks" :key="task.id" class="gantt-row" :class="{ 'critical': task.isCritical, 'milestone': task.isMilestone }">
+                  <div class="gantt-col task-col">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span v-if="task.isMilestone" class="milestone-icon">⭐</span>
+                      <span v-if="task.isCritical" class="critical-icon">🔴</span>
+                      <span>{{ task.name }}</span>
+                      <button v-if="isProjectLeader" class="icon-btn xs" @click="openTaskModal('edit', task)"><span class="material-symbols-outlined">more_vert</span></button>
+                    </div>
+                    <div v-if="task.subtasks && task.subtasks.length" class="subtasks">
+                      <div v-for="sub in task.subtasks" :key="sub.id" class="subtask">
+                        <span>{{ sub.name }}</span>
+                        <span class="subtask-progress">{{ sub.progress }}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="gantt-col owner-col">{{ task.owner }}</div>
+                  <div class="gantt-col progress-col">
+                    <div class="mini-progress">
+                      <div class="mini-progress-fill" :style="{ width: `${task.progress}%`, background: task.color }"></div>
+                    </div>
+                    <span>{{ task.progress }}%</span>
+                  </div>
+                  <div class="gantt-col timeline-col">
+                    <div 
+                      class="gantt-bar" 
+                      :style="{ 
+                        left: `${task.startOffset}%`, 
+                        width: `${task.width}%`,
+                        background: task.color,
+                        borderColor: task.isCritical ? '#ef4444' : 'transparent'
+                      }"
+                      :class="{ 'has-baseline': showBaseline && task.baselineProgress }"
+                    >
+                      <div v-if="showBaseline && task.baselineProgress" class="gantt-bar-baseline" :style="{ width: `${task.baselineProgress}%` }"></div>
+                    </div>
+                    <div v-if="task.dependencies" class="dependency-line" :style="{ left: `${task.dependencyStart}%` }"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <!-- TODO(API): 甘特任务排期、基线对比、关键路径需接排期接口 -->
         </section>
@@ -143,11 +222,21 @@ const route = useRoute()
 const router = useRouter()
 const currentTab = 'gantt'
 
-const currentUser = {
-  name: '王志强',
-  role: '项目负责人',
-  avatar: 'https://i.pravatar.cc/80?img=47'
-}
+const currentUser = computed(() => {
+  const userStr = localStorage.getItem('currentUser')
+  if (userStr) {
+    return JSON.parse(userStr)
+  }
+  return {
+    name: '王志强',
+    role: '项目负责人',
+    avatar: 'https://i.pravatar.cc/80?img=47'
+  }
+})
+
+const isProjectLeader = computed(() => {
+  return currentUser.value.name === project.value.owner
+})
 
 const project = ref({
   name: '纳米晶体结构优化',
@@ -195,6 +284,144 @@ const ganttItems = ref([
   { id: 3, name: '联调验证', progress: 66 }
 ])
 
+// 甘特图状态
+const viewMode = ref('week')
+const showBaseline = ref(true)
+const showDependencies = ref(false)
+const showImportModal = ref(false)
+const criticalPathCount = ref(3)
+const baselineVersion = ref(2)
+const overdueCount = ref(1)
+
+// 时间轴周期
+const timelinePeriods = computed(() => {
+  const periods = []
+  const startDate = new Date('2026-04-14')
+  const endDate = new Date('2026-06-15')
+  
+  if (viewMode.value === 'week') {
+    let current = new Date(startDate)
+    while (current <= endDate) {
+      const weekNum = Math.ceil((current - new Date('2026-01-01')) / (7 * 24 * 60 * 60 * 1000))
+      periods.push({ key: `W${weekNum}`, label: `W${weekNum}` })
+      current.setDate(current.getDate() + 7)
+    }
+  } else if (viewMode.value === 'month') {
+    periods.push({ key: 'Apr', label: '四月' })
+    periods.push({ key: 'May', label: '五月' })
+    periods.push({ key: 'Jun', label: '六月' })
+  } else {
+    let current = new Date(startDate)
+    while (current <= endDate) {
+      const day = current.getDate()
+      periods.push({ key: `D${day}`, label: `${day}` })
+      current.setDate(current.getDate() + 1)
+    }
+  }
+  return periods
+})
+
+// 甘特图任务数据
+const ganttTasks = ref([
+  { 
+    id: 1, 
+    name: '需求评审', 
+    owner: '王志强', 
+    progress: 100, 
+    startOffset: 5, 
+    width: 25, 
+    color: 'var(--color-secondary-500)',
+    isMilestone: true,
+    isCritical: false,
+    baselineProgress: 100,
+    startDate: '2026-04-14',
+    endDate: '2026-04-25',
+    duration: 10,
+    dependencies: null
+  },
+  { 
+    id: 2, 
+    name: '开发实现', 
+    owner: '韩诚', 
+    progress: 75, 
+    startOffset: 30, 
+    width: 30, 
+    color: 'var(--color-purple-500)',
+    isMilestone: false,
+    isCritical: true,
+    baselineProgress: 85,
+    startDate: '2026-04-28',
+    endDate: '2026-05-17',
+    duration: 14,
+    dependencies: [1],
+    dependencyStart: 25,
+    subtasks: [
+      { id: 21, name: '模块A开发', progress: 100 },
+      { id: 22, name: '模块B开发', progress: 70 },
+      { id: 23, name: '接口联调', progress: 60 }
+    ]
+  },
+  { 
+    id: 3, 
+    name: '联调验证', 
+    owner: '陈思远', 
+    progress: 45, 
+    startOffset: 35, 
+    width: 30, 
+    color: 'var(--color-danger-400)',
+    isMilestone: false,
+    isCritical: true,
+    baselineProgress: 60,
+    startDate: '2026-05-02',
+    endDate: '2026-05-21',
+    duration: 14,
+    dependencies: [2],
+    dependencyStart: 30
+  },
+  { 
+    id: 4, 
+    name: '上线验收', 
+    owner: '周雅楠', 
+    progress: 15, 
+    startOffset: 75, 
+    width: 20, 
+    color: 'var(--color-green-500)',
+    isMilestone: true,
+    isCritical: true,
+    baselineProgress: 20,
+    startDate: '2026-05-22',
+    endDate: '2026-06-05',
+    duration: 10,
+    dependencies: [3],
+    dependencyStart: 65
+  }
+])
+
+// 甘特图方法
+const openTaskModal = (mode, task = null) => {
+  console.log('Open task modal:', mode, task)
+}
+
+const setBaseline = () => {
+  baselineVersion.value++
+}
+
+const toggleBaseline = () => {
+  showBaseline.value = !showBaseline.value
+}
+
+const toggleDependencies = () => {
+  showDependencies.value = !showDependencies.value
+}
+
+const zoomIn = () => {
+  console.log('Zoom in')
+}
+
+const zoomOut = () => {
+  console.log('Zoom out')
+}
+
 const risks = ref([
   { id: 1, title: '联调窗口冲突', owner: '王志强', status: '处理中', class: 'warning' },
   { id: 2, title: '测试环境冻结延迟', owner: '王雅婷', status: '待处理', class: 'danger' },
@@ -227,4 +454,224 @@ const goBack = () => router.push('/projects')
 .status-tag.warning { color: #a36b00; background: rgba(252,230,176,0.8); }
 .status-tag.danger { color: var(--color-danger-600); background: rgba(255,218,214,0.8); }
 .status-tag.success { color: var(--color-secondary-600); background: rgba(156,239,219,0.8); }
+
+/* 甘特图样式 */
+.gantt-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.gantt-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: rgba(0,0,0,0.03);
+  border-radius: 16px;
+  margin-bottom: 16px;
+}
+
+.view-toggle {
+  display: flex;
+  background: rgba(0,0,0,0.04);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.view-toggle button {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-toggle button.active {
+  background: white;
+  color: var(--color-text-primary);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
+
+.gantt-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.gantt-summary {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(0,0,0,0.03);
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.summary-item.warning {
+  background: rgba(251,191,36,0.1);
+  color: var(--color-warning-600);
+}
+
+.summary-item strong {
+  margin-right: 8px;
+}
+
+.gantt-container {
+  overflow-x: auto;
+}
+
+.gantt-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 800px;
+}
+
+.gantt-header {
+  display: flex;
+  background: rgba(0,0,0,0.03);
+  border-radius: 12px 12px 0 0;
+}
+
+.gantt-body {
+  background: white;
+  border-radius: 0 0 12px 12px;
+}
+
+.gantt-row {
+  display: flex;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  transition: background 0.2s;
+}
+
+.gantt-row:hover {
+  background: rgba(0,0,0,0.02);
+}
+
+.gantt-row.critical {
+  background: rgba(239,68,68,0.03);
+}
+
+.gantt-row.milestone {
+  font-weight: 600;
+}
+
+.gantt-col {
+  padding: 12px;
+}
+
+.gantt-col.task-col {
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.gantt-col.owner-col {
+  width: 100px;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+.gantt-col.progress-col {
+  width: 120px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gantt-col.timeline-col {
+  flex: 1;
+  position: relative;
+  min-width: 400px;
+}
+
+.timeline-header {
+  display: inline-flex;
+  justify-content: center;
+  width: 12.5%;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+}
+
+.mini-progress {
+  flex: 1;
+  height: 6px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mini-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.gantt-bar {
+  position: absolute;
+  top: 8px;
+  height: 24px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.gantt-bar:hover {
+  transform: scaleY(1.2);
+}
+
+.gantt-bar-baseline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+}
+
+.dependency-line {
+  position: absolute;
+  top: 20px;
+  width: 2px;
+  height: 8px;
+  background: var(--color-border);
+}
+
+.subtasks {
+  margin-left: 24px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(0,0,0,0.06);
+}
+
+.subtask {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.subtask-progress {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.milestone-icon {
+  font-size: 14px;
+}
+
+.critical-icon {
+  font-size: 12px;
+}
 </style>

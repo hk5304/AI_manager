@@ -82,9 +82,34 @@ const loginForm = reactive({
   rememberMe: false,
 });
 
+const testUsers = {
+  'leader': {
+    name: '王志强',
+    role: '项目负责人',
+    avatar: 'https://i.pravatar.cc/80?img=47'
+  },
+  'member': {
+    name: '陈思远',
+    role: '开发工程师',
+    avatar: 'https://i.pravatar.cc/80?img=12'
+  }
+}
+
 const handleSubmit = () => {
+  const username = loginForm.username.trim().toLowerCase()
   localStorage.setItem('token', 'mock-token')
   localStorage.setItem('userRole', 'super_admin')
+
+  if (testUsers[username]) {
+    localStorage.setItem('currentUser', JSON.stringify(testUsers[username]))
+  } else {
+    localStorage.setItem('currentUser', JSON.stringify({
+      name: loginForm.username || '访客',
+      role: '成员',
+      avatar: 'https://i.pravatar.cc/80?img=33'
+    }))
+  }
+
   router.push('/dashboard')
 };
 

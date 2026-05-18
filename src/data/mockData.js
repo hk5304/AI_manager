@@ -152,6 +152,9 @@ export const orgTree = [
   }
 ]
 
+// 任务状态枚举
+export const taskStatuses = ['待开始', '进行中', '待审核', '已通过', '已驳回', '已完成']
+
 // 任务数据
 export const tasks = [
   {
@@ -162,21 +165,45 @@ export const tasks = [
     priority: 'P1',
     dueDate: '2026-03-15',
     assignee: '朱十八',
+    assigneeId: 16,
     projectId: 1,
+    projectName: '智能办公系统',
     estimatedHours: 16,
-    actualHours: 0
+    actualHours: 0,
+    createdAt: '2026-03-01 10:00',
+    updatedAt: '2026-03-01 10:00',
+    reviewer: '张三',
+    reviewerId: 1,
+    reviewStatus: null,
+    reviewComment: null,
+    reviewTime: null,
+    attachments: [],
+    comments: []
   },
   {
     id: 2,
     title: '用户登录功能',
     description: '实现用户登录、注册和忘记密码功能',
-    status: '进行中',
+    status: '待审核',
     priority: 'P0',
     dueDate: '2026-03-10',
     assignee: '王五',
+    assigneeId: 7,
     projectId: 1,
+    projectName: '智能办公系统',
     estimatedHours: 24,
-    actualHours: 12
+    actualHours: 22,
+    createdAt: '2026-02-28 09:00',
+    updatedAt: '2026-03-08 18:00',
+    reviewer: '张三',
+    reviewerId: 1,
+    reviewStatus: null,
+    reviewComment: null,
+    reviewTime: null,
+    attachments: ['登录模块设计文档.pdf', '接口文档.docx'],
+    comments: [
+      { id: 1, userId: 7, userName: '王五', content: '登录功能已完成，等待审核', time: '2026-03-08 18:00' }
+    ]
   },
   {
     id: 3,
@@ -186,9 +213,20 @@ export const tasks = [
     priority: 'P1',
     dueDate: '2026-03-05',
     assignee: '吴九',
+    assigneeId: 8,
     projectId: 1,
+    projectName: '智能办公系统',
     estimatedHours: 16,
-    actualHours: 18
+    actualHours: 18,
+    createdAt: '2026-02-20 14:00',
+    updatedAt: '2026-03-05 16:00',
+    reviewer: '张三',
+    reviewerId: 1,
+    reviewStatus: 'approved',
+    reviewComment: '设计合理，已通过',
+    reviewTime: '2026-03-05 17:00',
+    attachments: ['数据库设计文档.pdf'],
+    comments: []
   },
   {
     id: 4,
@@ -198,9 +236,22 @@ export const tasks = [
     priority: 'P1',
     dueDate: '2026-03-20',
     assignee: '周八',
+    assigneeId: 6,
     projectId: 1,
+    projectName: '智能办公系统',
     estimatedHours: 32,
-    actualHours: 16
+    actualHours: 20,
+    createdAt: '2026-03-02 11:00',
+    updatedAt: '2026-03-08 12:00',
+    reviewer: '张三',
+    reviewerId: 1,
+    reviewStatus: null,
+    reviewComment: null,
+    reviewTime: null,
+    attachments: [],
+    comments: [
+      { id: 2, userId: 6, userName: '周八', content: '已完成60%，预计下周提交', time: '2026-03-08 12:00' }
+    ]
   },
   {
     id: 5,
@@ -210,9 +261,45 @@ export const tasks = [
     priority: 'P2',
     dueDate: '2026-03-25',
     assignee: '牛十六',
+    assigneeId: 14,
     projectId: 1,
+    projectName: '智能办公系统',
     estimatedHours: 20,
-    actualHours: 0
+    actualHours: 0,
+    createdAt: '2026-03-03 10:00',
+    updatedAt: '2026-03-03 10:00',
+    reviewer: '李四',
+    reviewerId: 2,
+    reviewStatus: null,
+    reviewComment: null,
+    reviewTime: null,
+    attachments: [],
+    comments: []
+  },
+  {
+    id: 6,
+    title: '系统架构设计',
+    description: '完成系统整体架构设计，包括技术选型和模块划分',
+    status: '已驳回',
+    priority: 'P0',
+    dueDate: '2026-02-28',
+    assignee: '郑十',
+    assigneeId: 9,
+    projectId: 1,
+    projectName: '智能办公系统',
+    estimatedHours: 24,
+    actualHours: 20,
+    createdAt: '2026-02-15 09:00',
+    updatedAt: '2026-02-28 17:00',
+    reviewer: '张三',
+    reviewerId: 1,
+    reviewStatus: 'rejected',
+    reviewComment: '架构设计需要重新考虑，建议增加微服务拆分方案',
+    reviewTime: '2026-02-28 18:00',
+    attachments: ['系统架构设计文档.pdf'],
+    comments: [
+      { id: 3, userId: 1, userName: '张三', content: '请按照评审意见修改', time: '2026-02-28 18:00' }
+    ]
   }
 ]
 

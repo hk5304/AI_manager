@@ -12,7 +12,6 @@
         <router-link class="nav-item" to="/dashboard"><span class="material-symbols-outlined">dashboard</span><span>全局工作台</span></router-link>
         <router-link class="nav-item active" to="/projects"><span class="material-symbols-outlined">account_tree</span><span>项目列表</span></router-link>
         <router-link class="nav-item" to="/workbench"><span class="material-symbols-outlined">space_dashboard</span><span>个人工作台</span></router-link>
-        <a class="nav-item notification-nav" href="#" @click.prevent="handleOpenNotifications"><span class="material-symbols-outlined">notifications</span><span>消息通知</span></a>
         <router-link class="nav-item" to="/reports"><span class="material-symbols-outlined">query_stats</span><span>全局报表</span></router-link>
         <router-link class="nav-item" to="/settings"><span class="material-symbols-outlined">settings</span><span>系统设置</span></router-link>
         <router-link class="nav-item" to="/admin"><span class="material-symbols-outlined">admin_panel_settings</span><span>后台管理</span></router-link>
@@ -238,17 +237,113 @@
             <div class="report-chip-group" style="margin-left:auto;">
               <span class="pill pill-neutral">任务总数 {{ totalTasks }}</span>
               <span class="pill pill-warning">阻塞 {{ blockedTasks }}</span>
+              <button v-if="isProjectLeader" class="btn-secondary" @click="openColumnModal('add')"><span class="material-symbols-outlined">add_box</span>添加列</button>
+              <button v-if="isProjectLeader" class="btn-primary" @click="openKanbanTaskModal('add', null, kanbanData[0]?.id)"><span class="material-symbols-outlined">add</span>新建任务</button>
             </div>
           </section>
-          <section class="kanban-5">
-            <div v-for="col in kanbanCols" :key="col.name" class="kanban-column glass-panel" :style="col.style">
-              <div class="kanban-column-header"><h3>{{ col.name }}</h3><span class="pill" :class="col.pillClass">{{ col.count }}</span></div>
-              <div class="kanban-card" v-for="card in col.cards" :key="card.title">
-                <h4>{{ card.title }}</h4>
-                <div class="kanban-meta">
-                  <span v-for="tag in card.tags" :key="tag.text" class="micro-tag" :class="tag.class" :style="tag.style">{{ tag.text }}</span>
+          
+          <!-- 列管理提示 -->
+          <div v-if="isProjectLeader" class="kanban-hint">
+            <span class="material-symbols-outlined">info</span>
+            <span>拖拽任务可移动到其他列，点击列右侧菜单可管理列设置</span>
+          </div>
+          
+          <section 
+            class="kanban-5"
+            :class="{ dragging: draggedTask !== null }"
+          >
+            <div 
+              v-for="column in kanbanCols" 
+              :key="column.id" 
+              class="kanban-column glass-panel"
+              :class="{ 'drag-over': dragOverColumn === column.id }"
+              :style="column.style"
+              @dragover="(e) => handleTaskDragOver(e, column.id)"
+              @dragleave="handleTaskDragLeave"
+              @drop="handleTaskDrop(column.id)"
+            >
+              <div class="kanban-column-header">
+                <div class="kanban-column-title">
+                  <h3>{{ column.name }}</h3>
+                  <div v-if="column.wipLimit" class="wip-limit" :class="{ 'wip-warning': column.cards.length >= column.wipLimit }">
+                    <span>{{ column.cards.length }}/{{ column.wipLimit }}</span>
+                  </div>
+                  <span v-else class="pill" :class="column.pillClass">{{ column.cards.length }}</span>
                 </div>
-                <p class="task-note">{{ card.note }}</p>
+                <div v-if="isProjectLeader" class="kanban-column-actions">
+                  <button class="icon-btn" @click="moveColumn(column.id, 'up')" :disabled="kanbanCols.indexOf(column) === 0">
+                    <span class="material-symbols-outlined">arrow_upward</span>
+                  </button>
+                  <button class="icon-btn" @click="moveColumn(column.id, 'down')" :disabled="kanbanCols.indexOf(column) === kanbanCols.length - 1">
+                    <span class="material-symbols-outlined">arrow_downward</span>
+                  </button>
+                  <div class="dropdown">
+                    <button class="icon-btn" @click.stop="toggleColumnMenu(column.id)">
+                      <span class="material-symbols-outlined">more_vert</span>
+                    </button>
+                    <div v-show="showColumnMenu === column.id" class="dropdown-menu">
+                      <button @click="openColumnModal('edit', column); showColumnMenu = null">
+                        <span class="material-symbols-outlined">edit</span>编辑列
+                      </button>
+                      <button @click="openKanbanTaskModal('add', null, column.id); showColumnMenu = null">
+                        <span class="material-symbols-outlined">add</span>添加任务
+                      </button>
+                      <hr />
+                      <button class="danger" @click="deleteColumn(column.id); showColumnMenu = null">
+                        <span class="material-symbols-outlined">delete</span>删除列
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="kanban-cards">
+                <div 
+                  v-for="task in column.cards" 
+                  :key="task.id" 
+                  class="kanban-card"
+                  :class="{ dragging: draggedTask?.id === task.id, editable: isProjectLeader }"
+                  :draggable="isProjectLeader"
+                  @dragstart="isProjectLeader && handleTaskDragStart(task, column.id)"
+                >
+                  <div class="kanban-card-header">
+                    <h4>{{ task.title }}</h4>
+                    <div v-if="isProjectLeader" class="dropdown">
+                      <button class="icon-btn" @click.stop="toggleTaskMenu(task.id)">
+                        <span class="material-symbols-outlined">more_vert</span>
+                      </button>
+                      <div v-show="showTaskMenu === task.id" class="dropdown-menu">
+                        <button @click="openKanbanTaskModal('edit', task, column.id); showTaskMenu = null">
+                          <span class="material-symbols-outlined">edit</span>编辑任务
+                        </button>
+                        <button @click="updateTaskProgress(task.id, '100%'); showTaskMenu = null">
+                          <span class="material-symbols-outlined">check_circle</span>标记完成
+                        </button>
+                        <hr />
+                        <button class="danger" @click="deleteTask(task.id); showTaskMenu = null">
+                          <span class="material-symbols-outlined">delete</span>删除任务
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="kanban-meta">
+                    <span :class="['micro-tag', task.priority.toLowerCase()]">{{ task.priority }}</span>
+                    <span v-if="task.tag" class="micro-tag" :style="task.isBlocked ? 'color: var(--color-danger-600); background: rgba(255,218,214,0.82);' : ''">{{ task.tag }}</span>
+                  </div>
+                  <div class="kanban-progress">
+                    <div class="progress-bar">
+                      <div class="progress-fill" :style="{ width: task.progress }"></div>
+                    </div>
+                    <span class="progress-text">{{ task.progress }}</span>
+                  </div>
+                  <p class="task-note">{{ task.isBlocked ? '阻塞原因：' : '截止：' }}{{ task.deadline || task.description }}</p>
+                </div>
+                
+                <!-- 添加任务按钮 -->
+                <button v-if="isProjectLeader" class="add-task-btn" @click="openKanbanTaskModal('add', null, column.id)">
+                  <span class="material-symbols-outlined">add</span>
+                  添加任务
+                </button>
               </div>
             </div>
           </section>
@@ -294,7 +389,7 @@
               </div>
             </div>
           </section>
-          <section class="grid-3-2">
+          <section class="gantt-full-width">
             <div class="gantt-shell glass-panel">
               <div class="gantt-toolbar">
                 <div class="chip-group">
@@ -308,17 +403,29 @@
                   <button class="btn-chip" @click="zoomIn"><span class="material-symbols-outlined">zoom_in</span>放大</button>
                   <button class="btn-chip" @click="zoomOut"><span class="material-symbols-outlined">zoom_out</span>缩小</button>
                 </div>
+                <div v-if="isProjectLeader" class="chip-group">
+                  <button class="btn-chip btn-primary" @click="openGanttTaskModal('add')"><span class="material-symbols-outlined">add</span>添加任务</button>
+                  <button class="btn-chip" @click="setBaseline"><span class="material-symbols-outlined">track_changes</span>设置基线</button>
+                  <button class="btn-chip" @click="showImportModal = true"><span class="material-symbols-outlined">upload</span>批量导入</button>
+                </div>
               </div>
               <div class="gantt-scroll-container">
                 <div ref="layoutWrapperRef" class="gantt-layout-wrapper" @scroll="syncScrollPosition">
                   <div class="gantt-layout" :style="{ transform: `scaleX(${ganttZoom})`, transformOrigin: 'left center' }">
                     <div class="gantt-side">
-                      <div class="gantt-head-row"><div>里程碑 / 任务</div><div>负责人</div><div style="text-align:right;">进度</div></div>
+                      <div class="gantt-head-row"><div>里程碑 / 任务</div><div>负责人</div><div style="text-align:right;">进度</div><div v-if="isProjectLeader"></div></div>
                       <div class="gantt-item-row" v-for="g in ganttData" :key="g.name">
-                        <div><strong>{{ g.name }}</strong></div>
+                        <div>
+                          <span v-if="g.isMilestone" class="milestone-badge">⭐</span>
+                          <span v-if="g.isCritical" class="critical-badge">🔴</span>
+                          <strong>{{ g.name }}</strong>
+                        </div>
                         <div class="section-caption">{{ g.owner }}</div>
                         <div style="text-align:right;">
                           <span class="progress-badge" :class="getProgressClass(g.progress)">{{ g.progress }}%</span>
+                        </div>
+                        <div v-if="isProjectLeader" class="gantt-actions">
+                          <button class="icon-btn xs" @click="openGanttTaskModal('edit', g)"><span class="material-symbols-outlined">more_vert</span></button>
                         </div>
                       </div>
                     </div>
@@ -350,8 +457,10 @@
                 </div>
               </div>
             </div>
-            <div class="col-stack">
-              <div class="glass-panel panel-pad">
+            
+            <!-- 下方三个面板 -->
+            <div class="gantt-bottom-panels">
+              <div class="glass-panel panel-pad summary-panel">
                 <h2 class="section-title">排期摘要</h2>
                 <div class="summary-kpis" style="margin-top:16px;">
                   <div class="summary-kpi"><span>关键路径</span><strong>开发 → 联调 → 验收</strong></div>
@@ -359,7 +468,7 @@
                 </div>
                 <p class="page-subtitle" style="font-size:14px;margin-top:16px;">当前实际计划主要偏差集中在“联调验证”，其余里程碑仍在可控范围内。</p>
               </div>
-              <div class="glass-panel panel-pad ai-gradient">
+              <div class="glass-panel panel-pad ai-gradient ai-panel">
                 <h2 class="section-title">AI 排期建议</h2>
                 <p class="page-subtitle" style="font-size:14px;margin-top:14px;">若将 QA 提前一周介入联调准备，并拆分“回灌验证”与“异常样本校正”两项任务，可追回 0.8 天，并降低关键路径波动。</p>
                 <div class="ai-actions">
@@ -367,7 +476,7 @@
                   <button class="btn-secondary">生成任务</button>
                 </div>
               </div>
-              <div class="glass-panel panel-pad">
+              <div class="glass-panel panel-pad legend-panel">
                 <h2 class="section-title">图例</h2>
                 <div class="legend-list">
                   <div class="gantt-flag"><span class="material-symbols-outlined" style="color:var(--color-primary-700);">timeline</span>当前计划</div>
@@ -381,6 +490,40 @@
 
         <!-- Risk -->
         <div v-show="currentTab === 'risk'" class="tab-panel">
+          <!-- 核心风险任务列表 - 移到最上面 -->
+          <section class="glass-panel panel-pad">
+            <div class="chart-header">
+              <h2 class="section-title">核心风险任务列表</h2>
+              <div class="page-actions">
+                <button class="btn-secondary">导出清单</button>
+                <button class="btn-primary">一键处理</button>
+                <button v-if="isProjectLeader" class="btn-chip btn-primary" @click="openRiskTaskModal('add')"><span class="material-symbols-outlined">add</span>添加任务</button>
+              </div>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr><th>任务名称</th><th>风险等级</th><th>风险因子</th><th>进度阻碍</th><th>负责人</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="r in riskTasks" :key="r.id">
+                  <td><strong>{{ r.name }}</strong></td>
+                  <td><span class="pill" :class="r.levelClass">{{ r.level }}</span></td>
+                  <td>{{ r.factor }}</td>
+                  <td><div class="progress-track"><div class="progress-fill" :style="{ width: r.block + '%', background: r.barColor }"></div></div></td>
+                  <td>{{ r.owner }}</td>
+                  <td>
+                    <template v-if="isProjectLeader">
+                      <button class="icon-btn xs" @click="openRiskTaskModal('edit', r)"><span class="material-symbols-outlined">more_vert</span></button>
+                    </template>
+                    <template v-else>
+                      <span class="material-symbols-outlined" style="color:var(--color-text-tertiary);">more_horiz</span>
+                    </template>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+          
           <section class="grid-3">
             <div class="glass-panel metric-card">
               <span class="material-symbols-outlined watermark" style="color:var(--color-danger-600);">report</span>
@@ -437,33 +580,9 @@
               </div>
             </div>
           </section>
-          <section class="glass-panel panel-pad">
-            <div class="chart-header">
-              <h2 class="section-title">核心风险任务列表</h2>
-              <div class="page-actions">
-                <button class="btn-secondary">导出清单</button>
-                <button class="btn-primary">一键处理</button>
-              </div>
-            </div>
-            <table class="data-table">
-              <thead>
-                <tr><th>任务名称</th><th>风险等级</th><th>风险因子</th><th>进度阻碍</th><th>负责人</th><th>操作</th></tr>
-              </thead>
-              <tbody>
-                <tr v-for="r in riskTasks" :key="r.name">
-                  <td><strong>{{ r.name }}</strong></td>
-                  <td><span class="pill" :class="r.levelClass">{{ r.level }}</span></td>
-                  <td>{{ r.factor }}</td>
-                  <td><div class="progress-track"><div class="progress-fill" :style="{ width: r.block + '%', background: r.barColor }"></div></div></td>
-                  <td>{{ r.owner }}</td>
-                  <td><span class="material-symbols-outlined" style="color:var(--color-text-tertiary);">more_horiz</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
-        </div>
+          </div>
 
-        <!-- Reports -->
+        <!-- Risk -->
         <div v-show="currentTab === 'reports'" class="tab-panel">
           <section class="glass-panel filter-bar">
             <button class="btn-chip" :class="{ active: reportTimeFilter === '30days' }" @click="setReportTimeFilter('30days')">最近 30 天</button>
@@ -623,12 +742,44 @@
 
         <!-- Docs -->
         <div v-show="currentTab === 'docs'" class="tab-panel">
+          <section class="doc-header">
+            <h2 class="section-title">项目文档</h2>
+            <div class="page-actions">
+              <div class="chip-group">
+                <button class="btn-chip" :class="{ active: docFilter === 'all' }" @click="docFilter = 'all'">全部</button>
+                <button class="btn-chip" :class="{ active: docFilter === '需求' }" @click="docFilter = '需求'">需求</button>
+                <button class="btn-chip" :class="{ active: docFilter === '设计' }" @click="docFilter = '设计'">设计</button>
+                <button class="btn-chip" :class="{ active: docFilter === '测试' }" @click="docFilter = '测试'">测试</button>
+                <button class="btn-chip" :class="{ active: docFilter === '风险' }" @click="docFilter = '风险'">风险</button>
+              </div>
+              <button v-if="isProjectLeader" class="btn-chip btn-primary" @click="openDocModal('add')"><span class="material-symbols-outlined">add</span>上传文档</button>
+            </div>
+          </section>
           <section class="doc-grid">
-            <article class="doc-card glass-panel" v-for="doc in docList" :key="doc.title">
-              <span class="pill" :class="doc.pillClass">{{ doc.pill }}</span>
+            <article 
+              class="doc-card glass-panel" 
+              v-for="doc in filteredDocs" 
+              :key="doc.id"
+              @click="openDocDetail(doc)"
+            >
+              <div class="doc-card-header">
+                <div class="doc-status">
+                  <span class="pill" :class="doc.statusClass">{{ doc.status }}</span>
+                  <span v-if="doc.versions.length > 1" class="pill pill-secondary" @click.stop="openVersionHistory(doc)">v{{ doc.versions.length }}</span>
+                </div>
+                <div v-if="isProjectLeader" class="doc-actions">
+                  <button class="icon-btn xs" @click.stop="openDocModal('edit', doc)"><span class="material-symbols-outlined">more_vert</span></button>
+                </div>
+              </div>
               <h3 style="margin-top:14px;font-size:20px;">{{ doc.title }}</h3>
               <p>{{ doc.desc }}</p>
-              <div class="summary-kpis"><div class="summary-kpi"><span>{{ doc.metaLabel }}</span><strong>{{ doc.metaValue }}</strong></div></div>
+              <div class="doc-tags">
+                <span class="doc-tag" v-for="tag in doc.tags" :key="tag">{{ tag }}</span>
+              </div>
+              <div class="doc-meta">
+                <span>{{ doc.owner }}</span>
+                <span>{{ doc.lastUpdate }}</span>
+              </div>
             </article>
           </section>
           <section class="empty-card glass-panel">
@@ -641,7 +792,7 @@
     </main>
 
     <!-- Edit Project Modal -->
-    <div class="modal-shell" v-show="isEditModalOpen">
+    <div class="modal-shell" :class="{ open: isEditModalOpen }">
       <div class="modal-backdrop" @click="isEditModalOpen = false"></div>
       <section class="modal-panel glass-panel-strong project-edit-modal">
         <div class="modal-header">
@@ -1035,6 +1186,358 @@
           <div class="modal-footer-actions">
             <button class="btn-secondary" @click="showManualAdjustModal = false"><span class="material-symbols-outlined">close</span>关闭</button>
             <button class="btn-primary"><span class="material-symbols-outlined">save</span>保存调整</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 风险任务编辑弹窗 -->
+    <div class="modal-shell" :class="{ open: showRiskTaskModal }">
+      <div class="modal-backdrop" @click="closeRiskTaskModal"></div>
+      <section class="modal-panel glass-panel-strong risk-task-modal">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-warning"><span class="material-symbols-outlined">{{ riskTaskModalMode === 'add' ? 'add' : 'edit_note' }}</span>{{ riskTaskModalMode === 'add' ? '添加风险任务' : '编辑风险任务' }}</span>
+            <h2 class="section-title" style="font-size: 24px; margin-top: 14px;">{{ riskTaskModalMode === 'add' ? '新建风险任务' : editingRiskTask.name }}</h2>
+          </div>
+          <button class="icon-btn" @click="closeRiskTaskModal"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <div style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
+          <div class="form-group">
+            <label>任务名称 *</label>
+            <input v-model="editingRiskTask.name" type="text" class="form-control" placeholder="请输入风险任务名称" />
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label>风险等级</label>
+              <div class="chip-group">
+                <button 
+                  v-for="option in riskLevelOptions" 
+                  :key="option.value"
+                  class="btn-chip" 
+                  :class="[option.class, { active: editingRiskTask.level === option.value }]" 
+                  @click="editingRiskTask.level = option.value"
+                >{{ option.label }}</button>
+              </div>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>进度阻碍 (%)</label>
+              <input v-model.number="editingRiskTask.block" type="number" min="0" max="100" class="form-control" placeholder="0-100" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label>风险因子</label>
+              <input v-model="editingRiskTask.factor" type="text" class="form-control" placeholder="请输入风险因子" />
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>负责人</label>
+              <input v-model="editingRiskTask.owner" type="text" class="form-control" placeholder="请输入负责人姓名" />
+            </div>
+          </div>
+
+          <div v-if="riskTaskModalMode === 'edit'" class="form-group">
+            <button class="btn-danger btn-sm" @click="deleteRiskTask(editingRiskTask.id); closeRiskTaskModal()">
+              <span class="material-symbols-outlined">delete</span>删除任务
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="closeRiskTaskModal"><span class="material-symbols-outlined">close</span>取消</button>
+            <button class="btn-primary" @click="saveRiskTask"><span class="material-symbols-outlined">save</span>{{ riskTaskModalMode === 'add' ? '添加任务' : '保存修改' }}</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 文档编辑弹窗 -->
+    <div class="modal-shell" :class="{ open: showDocModal }">
+      <div class="modal-backdrop" @click="closeDocModal"></div>
+      <section class="modal-panel glass-panel-strong">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-primary"><span class="material-symbols-outlined">{{ docModalMode === 'add' ? 'add' : 'edit_note' }}</span>{{ docModalMode === 'add' ? '上传文档' : '编辑文档' }}</span>
+            <h2 class="section-title" style="font-size: 24px; margin-top: 14px;">{{ docModalMode === 'add' ? '新建文档' : editingDoc.title }}</h2>
+          </div>
+          <button class="icon-btn" @click="closeDocModal"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <div style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
+          <div class="form-group">
+            <label>文档标题 *</label>
+            <input v-model="editingDoc.title" type="text" class="form-control" placeholder="请输入文档标题" />
+          </div>
+
+          <div class="form-group">
+            <label>文档描述</label>
+            <textarea v-model="editingDoc.desc" class="form-control" rows="3" placeholder="请输入文档描述"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>文档状态</label>
+              <div class="chip-group">
+                <button 
+                  v-for="option in docStatusOptions" 
+                  :key="option.value"
+                  class="btn-chip" 
+                  :class="[option.class, { active: editingDoc.status === option.value }]" 
+                  @click="editingDoc.status = option.value"
+                >{{ option.label }}</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>负责人</label>
+              <input v-model="editingDoc.owner" type="text" class="form-control" placeholder="请输入负责人" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>分类标签</label>
+            <div class="chip-group">
+              <button 
+                v-for="tag in docTypeTags" 
+                :key="tag"
+                class="btn-chip" 
+                :class="{ active: editingDoc.tags.includes(tag) }" 
+                @click="toggleDocTag(tag)"
+              >{{ tag }}</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>文档内容</label>
+            <textarea v-model="editingDoc.content" class="form-control" rows="6" placeholder="请输入文档内容（支持 Markdown）"></textarea>
+          </div>
+
+          <div v-if="docModalMode === 'edit'" class="form-group">
+            <button class="btn-danger btn-sm" @click="deleteDoc(editingDoc.id); closeDocModal()">
+              <span class="material-symbols-outlined">delete</span>删除文档
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="closeDocModal"><span class="material-symbols-outlined">close</span>取消</button>
+            <button class="btn-primary" @click="saveDoc"><span class="material-symbols-outlined">save</span>{{ docModalMode === 'add' ? '上传文档' : '保存修改' }}</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 文档版本历史弹窗 -->
+    <div class="modal-shell" :class="{ open: showVersionModal }">
+      <div class="modal-backdrop" @click="closeVersionModal"></div>
+      <section class="modal-panel glass-panel-strong">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-secondary"><span class="material-symbols-outlined">history</span>版本历史</span>
+            <h2 class="section-title" style="font-size: 24px; margin-top: 14px;">{{ currentDocTitle }}</h2>
+          </div>
+          <button class="icon-btn" @click="closeVersionModal"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <div style="max-height: 50vh; overflow-y: auto; padding-right: 8px;">
+          <div class="version-list">
+            <div 
+              v-for="(version, index) in currentDocVersions" 
+              :key="version.version"
+              class="version-item"
+              :class="{ active: index === 0 }"
+            >
+              <div class="version-header">
+                <span class="version-tag">{{ version.version }}</span>
+                <span class="version-date">{{ version.date }}</span>
+              </div>
+              <div class="version-info">
+                <span class="material-symbols-outlined" style="font-size:16px;">person</span>
+                <span>{{ version.author }}</span>
+              </div>
+              <div class="version-changes">
+                <span class="material-symbols-outlined" style="font-size:16px;">edit_note</span>
+                <span>{{ version.changes }}</span>
+              </div>
+              <div v-if="isProjectLeader && index > 0" class="version-actions">
+                <button class="btn-chip btn-sm" @click="rollbackToVersion(version)">回退到此版本</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="closeVersionModal"><span class="material-symbols-outlined">close</span>关闭</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 文档详情弹窗 -->
+    <div class="modal-shell" :class="{ open: showDocDetailModal }">
+      <div class="modal-backdrop" @click="closeDocDetailModal"></div>
+      <section class="modal-panel glass-panel-strong" style="max-width: 900px; max-height: 85vh;">
+        <div class="modal-header">
+          <div>
+            <span class="pill" :class="currentDoc?.statusClass">{{ currentDoc?.status }}</span>
+            <h2 class="section-title" style="font-size: 24px; margin-top: 14px;">{{ currentDoc?.title }}</h2>
+          </div>
+          <div class="modal-actions">
+            <button class="icon-btn" @click="downloadDoc" title="下载"><span class="material-symbols-outlined">download</span></button>
+            <button class="icon-btn" @click="shareDoc" title="分享"><span class="material-symbols-outlined">share</span></button>
+            <button v-if="isProjectLeader" class="icon-btn" @click="openDocModal('edit', currentDoc)" title="编辑"><span class="material-symbols-outlined">edit</span></button>
+            <button class="icon-btn" @click="closeDocDetailModal"><span class="material-symbols-outlined">close</span></button>
+          </div>
+        </div>
+
+        <div style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
+          <div class="doc-detail-meta">
+            <span class="doc-tag" v-for="tag in currentDoc?.tags" :key="tag">{{ tag }}</span>
+            <span class="doc-owner">{{ currentDoc?.owner }}</span>
+            <span class="doc-update">{{ currentDoc?.lastUpdate }}</span>
+          </div>
+
+          <div class="doc-content">
+            <p>{{ currentDoc?.desc }}</p>
+            <div class="markdown-preview">
+              <pre>{{ currentDoc?.content }}</pre>
+            </div>
+          </div>
+
+          <div class="doc-comments">
+            <h3><span class="material-symbols-outlined">message</span>评论</h3>
+            <div class="comment-list">
+              <div v-if="docComments.length === 0" class="empty-state">
+                <span class="material-symbols-outlined">comment</span>
+                <p>暂无评论</p>
+              </div>
+              <div v-for="comment in docComments" :key="comment.id" class="comment-item">
+                <img :src="comment.avatar" class="comment-avatar" />
+                <div class="comment-content">
+                  <div class="comment-header">
+                    <span class="comment-author">{{ comment.author }}</span>
+                    <span class="comment-time">{{ comment.time }}</span>
+                  </div>
+                  <p>{{ comment.content }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="comment-input">
+              <input v-model="newComment" type="text" class="form-control" placeholder="添加评论..." @keyup.enter="addDocComment" />
+              <button class="btn-primary" @click="addDocComment"><span class="material-symbols-outlined">send</span></button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 甘特图任务编辑弹窗 -->
+    <div class="modal-shell" :class="{ open: showGanttTaskModal }">
+      <div class="modal-backdrop" @click="closeGanttTaskModal"></div>
+      <section class="modal-panel glass-panel-strong gantt-task-modal">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-primary"><span class="material-symbols-outlined">{{ ganttTaskModalMode === 'add' ? 'add' : 'edit_note' }}</span>{{ ganttTaskModalMode === 'add' ? '添加任务' : '编辑任务' }}</span>
+            <h2 class="section-title" style="font-size: 24px; margin-top: 14px;">{{ ganttTaskModalMode === 'add' ? '新建甘特图任务' : editingGanttTask.name }}</h2>
+          </div>
+          <button class="icon-btn" @click="closeGanttTaskModal"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <div style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
+          <div class="form-group">
+            <label>任务名称 *</label>
+            <input v-model="editingGanttTask.name" type="text" class="form-control" placeholder="请输入任务名称" />
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label>负责人</label>
+              <input v-model="editingGanttTask.owner" type="text" class="form-control" placeholder="请输入负责人姓名" />
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>进度 (%)</label>
+              <input v-model.number="editingGanttTask.progress" type="number" min="0" max="100" class="form-control" placeholder="0-100" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label>开始日期</label>
+              <input v-model="editingGanttTask.startDate" type="date" class="form-control" />
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>结束日期</label>
+              <input v-model="editingGanttTask.endDate" type="date" class="form-control" />
+            </div>
+            <div class="form-group" style="flex: 0 0 120px;">
+              <label>工期 (天)</label>
+              <input v-model.number="editingGanttTask.duration" type="number" min="1" class="form-control" placeholder="1" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>分类标签</label>
+            <div class="chip-group">
+              <button 
+                class="btn-chip" 
+                :class="{ active: editingGanttTask.barClass === 'blue' }" 
+                @click="editingGanttTask.barClass = 'blue'"
+              >需求</button>
+              <button 
+                class="btn-chip" 
+                :class="{ active: editingGanttTask.barClass === 'purple' }" 
+                @click="editingGanttTask.barClass = 'purple'"
+              >开发</button>
+              <button 
+                class="btn-chip" 
+                :class="{ active: editingGanttTask.barClass === 'red' }" 
+                @click="editingGanttTask.barClass = 'red'"
+              >联调</button>
+              <button 
+                class="btn-chip" 
+                :class="{ active: editingGanttTask.barClass === 'green' }" 
+                @click="editingGanttTask.barClass = 'green'"
+              >验收</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label class="checkbox-label">
+              <input v-model="editingGanttTask.isMilestone" type="checkbox" />
+              <span>里程碑任务</span>
+            </label>
+            <label class="checkbox-label">
+              <input v-model="editingGanttTask.isCritical" type="checkbox" />
+              <span>关键路径</span>
+            </label>
+          </div>
+
+          <div v-if="editingGanttTask.subtasks?.length" class="form-group">
+            <label>子任务</label>
+            <div class="subtask-list">
+              <div v-for="sub in editingGanttTask.subtasks" :key="sub.id" class="subtask-item">
+                <span>{{ sub.name }}</span>
+                <span class="progress-badge" :class="getProgressClass(sub.progress)">{{ sub.progress }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="ganttTaskModalMode === 'edit'" class="form-group">
+            <button class="btn-danger btn-sm" @click="deleteGanttTask(editingGanttTask.id); closeGanttTaskModal()">
+              <span class="material-symbols-outlined">delete</span>删除任务
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="closeGanttTaskModal"><span class="material-symbols-outlined">close</span>取消</button>
+            <button class="btn-primary" @click="saveGanttTask"><span class="material-symbols-outlined">save</span>{{ ganttTaskModalMode === 'add' ? '添加任务' : '保存修改' }}</button>
           </div>
         </div>
       </section>
@@ -1524,6 +2027,142 @@
       </section>
     </div>
 
+    <!-- 看板任务编辑弹窗 -->
+    <div class="modal-shell" :class="{ open: showKanbanEditModal }">
+      <div class="modal-backdrop" @click="closeKanbanTaskModal()"></div>
+      <section class="modal-panel glass-panel-strong">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-primary"><span class="material-symbols-outlined">list_alt</span>{{ taskModalMode === 'edit' ? '编辑任务' : '添加任务' }}</span>
+            <h2 class="section-title" style="font-size: 24px; margin-top: 12px;">{{ kanbanData.find(c => c.id === currentColumnId)?.name || '待开始' }} - {{ taskModalMode === 'edit' ? '编辑任务' : '新增任务' }}</h2>
+          </div>
+          <button class="icon-btn" @click="closeKanbanTaskModal()"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <div style="padding: 24px;">
+          <div class="field-stack">
+            <label class="field-label">任务标题</label>
+            <div class="field-input">
+              <span class="material-symbols-outlined">title</span>
+              <input type="text" v-model="editingTask.title" placeholder="请输入任务标题" />
+            </div>
+          </div>
+
+          <div class="field-stack" style="margin-top: 20px;">
+            <label class="field-label">优先级</label>
+            <div class="chip-group" style="margin-top: 12px;">
+              <button 
+                v-for="p in priorityOptions" 
+                :key="p.text"
+                class="permission-chip"
+                :class="{ on: editingTask.priority === p.text }"
+                @click="editingTask.priority = p.text"
+              >{{ p.text }}</button>
+            </div>
+          </div>
+
+          <div class="field-stack" style="margin-top: 20px;">
+            <label class="field-label">标签</label>
+            <div class="field-input">
+              <span class="material-symbols-outlined">label</span>
+              <input type="text" v-model="editingTask.tag" placeholder="输入标签名称（如：里程碑、PBC等）" />
+            </div>
+          </div>
+
+          <div class="field-stack" style="margin-top: 20px;">
+            <label class="field-label">截止时间</label>
+            <div class="field-input">
+              <span class="material-symbols-outlined">schedule</span>
+              <input type="text" v-model="editingTask.deadline" placeholder="如：周五、今天 18:00" />
+            </div>
+          </div>
+
+          <div class="field-stack" style="margin-top: 20px;">
+            <label class="field-label">进度</label>
+            <div class="field-input">
+              <span class="material-symbols-outlined">percent</span>
+              <input type="text" v-model="editingTask.progress" placeholder="如：50%" />
+            </div>
+          </div>
+
+          <div class="field-stack" style="margin-top: 20px;">
+            <label class="field-label">是否阻塞</label>
+            <div class="toggle-switch">
+              <input type="checkbox" id="is-blocked" v-model="editingTask.isBlocked" />
+              <label for="is-blocked" class="toggle-label"></label>
+              <span>{{ editingTask.isBlocked ? '是' : '否' }}</span>
+            </div>
+          </div>
+
+          <div class="field-stack" style="margin-top: 20px;">
+            <label class="field-label">任务描述</label>
+            <div class="field-input">
+              <span class="material-symbols-outlined">notes</span>
+              <textarea v-model="editingTask.description" placeholder="请输入任务描述，如：负责人、预估工时等"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-status">
+            <span class="material-symbols-outlined">info</span>
+            只有项目组长可以编辑项目看板
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="closeKanbanTaskModal()"><span class="material-symbols-outlined">close</span>取消</button>
+            <button v-if="taskModalMode === 'edit'" class="btn-danger" @click="deleteTask(editingTask.id); closeKanbanTaskModal()">
+              <span class="material-symbols-outlined">delete</span>删除任务
+            </button>
+            <button class="btn-primary" @click="saveTask"><span class="material-symbols-outlined">{{ taskModalMode === 'add' ? 'add_task' : 'save' }}</span>{{ taskModalMode === 'add' ? '添加任务' : '保存修改' }}</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 列管理弹窗 -->
+    <div class="modal-shell" :class="{ open: isColumnModalOpen }">
+      <div class="modal-backdrop" @click="closeColumnModal()"></div>
+      <section class="modal-panel glass-panel-strong">
+        <div class="modal-header">
+          <div>
+            <span class="pill pill-primary"><span class="material-symbols-outlined">view_column</span>{{ columnModalMode === 'edit' ? '编辑列' : '添加列' }}</span>
+            <h2 class="section-title" style="font-size: 24px; margin-top: 12px;">{{ columnModalMode === 'edit' ? '编辑列设置' : '新建列' }}</h2>
+          </div>
+          <button class="icon-btn" @click="closeColumnModal()"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <div style="padding: 24px;">
+          <div class="field-stack">
+            <label class="field-label">列名称</label>
+            <div class="field-input">
+              <span class="material-symbols-outlined">title</span>
+              <input type="text" v-model="editingColumn.name" placeholder="请输入列名称" />
+            </div>
+          </div>
+
+          <div class="field-stack" style="margin-top: 20px;">
+            <label class="field-label">WIP限制（可选）</label>
+            <div class="field-input">
+              <span class="material-symbols-outlined">limit</span>
+              <input type="number" v-model.number="editingColumn.wipLimit" placeholder="输入最大任务数，留空则不限制" min="1" />
+            </div>
+            <p class="field-hint" style="margin-top: 8px; font-size: 13px; color: var(--color-text-tertiary);">WIP（Work in Progress）限制可以帮助控制在制品数量，提高交付效率</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="modal-status">
+            <span class="material-symbols-outlined">info</span>
+            只有项目组长可以管理看板列
+          </div>
+          <div class="modal-footer-actions">
+            <button class="btn-secondary" @click="closeColumnModal()"><span class="material-symbols-outlined">close</span>取消</button>
+            <button class="btn-primary" @click="saveColumn"><span class="material-symbols-outlined">{{ columnModalMode === 'add' ? 'add' : 'save' }}</span>{{ columnModalMode === 'add' ? '添加列' : '保存修改' }}</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
     <!-- Toast -->
     <Transition name="toast">
       <div v-if="toast.show" class="toast">
@@ -1577,11 +2216,21 @@ const handleOpenNotifications = () => {
   pushNotificationPath(router, route.fullPath)
 }
 
-const currentUser = {
-  name: '王志强',
-  role: '项目负责人',
-  avatar: 'https://i.pravatar.cc/80?img=47'
-}
+const currentUser = computed(() => {
+  const userStr = localStorage.getItem('currentUser')
+  if (userStr) {
+    return JSON.parse(userStr)
+  }
+  return {
+    name: '王志强',
+    role: '项目负责人',
+    avatar: 'https://i.pravatar.cc/80?img=47'
+  }
+})
+
+const isProjectLeader = computed(() => {
+  return currentUser.value.name === project.value.owner
+})
 
 // AI项目建议弹窗
 const showAiSuggestionModal = ref(false)
@@ -1921,25 +2570,25 @@ const currentPriority = ref('')
 
 // 原始看板数据
 const kanbanData = ref([
-  { name: '待开始', pillClass: 'pill-neutral', cards: [
-    { title: '整理联调验证清单', tags: [{ text: 'P2', class: 'p2' }, { text: '里程碑' }], note: '负责人：赵扬 · 预估工时 1.5d' },
-    { title: '补充异常样本说明', tags: [{ text: 'P3', class: 'p3' }], note: '负责人：韩诚 · 截止：周四' }
+  { id: 1, name: '待开始', pillClass: 'pill-neutral', wipLimit: 5, cards: [
+    { id: 1, title: '整理联调验证清单', priority: 'P2', tag: '里程碑', deadline: '周五', progress: '0%', description: '负责人：赵扬 · 预估工时 1.5d', isBlocked: false },
+    { id: 2, title: '补充异常样本说明', priority: 'P3', tag: '', deadline: '周四', progress: '0%', description: '负责人：韩诚', isBlocked: false }
   ]},
-  { name: '进行中', pillClass: 'pill-neutral', cards: [
-    { title: '联调环境参数回灌', tags: [{ text: 'P0', class: 'p0' }, { text: '依赖平台组' }], note: '负责人：陈思远 · 进度 62%' },
-    { title: '样本误差回归验证', tags: [{ text: 'P1', class: 'p1' }, { text: 'PBC' }], note: '负责人：王雅婷 · 进度 48%' }
+  { id: 2, name: '进行中', pillClass: 'pill-neutral', wipLimit: 5, cards: [
+    { id: 3, title: '联调环境参数回灌', priority: 'P0', tag: '依赖平台组', deadline: '周三', progress: '62%', description: '负责人：陈思远', isBlocked: false },
+    { id: 4, title: '样本误差回归验证', priority: 'P1', tag: 'PBC', deadline: '周五', progress: '48%', description: '负责人：王雅婷', isBlocked: false }
   ]},
-  { name: '待评审', pillClass: 'pill-neutral', cards: [
-    { title: '晶格归一化策略更新', tags: [{ text: 'P1', class: 'p1' }, { text: '需 QA 确认' }], note: '负责人：林初夏 · 截止 今天 18:00' },
-    { title: '模型输出字段映射表', tags: [{ text: 'P2', class: 'p2' }], note: '负责人：韩诚 · 进度 90%' }
+  { id: 3, name: '待评审', pillClass: 'pill-neutral', wipLimit: 5, cards: [
+    { id: 5, title: '晶格归一化策略更新', priority: 'P1', tag: '需 QA 确认', deadline: '今天 18:00', progress: '85%', description: '负责人：林初夏', isBlocked: false },
+    { id: 6, title: '模型输出字段映射表', priority: 'P2', tag: '', deadline: '周六', progress: '90%', description: '负责人：韩诚', isBlocked: false }
   ]},
-  { name: '已完成', pillClass: 'pill-neutral', cards: [
-    { title: '需求评审结论归档', tags: [{ text: 'P2', class: 'p2' }, { text: '完成' }], note: '负责人：王志强 · 已自动同步日报' },
-    { title: '开发任务拆解确认', tags: [{ text: 'P3', class: 'p3' }], note: '负责人：陈思远 · 已绑定基线' }
+  { id: 4, name: '已完成', pillClass: 'pill-success', wipLimit: null, cards: [
+    { id: 7, title: '需求评审结论归档', priority: 'P2', tag: '', deadline: '周一', progress: '100%', description: '负责人：王志强 · 已自动同步日报', isBlocked: false },
+    { id: 8, title: '开发任务拆解确认', priority: 'P3', tag: '', deadline: '周二', progress: '100%', description: '负责人：陈思远 · 已绑定基线', isBlocked: false }
   ]},
-  { name: '已阻塞', pillClass: 'pill-danger', style: 'background:rgba(255,235,233,0.34);border-color:rgba(216,58,52,0.18);', cards: [
-    { title: '测试环境参数冻结', tags: [{ text: 'P0', class: 'p0' }, { text: '阻塞', style: 'color:var(--color-danger-600);background:rgba(255,218,214,0.82);' }], note: '阻塞原因：环境配置窗口未确认' },
-    { title: '联调回灌日志补录', tags: [{ text: 'P1', class: 'p1' }], note: '阻塞依赖：测试环境参数冻结' }
+  { id: 5, name: '已阻塞', pillClass: 'pill-danger', wipLimit: null, style: 'background:rgba(255,235,233,0.34);border-color:rgba(216,58,52,0.18);', cards: [
+    { id: 9, title: '测试环境参数冻结', priority: 'P0', tag: '阻塞', deadline: '', progress: '30%', description: '阻塞原因：环境配置窗口未确认', isBlocked: true },
+    { id: 10, title: '联调回灌日志补录', priority: 'P1', tag: '', deadline: '', progress: '0%', description: '阻塞依赖：测试环境参数冻结', isBlocked: true }
   ]}
 ])
 
@@ -1947,6 +2596,275 @@ const kanbanData = ref([
 const setFilter = (filter) => {
   activeFilter.value = filter
 }
+
+// 看板编辑弹窗
+const showKanbanEditModal = ref(false)
+const taskModalMode = ref('add')
+const currentColumnId = ref(null)
+const editingTask = ref({
+  title: '',
+  priority: 'P2',
+  tag: '',
+  deadline: '',
+  progress: '0%',
+  description: '',
+  isBlocked: false
+})
+
+// 拖拽相关变量
+const draggedTask = ref(null)
+const draggedFromColumn = ref(null)
+const dragOverColumn = ref(null)
+
+// 列管理相关变量
+const isColumnModalOpen = ref(false)
+const columnModalMode = ref('add')
+const editingColumn = ref({ name: '', wipLimit: 5 })
+const showColumnMenu = ref(null)
+const showTaskMenu = ref(null)
+
+// 打开任务编辑弹窗
+const openKanbanTaskModal = (mode, task = null, columnId = null) => {
+  taskModalMode.value = mode
+  currentColumnId.value = columnId
+  if (mode === 'edit') {
+    editingTask.value = { ...task }
+  } else {
+    editingTask.value = {
+      title: '',
+      priority: 'P2',
+      tag: '',
+      deadline: '',
+      progress: '0%',
+      description: '',
+      isBlocked: false
+    }
+  }
+  showKanbanEditModal.value = true
+}
+
+// 关闭任务编辑弹窗
+const closeKanbanTaskModal = () => {
+  showKanbanEditModal.value = false
+  editingTask.value = { title: '', priority: 'P2', tag: '', deadline: '', progress: '0%', description: '', isBlocked: false }
+  currentColumnId.value = null
+}
+
+// 保存任务
+const saveTask = () => {
+  if (!editingTask.value.title.trim()) {
+    showToast('请输入任务标题', '任务标题不能为空', 'warning')
+    return
+  }
+  
+  const column = kanbanData.value.find(c => c.id === currentColumnId.value)
+  if (!column) {
+    showToast('错误', '未找到目标列', 'error')
+    return
+  }
+  
+  // 检查WIP限制
+  if (column.wipLimit && taskModalMode.value === 'add' && column.cards.length >= column.wipLimit) {
+    showToast('WIP限制', `该列已达到WIP限制(${column.wipLimit}个任务)`, 'warning')
+    return
+  }
+  
+  if (taskModalMode.value === 'add') {
+    const newId = Math.max(...kanbanData.value.flatMap(c => c.cards.map(t => t.id)), 0) + 1
+    column.cards.push({
+      id: newId,
+      ...editingTask.value,
+      isBlocked: editingTask.value.isBlocked || false
+    })
+    showToast('任务已添加', '已成功添加新任务', 'add_task')
+  } else {
+    // 更新任务
+    const targetColumn = kanbanData.value.find(c => 
+      c.cards.some(t => t.id === editingTask.value.id)
+    )
+    if (targetColumn) {
+      const taskIndex = targetColumn.cards.findIndex(t => t.id === editingTask.value.id)
+      if (taskIndex > -1) {
+        targetColumn.cards[taskIndex] = { ...editingTask.value }
+      }
+    }
+    showToast('任务已更新', '已成功更新任务', 'update')
+  }
+  closeKanbanTaskModal()
+}
+
+// 删除任务
+const deleteTask = (taskId) => {
+  for (const column of kanbanData.value) {
+    const index = column.cards.findIndex(t => t.id === taskId)
+    if (index > -1) {
+      column.cards.splice(index, 1)
+      showToast('任务已删除', '已成功删除任务', 'delete')
+      return
+    }
+  }
+}
+
+// 更新任务进度
+const updateTaskProgress = (taskId, progress) => {
+  for (const column of kanbanData.value) {
+    const task = column.cards.find(t => t.id === taskId)
+    if (task) {
+      task.progress = progress
+      if (progress === '100%') {
+        // 移动到已完成列
+        const doneColumn = kanbanData.value.find(c => c.name === '已完成')
+        if (doneColumn && column.id !== doneColumn.id) {
+          const index = column.cards.findIndex(t => t.id === taskId)
+          if (index > -1) {
+            column.cards.splice(index, 1)
+            doneColumn.cards.push(task)
+          }
+        }
+      }
+      break
+    }
+  }
+}
+
+// 拖拽方法
+const handleTaskDragStart = (task, columnId) => {
+  draggedTask.value = task
+  draggedFromColumn.value = columnId
+}
+
+const handleTaskDragOver = (e, columnId) => {
+  e.preventDefault()
+  dragOverColumn.value = columnId
+}
+
+const handleTaskDragLeave = () => {
+  dragOverColumn.value = null
+}
+
+const handleTaskDrop = (targetColumnId) => {
+  if (!draggedTask.value || draggedFromColumn.value === targetColumnId) {
+    draggedTask.value = null
+    draggedFromColumn.value = null
+    dragOverColumn.value = null
+    return
+  }
+  
+  const targetColumn = kanbanData.value.find(c => c.id === targetColumnId)
+  
+  // 检查WIP限制
+  if (targetColumn.wipLimit && targetColumn.cards.length >= targetColumn.wipLimit) {
+    showToast('WIP限制', `目标列已达到WIP限制(${targetColumn.wipLimit}个任务)`, 'warning')
+    draggedTask.value = null
+    draggedFromColumn.value = null
+    dragOverColumn.value = null
+    return
+  }
+  
+  // 从原列移除
+  const sourceColumn = kanbanData.value.find(c => c.id === draggedFromColumn.value)
+  if (sourceColumn) {
+    const taskIndex = sourceColumn.cards.findIndex(t => t.id === draggedTask.value.id)
+    if (taskIndex > -1) {
+      sourceColumn.cards.splice(taskIndex, 1)
+    }
+  }
+  
+  // 添加到目标列
+  if (targetColumn) {
+    targetColumn.cards.push({ ...draggedTask.value })
+  }
+  
+  showToast('任务已移动', '任务已成功移动到目标列', 'move')
+  
+  draggedTask.value = null
+  draggedFromColumn.value = null
+  dragOverColumn.value = null
+}
+
+// 列管理方法
+const openColumnModal = (mode, column = null) => {
+  columnModalMode.value = mode
+  if (mode === 'edit') {
+    editingColumn.value = { ...column }
+  } else {
+    editingColumn.value = { name: '', wipLimit: 5 }
+  }
+  isColumnModalOpen.value = true
+}
+
+const closeColumnModal = () => {
+  isColumnModalOpen.value = false
+  editingColumn.value = { name: '', wipLimit: 5 }
+}
+
+const saveColumn = () => {
+  if (!editingColumn.value.name.trim()) {
+    showToast('请输入列名称', '列名称不能为空', 'warning')
+    return
+  }
+  if (columnModalMode.value === 'add') {
+    const newId = Math.max(...kanbanData.value.map(c => c.id)) + 1
+    kanbanData.value.push({
+      id: newId,
+      name: editingColumn.value.name,
+      pillClass: 'pill-neutral',
+      wipLimit: editingColumn.value.wipLimit || null,
+      cards: []
+    })
+    showToast('列已添加', `已成功添加 "${editingColumn.value.name}" 列`, 'add')
+  } else {
+    const column = kanbanData.value.find(c => c.id === editingColumn.value.id)
+    if (column) {
+      column.name = editingColumn.value.name
+      column.wipLimit = editingColumn.value.wipLimit || null
+    }
+    showToast('列已更新', `已成功更新 "${editingColumn.value.name}" 列`, 'update')
+  }
+  closeColumnModal()
+}
+
+const deleteColumn = (columnId) => {
+  const column = kanbanData.value.find(c => c.id === columnId)
+  if (!column) return
+  
+  if (column.cards.length > 0) {
+    showToast('无法删除', '请先将该列的所有任务移走', 'error')
+    return
+  }
+  
+  kanbanData.value = kanbanData.value.filter(c => c.id !== columnId)
+  showToast('列已删除', '已成功删除该列', 'delete')
+}
+
+const moveColumn = (columnId, direction) => {
+  const index = kanbanData.value.findIndex(c => c.id === columnId)
+  if (direction === 'up' && index > 0) {
+    const temp = kanbanData.value[index]
+    kanbanData.value[index] = kanbanData.value[index - 1]
+    kanbanData.value[index - 1] = temp
+  } else if (direction === 'down' && index < kanbanData.value.length - 1) {
+    const temp = kanbanData.value[index]
+    kanbanData.value[index] = kanbanData.value[index + 1]
+    kanbanData.value[index + 1] = temp
+  }
+}
+
+const toggleColumnMenu = (columnId) => {
+  showColumnMenu.value = showColumnMenu.value === columnId ? null : columnId
+}
+
+const toggleTaskMenu = (taskId) => {
+  showTaskMenu.value = showTaskMenu.value === taskId ? null : taskId
+}
+
+// 优先级选项
+const priorityOptions = [
+  { text: 'P0', class: 'p0' },
+  { text: 'P1', class: 'p1' },
+  { text: 'P2', class: 'p2' },
+  { text: 'P3', class: 'p3' }
+]
 
 // 优先级循环切换
 const priorityOrder = ['P0', 'P1', 'P2']
@@ -2185,10 +3103,10 @@ const updateSummary = () => {
 
 // 检查卡片是否符合筛选条件
 const filterCard = (card) => {
-  const priorityTags = card.tags.map(t => t.text)
+  const priorityTags = card.tag ? [card.tag] : []
   const hasMilestone = priorityTags.includes('里程碑')
   const hasBlocked = priorityTags.includes('阻塞')
-  const hasWeekDeadline = card.note.includes('今天') || card.note.includes('本周') || card.note.includes('周三') || card.note.includes('周五') || card.note.includes('周四')
+  const hasWeekDeadline = card.note?.includes('今天') || card.note?.includes('本周') || card.note?.includes('周三') || card.note?.includes('周五') || card.note?.includes('周四')
 
   switch (activeFilter.value) {
     case 'priority':
@@ -2356,11 +3274,109 @@ const ganttDates = ref(['四月', '五月', '六月'])
 // 甘特图数据（三个月三等分排布）
 // baseLeft/baseWidth 表示原始计划（基线），barLeft/barWidth 表示实际进度
 const ganttData = ref([
-  { name: '需求评审', owner: '王志强', baseLeft: '5%', baseWidth: '25%', barLeft: '5%', barWidth: '28%', barClass: 'blue', progress: 100 },
-  { name: '开发实现', owner: '韩诚', baseLeft: '35%', baseWidth: '30%', barLeft: '38%', barWidth: '28%', barClass: 'purple', progress: 75 },
-  { name: '联调验证', owner: '陈思远', baseLeft: '40%', baseWidth: '30%', barLeft: '45%', barWidth: '25%', barClass: 'red', progress: 45 },
-  { name: '上线验收', owner: '周雅楠', baseLeft: '75%', baseWidth: '20%', barLeft: '80%', barWidth: '15%', barClass: 'green', progress: 15 }
+  { id: 1, name: '需求评审', owner: '王志强', baseLeft: '5%', baseWidth: '25%', barLeft: '5%', barWidth: '28%', barClass: 'blue', progress: 100, isMilestone: true, isCritical: false, startDate: '2026-04-14', endDate: '2026-04-25', duration: 10 },
+  { id: 2, name: '开发实现', owner: '韩诚', baseLeft: '35%', baseWidth: '30%', barLeft: '38%', barWidth: '28%', barClass: 'purple', progress: 75, isMilestone: false, isCritical: true, startDate: '2026-04-28', endDate: '2026-05-17', duration: 14, dependencies: [1], subtasks: [{ id: 21, name: '模块A开发', progress: 100 }, { id: 22, name: '模块B开发', progress: 70 }, { id: 23, name: '接口联调', progress: 60 }] },
+  { id: 3, name: '联调验证', owner: '陈思远', baseLeft: '40%', baseWidth: '30%', barLeft: '45%', barWidth: '25%', barClass: 'red', progress: 45, isMilestone: false, isCritical: true, startDate: '2026-05-02', endDate: '2026-05-21', duration: 14, dependencies: [2] },
+  { id: 4, name: '上线验收', owner: '周雅楠', baseLeft: '75%', baseWidth: '20%', barLeft: '80%', barWidth: '15%', barClass: 'green', progress: 15, isMilestone: true, isCritical: true, startDate: '2026-05-22', endDate: '2026-06-05', duration: 10, dependencies: [3] }
 ])
+
+// 甘特图编辑弹窗
+const showGanttTaskModal = ref(false)
+const ganttTaskModalMode = ref('add')
+const editingGanttTask = ref({
+  name: '',
+  owner: '',
+  progress: 0,
+  startDate: '',
+  endDate: '',
+  duration: 1,
+  isMilestone: false,
+  isCritical: false,
+  dependencies: []
+})
+
+const openGanttTaskModal = (mode, task = null) => {
+  ganttTaskModalMode.value = mode
+  if (mode === 'edit' && task) {
+    editingGanttTask.value = { ...task }
+  } else {
+    editingGanttTask.value = {
+      name: '',
+      owner: '',
+      progress: 0,
+      startDate: '',
+      endDate: '',
+      duration: 1,
+      isMilestone: false,
+      isCritical: false,
+      dependencies: []
+    }
+  }
+  showGanttTaskModal.value = true
+}
+
+const closeGanttTaskModal = () => {
+  showGanttTaskModal.value = false
+}
+
+const saveGanttTask = () => {
+  if (!editingGanttTask.value.name.trim()) {
+    showToast('请输入任务名称', '任务名称不能为空', 'warning')
+    return
+  }
+  
+  if (ganttTaskModalMode.value === 'add') {
+    const newId = Math.max(...ganttData.value.map(t => t.id), 0) + 1
+    ganttData.value.push({
+      id: newId,
+      name: editingGanttTask.value.name,
+      owner: editingGanttTask.value.owner || '未分配',
+      progress: editingGanttTask.value.progress,
+      baseLeft: '10%',
+      baseWidth: '20%',
+      barLeft: '10%',
+      barWidth: `${(editingGanttTask.value.progress / 100) * 20}%`,
+      barClass: 'blue',
+      isMilestone: editingGanttTask.value.isMilestone,
+      isCritical: editingGanttTask.value.isCritical,
+      startDate: editingGanttTask.value.startDate,
+      endDate: editingGanttTask.value.endDate,
+      duration: editingGanttTask.value.duration,
+      dependencies: editingGanttTask.value.dependencies || []
+    })
+    showToast('任务已添加', `已成功添加 "${editingGanttTask.value.name}"`, 'add')
+  } else {
+    const task = ganttData.value.find(t => t.id === editingGanttTask.value.id)
+    if (task) {
+      task.name = editingGanttTask.value.name
+      task.owner = editingGanttTask.value.owner || task.owner
+      task.progress = editingGanttTask.value.progress
+      task.isMilestone = editingGanttTask.value.isMilestone
+      task.isCritical = editingGanttTask.value.isCritical
+      task.startDate = editingGanttTask.value.startDate
+      task.endDate = editingGanttTask.value.endDate
+      task.duration = editingGanttTask.value.duration
+      task.barWidth = `${(task.progress / 100) * 20}%`
+    }
+    showToast('任务已更新', `已成功更新 "${editingGanttTask.value.name}"`, 'update')
+  }
+  closeGanttTaskModal()
+}
+
+const deleteGanttTask = (taskId) => {
+  ganttData.value = ganttData.value.filter(t => t.id !== taskId)
+  showToast('任务已删除', '已成功删除该任务', 'delete')
+}
+
+const setBaseline = () => {
+  ganttData.value.forEach(task => {
+    task.baseLeft = task.barLeft
+    task.baseWidth = task.barWidth
+  })
+  showToast('基线已设置', '已将当前进度设置为新基线', 'update')
+}
+
+const showImportModal = ref(false)
 
 // 获取进度样式类
 const getProgressClass = (progress) => {
@@ -2395,10 +3411,108 @@ const riskInsights = ref([
 ])
 
 const riskTasks = ref([
-  { name: '联调环境参数回灌', level: '极高', levelClass: 'pill-danger', factor: '环境准备冲突', block: 68, barColor: 'linear-gradient(90deg, #f36b63, var(--color-danger-600))', owner: '陈思远' },
-  { name: '样本误差回归验证', level: '中等', levelClass: 'pill-warning', factor: '算力窗口拥堵', block: 42, barColor: 'linear-gradient(90deg, #f7c455, var(--color-warning-600))', owner: '王雅婷' },
-  { name: '测试环境参数冻结', level: '高危', levelClass: 'pill-danger', factor: '阻塞依赖未解除', block: 16, barColor: 'linear-gradient(90deg, #f36b63, var(--color-danger-600))', owner: '赵扬' }
+  { id: 1, name: '联调环境参数回灌', level: '极高', levelClass: 'pill-danger', factor: '环境准备冲突', block: 68, barColor: 'linear-gradient(90deg, #f36b63, var(--color-danger-600))', owner: '陈思远' },
+  { id: 2, name: '样本误差回归验证', level: '中等', levelClass: 'pill-warning', factor: '算力窗口拥堵', block: 42, barColor: 'linear-gradient(90deg, #f7c455, var(--color-warning-600))', owner: '王雅婷' },
+  { id: 3, name: '测试环境参数冻结', level: '高危', levelClass: 'pill-danger', factor: '阻塞依赖未解除', block: 16, barColor: 'linear-gradient(90deg, #f36b63, var(--color-danger-600))', owner: '赵扬' }
 ])
+
+// 风险任务编辑弹窗
+const showRiskTaskModal = ref(false)
+const riskTaskModalMode = ref('add')
+const editingRiskTask = ref({
+  name: '',
+  level: '中等',
+  factor: '',
+  block: 0,
+  owner: ''
+})
+
+const riskLevelOptions = [
+  { label: '极高', value: '极高', class: 'pill-danger' },
+  { label: '高危', value: '高危', class: 'pill-danger' },
+  { label: '中等', value: '中等', class: 'pill-warning' },
+  { label: '低危', value: '低危', class: 'pill-success' }
+]
+
+const getBarColor = (level) => {
+  if (level === '极高' || level === '高危') {
+    return 'linear-gradient(90deg, #f36b63, var(--color-danger-600))'
+  } else if (level === '中等') {
+    return 'linear-gradient(90deg, #f7c455, var(--color-warning-600))'
+  } else {
+    return 'linear-gradient(90deg, #38c59b, var(--color-success-600))'
+  }
+}
+
+const getLevelClass = (level) => {
+  if (level === '极高' || level === '高危') {
+    return 'pill-danger'
+  } else if (level === '中等') {
+    return 'pill-warning'
+  } else {
+    return 'pill-success'
+  }
+}
+
+const openRiskTaskModal = (mode, task = null) => {
+  riskTaskModalMode.value = mode
+  if (mode === 'edit' && task) {
+    editingRiskTask.value = { ...task }
+  } else {
+    editingRiskTask.value = {
+      name: '',
+      level: '中等',
+      factor: '',
+      block: 0,
+      owner: ''
+    }
+  }
+  showRiskTaskModal.value = true
+}
+
+const closeRiskTaskModal = () => {
+  showRiskTaskModal.value = false
+}
+
+const saveRiskTask = () => {
+  if (!editingRiskTask.value.name.trim()) {
+    showToast('请输入任务名称', '任务名称不能为空', 'warning')
+    return
+  }
+  
+  if (riskTaskModalMode.value === 'add') {
+    const newId = Math.max(...riskTasks.value.map(t => t.id), 0) + 1
+    riskTasks.value.push({
+      id: newId,
+      name: editingRiskTask.value.name,
+      level: editingRiskTask.value.level,
+      levelClass: getLevelClass(editingRiskTask.value.level),
+      factor: editingRiskTask.value.factor || '未指定',
+      block: editingRiskTask.value.block,
+      barColor: getBarColor(editingRiskTask.value.level),
+      owner: editingRiskTask.value.owner || '未分配'
+    })
+    showToast('任务已添加', `已成功添加 "${editingRiskTask.value.name}"`, 'add')
+  } else {
+    const task = riskTasks.value.find(t => t.id === editingRiskTask.value.id)
+    if (task) {
+      task.name = editingRiskTask.value.name
+      task.level = editingRiskTask.value.level
+      task.levelClass = getLevelClass(editingRiskTask.value.level)
+      task.factor = editingRiskTask.value.factor || task.factor
+      task.block = editingRiskTask.value.block
+      task.barColor = getBarColor(editingRiskTask.value.level)
+      task.owner = editingRiskTask.value.owner || task.owner
+    }
+    showToast('任务已更新', `已成功更新 "${editingRiskTask.value.name}"`, 'update')
+  }
+  closeRiskTaskModal()
+}
+
+const deleteRiskTask = (taskId) => {
+  riskTasks.value = riskTasks.value.filter(t => t.id !== taskId)
+  showToast('任务已删除', '已成功删除该风险任务', 'delete')
+}
 
 const burnPoints = ref([
   { a: 74, b: 78 }, { a: 66, b: 70 }, { a: 58, b: 61 }, { a: 51, b: 54 },
@@ -2492,10 +3606,288 @@ const miniBars = ref([
 ])
 
 const docList = ref([
-  { title: '需求评审纪要', desc: '记录需求边界、时间计划和依赖说明，供 PM、研发与 QA 对齐使用。', pill: '最新版本', pillClass: 'pill-success', metaLabel: '更新时间', metaValue: '今天 10:40' },
-  { title: '联调验证说明', desc: '包含当前联调阶段的前置条件、关键风险和任务引用，可自动生成摘要。', pill: 'AI 摘要', pillClass: 'pill-ai', metaLabel: '标签', metaValue: '联调 / 风险' },
-  { title: '回归样本池说明', desc: '当前文档仅存在占位，建议下一轮把样本来源、版本和映射关系整理进来。', pill: '待补充', pillClass: 'pill-warning', metaLabel: '责任人', metaValue: 'QA 组' }
+  { 
+    id: 1,
+    title: '需求评审纪要', 
+    desc: '记录需求边界、时间计划和依赖说明，供 PM、研发与 QA 对齐使用。', 
+    status: '最新版本', 
+    statusClass: 'pill-success',
+    tags: ['需求', '评审'],
+    owner: 'PM 组',
+    lastUpdate: '今天 10:40',
+    content: '## 需求评审纪要\n\n### 1. 需求边界\n- 明确项目范围和验收标准\n- 定义核心功能模块\n\n### 2. 时间计划\n- 开发周期：4月15日 - 4月29日\n- 联调阶段：4月30日 - 5月7日\n\n### 3. 依赖说明\n- 外部接口依赖\n- 数据准备依赖',
+    versions: [
+      { version: 'v1.0', date: '2024-04-15 14:30', author: '王志强', changes: '初始版本创建' },
+      { version: 'v1.1', date: '2024-04-18 10:00', author: '陈思远', changes: '更新时间计划' },
+      { version: 'v1.2', date: '2024-04-20 16:45', author: '王志强', changes: '补充依赖说明' }
+    ]
+  },
+  { 
+    id: 2,
+    title: '联调验证说明', 
+    desc: '包含当前联调阶段的前置条件、关键风险和任务引用，可自动生成摘要。', 
+    status: '最新版本', 
+    statusClass: 'pill-success',
+    tags: ['联调', '风险'],
+    owner: '开发组',
+    lastUpdate: '昨天 18:20',
+    content: '## 联调验证说明\n\n### 前置条件\n- 测试环境已就绪\n- 数据回灌完成\n\n### 关键风险\n- 环境参数冲突\n- 样本误差回归\n\n### 任务引用\n- 联调环境参数回灌\n- 样本误差回归验证',
+    versions: [
+      { version: 'v1.0', date: '2024-04-22 09:00', author: '赵扬', changes: '初始版本创建' },
+      { version: 'v1.1', date: '2024-04-25 11:30', author: '赵扬', changes: '添加风险说明' }
+    ]
+  },
+  { 
+    id: 3,
+    title: '回归样本池说明', 
+    desc: '当前文档仅存在占位，建议下一轮把样本来源、版本和映射关系整理进来。', 
+    status: '待补充', 
+    statusClass: 'pill-warning',
+    tags: ['测试', '样本'],
+    owner: 'QA 组',
+    lastUpdate: '3天前',
+    content: '## 回归样本池说明\n\n### 当前状态\n文档占位中，等待补充完整内容。\n\n### 待补充项\n- 样本来源说明\n- 版本映射关系\n- 数据格式定义',
+    versions: [
+      { version: 'v1.0', date: '2024-04-10 10:00', author: '王雅婷', changes: '占位文档创建' }
+    ]
+  },
+  { 
+    id: 4,
+    title: '系统设计文档', 
+    desc: '系统架构设计说明，包含模块划分、接口设计和数据库设计。', 
+    status: '草稿', 
+    statusClass: 'pill-secondary',
+    tags: ['设计', '架构'],
+    owner: '架构组',
+    lastUpdate: '5天前',
+    content: '## 系统设计文档\n\n### 架构概述\n采用微服务架构，分为前端展示层、业务逻辑层和数据访问层。\n\n### 模块划分\n- 用户管理模块\n- 项目管理模块\n- 任务管理模块\n\n### 接口设计\nRESTful API 设计规范',
+    versions: [
+      { version: 'v1.0', date: '2024-04-08 14:00', author: '李明', changes: '初始版本创建' }
+    ]
+  },
+  { 
+    id: 5,
+    title: '测试用例文档', 
+    desc: '完整的测试用例集合，包含功能测试、性能测试和安全测试。', 
+    status: '已归档', 
+    statusClass: 'pill-muted',
+    tags: ['测试', '用例'],
+    owner: 'QA 组',
+    lastUpdate: '1周前',
+    content: '## 测试用例文档\n\n### 功能测试\n- 登录功能测试\n- 项目创建测试\n- 任务分配测试\n\n### 性能测试\n- 并发测试\n- 响应时间测试\n\n### 安全测试\n- 权限验证测试',
+    versions: [
+      { version: 'v1.0', date: '2024-04-05 09:00', author: '王雅婷', changes: '初始版本创建' },
+      { version: 'v1.1', date: '2024-04-06 15:00', author: '王雅婷', changes: '添加性能测试用例' },
+      { version: 'v1.2', date: '2024-04-07 11:00', author: '王雅婷', changes: '添加安全测试用例' }
+    ]
+  }
 ])
+
+const docFilter = ref('all')
+
+const filteredDocs = computed(() => {
+  if (docFilter.value === 'all') {
+    return docList.value
+  }
+  return docList.value.filter(doc => doc.tags.includes(docFilter.value))
+})
+
+// 文档状态选项
+const docStatusOptions = [
+  { label: '最新版本', value: '最新版本', class: 'pill-success' },
+  { label: '待补充', value: '待补充', class: 'pill-warning' },
+  { label: '草稿', value: '草稿', class: 'pill-secondary' },
+  { label: '已归档', value: '已归档', class: 'pill-muted' }
+]
+
+// 文档类型标签
+const docTypeTags = ['需求', '设计', '测试', '风险', '联调', '评审', '样本', '架构', '用例']
+
+// 文档编辑弹窗
+const showDocModal = ref(false)
+const docModalMode = ref('add')
+const editingDoc = ref({
+  id: null,
+  title: '',
+  desc: '',
+  status: '最新版本',
+  tags: [],
+  owner: '',
+  content: ''
+})
+
+const openDocModal = (mode, doc = null) => {
+  docModalMode.value = mode
+  if (mode === 'edit' && doc) {
+    editingDoc.value = { ...doc }
+  } else {
+    editingDoc.value = {
+      id: null,
+      title: '',
+      desc: '',
+      status: '最新版本',
+      tags: [],
+      owner: '',
+      content: ''
+    }
+  }
+  showDocModal.value = true
+}
+
+const closeDocModal = () => {
+  showDocModal.value = false
+}
+
+const toggleDocTag = (tag) => {
+  const index = editingDoc.value.tags.indexOf(tag)
+  if (index > -1) {
+    editingDoc.value.tags.splice(index, 1)
+  } else {
+    editingDoc.value.tags.push(tag)
+  }
+}
+
+const saveDoc = () => {
+  if (!editingDoc.value.title.trim()) {
+    showToast('请输入文档标题', '文档标题不能为空', 'warning')
+    return
+  }
+  
+  const now = new Date()
+  const timeStr = `${now.getMonth() + 1}月${now.getDate()}日 ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`
+  
+  if (docModalMode.value === 'add') {
+    const newId = Math.max(...docList.value.map(d => d.id), 0) + 1
+    docList.value.push({
+      id: newId,
+      title: editingDoc.value.title,
+      desc: editingDoc.value.desc || '暂无描述',
+      status: editingDoc.value.status,
+      statusClass: docStatusOptions.find(s => s.value === editingDoc.value.status)?.class || 'pill-secondary',
+      tags: editingDoc.value.tags.length > 0 ? editingDoc.value.tags : ['未分类'],
+      owner: editingDoc.value.owner || '未分配',
+      lastUpdate: timeStr,
+      content: editingDoc.value.content || '# ' + editingDoc.value.title,
+      versions: [{
+        version: 'v1.0',
+        date: timeStr,
+        author: currentUser.value.name,
+        changes: '初始版本创建'
+      }]
+    })
+    showToast('文档已添加', `已成功添加 "${editingDoc.value.title}"`, 'add')
+  } else {
+    const doc = docList.value.find(d => d.id === editingDoc.value.id)
+    if (doc) {
+      const oldTitle = doc.title
+      doc.title = editingDoc.value.title
+      doc.desc = editingDoc.value.desc || doc.desc
+      doc.status = editingDoc.value.status
+      doc.statusClass = docStatusOptions.find(s => s.value === editingDoc.value.status)?.class || doc.statusClass
+      doc.tags = editingDoc.value.tags.length > 0 ? editingDoc.value.tags : doc.tags
+      doc.owner = editingDoc.value.owner || doc.owner
+      doc.content = editingDoc.value.content || doc.content
+      doc.lastUpdate = timeStr
+      
+      const newVersionNum = doc.versions.length + 1
+      doc.versions.push({
+        version: `v${newVersionNum}.0`,
+        date: timeStr,
+        author: currentUser.value.name,
+        changes: '文档内容更新'
+      })
+      showToast('文档已更新', `已成功更新 "${oldTitle}"`, 'update')
+    }
+  }
+  closeDocModal()
+}
+
+const deleteDoc = (docId) => {
+  docList.value = docList.value.filter(d => d.id !== docId)
+  showToast('文档已删除', '已成功删除该文档', 'delete')
+}
+
+// 版本历史弹窗
+const showVersionModal = ref(false)
+const currentDocVersions = ref([])
+const currentDocTitle = ref('')
+
+const openVersionHistory = (doc) => {
+  currentDocTitle.value = doc.title
+  currentDocVersions.value = [...doc.versions].reverse()
+  showVersionModal.value = true
+}
+
+const closeVersionModal = () => {
+  showVersionModal.value = false
+}
+
+const rollbackToVersion = (version) => {
+  const doc = docList.value.find(d => d.title === currentDocTitle.value)
+  if (doc) {
+    doc.lastUpdate = version.date
+    const rollbackVersionNum = doc.versions.length + 1
+    doc.versions.push({
+      version: `v${rollbackVersionNum}.0`,
+      date: new Date().toLocaleString(),
+      author: currentUser.value.name,
+      changes: `回退到 ${version.version}`
+    })
+    showToast('已回退版本', `已回退到 ${version.version}`, 'update')
+    closeVersionModal()
+  }
+}
+
+// 文档详情弹窗
+const showDocDetailModal = ref(false)
+const currentDoc = ref(null)
+
+const openDocDetail = (doc) => {
+  currentDoc.value = doc
+  showDocDetailModal.value = true
+}
+
+const closeDocDetailModal = () => {
+  showDocDetailModal.value = false
+}
+
+const downloadDoc = () => {
+  if (!currentDoc.value) return
+  const content = `# ${currentDoc.value.title}\n\n${currentDoc.value.content}`
+  const blob = new Blob([content], { type: 'text/markdown' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${currentDoc.value.title}.md`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+const shareDoc = () => {
+  if (!currentDoc.value) return
+  const shareUrl = `${window.location.origin}/project/${project.value.id}/docs/${currentDoc.value.id}`
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    showToast('链接已复制', '文档链接已复制到剪贴板', 'success')
+  })
+}
+
+// 文档评论
+const docComments = ref([])
+const newComment = ref('')
+
+const addDocComment = () => {
+  if (!newComment.value.trim() || !currentDoc.value) return
+  
+  docComments.value.push({
+    id: Date.now(),
+    author: currentUser.value.name,
+    avatar: currentUser.value.avatar,
+    content: newComment.value,
+    time: new Date().toLocaleTimeString()
+  })
+  newComment.value = ''
+  showToast('评论已添加', '评论已成功提交', 'add')
+}
 
 const isEditModalOpen = ref(false)
 const isAiDrawerOpen = ref(false)
@@ -4200,6 +5592,372 @@ watch(() => route.params.tab, () => { isAiDrawerOpen.value = false })
   color: var(--color-text-tertiary);
 }
 
+@media (max-width: 1279px) {
+  .project-edit-layout, .project-edit-field-grid { grid-template-columns: 1fr; }
+}
+
+/* 看板样式 */
+.kanban-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(20, 104, 199, 0.08);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.kanban-hint .material-symbols-outlined {
+  font-size: 16px;
+  color: var(--color-primary-500);
+}
+
+.kanban-5 {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+}
+
+.kanban-5.dragging {
+  cursor: grabbing;
+}
+
+.kanban-column {
+  flex-shrink: 0;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  padding: 16px;
+}
+
+.kanban-column.drag-over {
+  background: rgba(47, 198, 138, 0.1);
+  border-color: var(--color-secondary-400);
+}
+
+.kanban-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.kanban-column-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kanban-column-title h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.wip-limit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--color-text-secondary);
+}
+
+.wip-limit.wip-warning {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--color-warning-600);
+}
+
+.kanban-column-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kanban-cards {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  max-height: calc(100vh - 380px);
+}
+
+.kanban-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s;
+  cursor: default;
+}
+
+.kanban-card:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-2px);
+}
+
+.kanban-card.editable {
+  cursor: grab;
+}
+
+.kanban-card.editable:active {
+  cursor: grabbing;
+}
+
+.kanban-card.dragging {
+  opacity: 0.5;
+  transform: rotate(3deg);
+}
+
+.kanban-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.kanban-card-header h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  flex: 1;
+}
+
+.kanban-meta {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.kanban-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-secondary-400), var(--color-secondary-600));
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.progress-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  min-width: 40px;
+  text-align: right;
+}
+
+.task-note {
+  margin: 10px 0 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.add-task-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+  border: 2px dashed var(--color-border);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-task-btn:hover {
+  border-color: var(--color-primary-400);
+  color: var(--color-primary-600);
+  background: rgba(20, 104, 199, 0.05);
+}
+
+.add-task-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+/* 下拉菜单 */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 100;
+}
+
+.dropdown-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.dropdown-menu button:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.dropdown-menu button.danger {
+  color: var(--color-danger-600);
+}
+
+.dropdown-menu hr {
+  margin: 6px 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
+}
+
+/* 切换开关 */
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle-switch input {
+  display: none;
+}
+
+.toggle-label {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.toggle-label::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-switch input:checked + .toggle-label {
+  background: var(--color-secondary-500);
+}
+
+.toggle-switch input:checked + .toggle-label::after {
+  transform: translateX(20px);
+}
+
+.toggle-switch span {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+/* 标签样式 */
+.micro-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.micro-tag.p0 {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-danger-600);
+}
+
+.micro-tag.p1 {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--color-warning-600);
+}
+
+.micro-tag.p2 {
+  background: rgba(20, 104, 199, 0.15);
+  color: var(--color-primary-600);
+}
+
+.micro-tag.p3 {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--color-text-tertiary);
+}
+
+/* 按钮样式 */
+.icon-btn.sm {
+  width: 30px;
+  height: 30px;
+}
+
+.icon-btn.sm .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.icon-btn.xs {
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+}
+
+.icon-btn.xs .material-symbols-outlined {
+  font-size: 14px;
+}
+
+.icon-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* 提示文字 */
+.field-hint {
+  margin: 0;
+}
+
+/* 响应式 */
 @media (max-width: 1279px) {
   .project-edit-layout, .project-edit-field-grid { grid-template-columns: 1fr; }
 }

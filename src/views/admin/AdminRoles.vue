@@ -601,7 +601,7 @@ const sidebarNavItems = [
 const overviewCards = [
   {
     title: "平台角色",
-    description: "超级管理员、系统管理员、普通用户。用于控制是否可进入后台管理。",
+    description: "超级管理员、系统管理员、项目组长、普通用户。用于控制是否可进入后台管理。",
     buttonIcon: "table_chart",
     buttonLabel: "查看矩阵",
     action: "matrix",
@@ -670,6 +670,16 @@ const platformMatrixRows = [
       createPermission("允许", "allow", "check_circle"),
       createPermission("允许", "allow", "check_circle"),
       createPermission("允许", "allow", "check_circle"),
+    ],
+  },
+  {
+    role: "项目组长",
+    cells: [
+      createPermission("禁止", "deny", "do_not_disturb_on"),
+      createPermission("禁止", "deny", "do_not_disturb_on"),
+      createPermission("禁止", "deny", "do_not_disturb_on"),
+      createPermission("禁止", "deny", "do_not_disturb_on"),
+      createPermission("禁止", "deny", "do_not_disturb_on"),
     ],
   },
   {
