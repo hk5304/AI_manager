@@ -122,24 +122,7 @@
           </a>
         </section>
 
-        <section class="grid-3">
-          <div class="glass-panel metric-card">
-            <h3>研发预算分配</h3>
-            <div class="value" style="font-size: 38px; color: var(--color-primary-700);">¥ 12.4M</div>
-            <div class="trend" style="color: var(--color-secondary-600);">+4.2% 较上周</div>
-            <div class="progress-track" style="margin-top: 18px;"><div class="progress-fill" style="width: 60%; background: linear-gradient(90deg, var(--color-primary-400), var(--color-primary-700));"></div></div>
-          </div>
-          <div class="glass-panel metric-card" style="text-align: center;">
-            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--color-tertiary-600);">rocket_launch</span>
-            <div class="value" style="font-size: 46px;">24</div>
-            <p class="page-subtitle" style="font-size: 14px;">本月新启动实验</p>
-          </div>
-          <div class="glass-panel metric-card" style="text-align: center;">
-            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--color-secondary-600);">verified</span>
-            <div class="value" style="font-size: 46px;">182</div>
-            <p class="page-subtitle" style="font-size: 14px;">累计专利申请量</p>
-          </div>
-        </section>
+
       </div>
     </main>
   </div>

@@ -212,26 +212,7 @@
           </div>
         </section>
 
-        <section class="grid-3">
-          <div class="glass-panel metric-card">
-            <span class="material-symbols-outlined watermark">thermostat</span>
-            <h3>实验室平均温湿度</h3>
-            <div class="value" style="font-size: 30px;">22.4°C / 45%</div>
-            <p class="page-subtitle" style="font-size: 14px; margin-top: 10px;">关键环境稳定，暂无异常波动。</p>
-          </div>
-          <div class="glass-panel metric-card">
-            <span class="material-symbols-outlined watermark">memory</span>
-            <h3>算力节点在线率</h3>
-            <div class="value" style="font-size: 30px;">99.98%</div>
-            <p class="page-subtitle" style="font-size: 14px; margin-top: 10px;">GPU 集群状态良好，周三夜间有高峰负载。</p>
-          </div>
-          <div class="glass-panel metric-card">
-            <span class="material-symbols-outlined watermark">security</span>
-            <h3>安全运行天数</h3>
-            <div class="value" style="font-size: 30px;">1,284 天</div>
-            <p class="page-subtitle" style="font-size: 14px; margin-top: 10px;">本季度无 P1 级安全事件，AI 监测维持稳定。</p>
-          </div>
-        </section>
+
       </div>
     </main>
   </div>
