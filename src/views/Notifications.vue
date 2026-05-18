@@ -1,4 +1,4 @@
-<template>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<template>
   <!-- 来源页面：notifications.html -->
   <div class="notifications-page">
     <div class="app-shell">
@@ -141,7 +141,7 @@
               </div>
 
               <div class="notification-stream-list">
-                <div v-for="item in filteredNotifications" :key="item.id" class="notification-entry">
+                <div v-for="item in displayNotifications" :key="item.id" class="notification-entry">
                   <div class="notification-entry-icon" :style="{ background: item.iconBackground }">
                     <span class="material-symbols-outlined">{{ item.icon }}</span>
                   </div>
@@ -175,7 +175,7 @@
                   </div>
                 </div>
 
-                <div v-if="!filteredNotifications.length" class="notification-entry">
+                <div v-if="!displayNotifications.length" class="notification-entry">
                   <div class="notification-entry-icon" style="background: linear-gradient(135deg, #94a3b8, #64748b);">
                     <span class="material-symbols-outlined">inbox</span>
                   </div>
@@ -271,6 +271,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { pushAppPath, resolveNotificationReturnPath } from "../utils/navigation";
+import { notificationStore, taskStore } from "../store/taskStore";
 import UserProfileHoverCard from "../components/topbar/UserProfileHoverCard.vue";
 
 const route = useRoute();
@@ -292,42 +293,46 @@ const keyword = ref("");
 const activeFilter = ref("all");
 const isAiDrawerOpen = ref(false);
 
-const currentUser = {
-  name: "张工",
-  role: "研发总监",
-  avatar: "https://i.pravatar.cc/80?img=12",
-};
+const currentUser = computed(() => ({
+  name: taskStore.state.currentUserName,
+  role: taskStore.state.currentRole,
+  avatar: `https://i.pravatar.cc/80?img=${taskStore.state.currentUserId % 70}`
+}))
 
-const sidebarNavItems = [
+const unreadCount = computed(() => notificationStore.getUnreadCount())
+
+const notifications = computed(() => notificationStore.getUserNotifications(taskStore.state.currentUserId))
+
+const sidebarNavItems = computed(() => [
   { label: "全局工作台", icon: "dashboard", path: "./dashboard.html", active: false },
   { label: "项目列表", icon: "account_tree", path: "./projects.html", active: false },
   { label: "个人工作台", icon: "space_dashboard", path: "./workbench.html", active: false },
-  { label: "消息通知", icon: "notifications", path: "./notifications.html", active: true, badge: 5 },
+  { label: "消息通知", icon: "notifications", path: "./notifications.html", active: true, badge: unreadCount.value },
   { label: "全局报表", icon: "query_stats", path: "./reports.html", active: false },
   { label: "系统设置", icon: "settings", path: "./settings.html", active: false },
   { label: "后台管理", icon: "admin_panel_settings", path: "./admin.html", active: false },
-];
+]);
 
-const metricCards = [
+const metricCards = computed(() => [
   {
     icon: "mark_chat_unread",
     title: "未读通知",
-    value: "5 条",
+    value: `${unreadCount.value} 条`,
     description: "标题栏通知统一进入本页查看，不再弹出临时浮层。",
   },
   {
     icon: "priority_high",
     title: "高优先级",
-    value: "2 条",
+    value: `${notifications.value.filter(n => n.category === 'pending').length} 条`,
     description: "涉及权限审计和角色变更，建议今天内完成处理闭环。",
   },
   {
     icon: "check_circle",
     title: "今日已处理",
-    value: "8 条",
+    value: `${notifications.value.filter(n => !n.unread).length} 条`,
     description: "系统更新、AI 摘要和协作反馈都已在此汇总，便于统一追踪。",
   },
-];
+]);
 
 const filterOptions = [
   { label: "全部", value: "all" },
@@ -336,125 +341,76 @@ const filterOptions = [
   { label: "AI 提醒", value: "ai" },
 ];
 
-// TODO: Replace this mock with the notification list API response.
-const notifications = [
-  {
-    id: "notice-role-change",
-    category: "pending",
-    icon: "warning",
-    iconBackground: "linear-gradient(135deg, #f59e0b, #d97706)",
-    status: "待处理",
-    pillClass: "pill-warning",
-    title: "角色模板变更申请",
-    unread: true,
-    time: "10 分钟前",
-    description:
-      "用户「张三」申请将项目角色从“研发”调整为“PM”，需要在角色管理页确认权限边界与成员分配策略。",
-    tags: [
-      { label: "后台管理", className: "p1" },
-      {
-        label: "角色变更",
-        style: "color: var(--color-text-secondary); background: rgba(255,255,255,0.62);",
-      },
-    ],
-    actionLabel: "查看角色管理",
-    actionPath: "./admin-roles.html",
-  },
-  {
-    id: "notice-audit-risk",
-    category: "pending",
-    icon: "report",
-    iconBackground: "linear-gradient(135deg, #f36b63, #d83a34)",
-    status: "高优先级",
-    pillClass: "pill-danger",
-    title: "审计日志异常",
-    unread: true,
-    time: "30 分钟前",
-    description:
-      "检测到 4 条高风险权限变更操作，建议优先回到审计日志页核对责任人、影响范围和审批链记录。",
-    tags: [
-      { label: "权限审计", className: "p0" },
-      {
-        label: "需复核",
-        style: "color: var(--color-text-secondary); background: rgba(255,255,255,0.62);",
-      },
-    ],
-    actionLabel: "查看审计日志",
-    actionPath: "./admin-logs.html",
-  },
-  {
-    id: "notice-system-update",
-    category: "system",
-    icon: "check_circle",
-    iconBackground: "linear-gradient(135deg, #10b981, #059669)",
-    status: "已完成",
-    pillClass: "pill-success",
-    title: "系统配置已更新",
-    unread: true,
-    time: "1 小时前",
-    description:
-      "管理员李四已更新通知通道配置，站内通知已启用，邮件与企微同步策略也已同步到系统设置页。",
-    tags: [
-      {
-        label: "系统设置",
-        style: "color: var(--color-secondary-600); background: rgba(156,239,219,0.72);",
-      },
-      {
-        label: "通道同步",
-        style: "color: var(--color-text-secondary); background: rgba(255,255,255,0.62);",
-      },
-    ],
-    actionLabel: "查看系统配置",
-    actionPath: "./admin-system.html",
-  },
-  {
-    id: "notice-ai-summary",
-    category: "ai",
-    icon: "auto_awesome",
-    iconBackground: "linear-gradient(135deg, #4f8ff6, #1468c7)",
-    status: "AI 提醒",
-    pillClass: "pill-ai",
-    title: "晨报摘要可导出",
-    unread: true,
-    time: "今天 09:30",
-    description:
-      "AI 已根据今日日志、联调风险和资源冲突生成晨报摘要。你可以回到全局工作台继续补充重点风险后导出。",
-    tags: [
-      { label: "全局工作台", className: "p2" },
-      {
-        label: "日报生成",
-        style: "color: var(--color-text-secondary); background: rgba(255,255,255,0.62);",
-      },
-    ],
-    actionLabel: "回到工作台",
-    actionPath: "./dashboard.html",
-  },
-  {
-    id: "notice-collab-feedback",
-    category: "pending",
-    icon: "forum",
-    iconBackground: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
-    status: "协作反馈",
-    pillClass: "pill-neutral",
-    title: "个人日志收到新评论",
-    unread: true,
-    time: "2 小时前",
-    description:
-      "陈思远在你的今日日志下补充了 QA 确认时间点，建议回到个人工作台同步明日计划与 PBC 绑定关系。",
-    tags: [
-      {
-        label: "个人工作台",
-        style: "color: var(--color-tertiary-600); background: rgba(236,220,255,0.72);",
-      },
-      {
-        label: "日志互动",
-        style: "color: var(--color-text-secondary); background: rgba(255,255,255,0.62);",
-      },
-    ],
-    actionLabel: "查看个人工作台",
-    actionPath: "./workbench.html",
-  },
-];
+const handleNotificationClick = (notification) => {
+  if (!notification.read) {
+    notificationStore.markAsRead(notification.id)
+  }
+  
+  if (notification.actionPath) {
+    handleNavigate(notification.actionPath)
+  }
+}
+
+const mapNotificationToDisplay = (notification) => {
+  const iconMap = {
+    'review': 'rate_review',
+    'review_result': 'check_circle',
+    'task': 'task',
+    'invitation': 'person_add',
+    'member_update': 'manage_accounts',
+    'member_remove': 'person_remove',
+    'audit': 'security',
+    'permission': 'admin_panel_settings',
+    'system': 'settings',
+    'ai': 'auto_awesome'
+  }
+  
+  const bgMap = {
+    'review': 'linear-gradient(135deg, #f59e0b, #d97706)',
+    'review_result': 'linear-gradient(135deg, #10b981, #059669)',
+    'task': 'linear-gradient(135deg, #4f8ff6, #1468c7)',
+    'invitation': 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+    'member_update': 'linear-gradient(135deg, #ec4899, #db2777)',
+    'member_remove': 'linear-gradient(135deg, #f36b63, #d83a34)',
+    'audit': 'linear-gradient(135deg, #f36b63, #d83a34)',
+    'permission': 'linear-gradient(135deg, #f59e0b, #d97706)',
+    'system': 'linear-gradient(135deg, #10b981, #059669)',
+    'ai': 'linear-gradient(135deg, #4f8ff6, #1468c7)'
+  }
+  
+  const typeLabelMap = {
+    'review': '待审核',
+    'review_result': '审核结果',
+    'task': '任务',
+    'invitation': '邀请',
+    'member_update': '成员更新',
+    'member_remove': '移出',
+    'audit': '审计',
+    'permission': '权限',
+    'system': '系统',
+    'ai': 'AI'
+  }
+  
+  return {
+    id: notification.id,
+    icon: iconMap[notification.type] || 'notifications',
+    iconBackground: bgMap[notification.type] || 'linear-gradient(135deg, #6b7280, #4b5563)',
+    status: typeLabelMap[notification.type] || notification.type,
+    pillClass: notification.read ? 'pill-success' : 'pill-warning',
+    title: notification.title,
+    description: notification.content,
+    unread: !notification.read,
+    time: notification.createdAt,
+    actionLabel: '查看详情',
+    actionPath: notification.actionPath || './notifications.html',
+    tags: [],
+    category: notification.type
+  }
+}
+
+const displayNotifications = computed(() => {
+  return filteredNotifications.value.map(mapNotificationToDisplay)
+})
 
 const processAdviceItems = [
   {
@@ -507,7 +463,7 @@ const aiListItems = [
 const filteredNotifications = computed(() => {
   const normalizedKeyword = keyword.value.trim().toLowerCase();
 
-  return notifications.filter((item) => {
+  return notifications.value.filter((item) => {
     const matchesCategory = activeFilter.value === "all" || item.category === activeFilter.value;
     if (!matchesCategory) {
       return false;
@@ -530,10 +486,10 @@ const notificationReturnPath = computed(() => {
 
 const getFilterCount = (filter) => {
   if (filter === "all") {
-    return notifications.length;
+    return notifications.value.length;
   }
 
-  return notifications.filter((item) => item.category === filter).length;
+  return notifications.value.filter((item) => item.category === filter).length;
 };
 
 const handleNavigate = (path) => {
@@ -748,3 +704,4 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+

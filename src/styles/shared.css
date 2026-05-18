@@ -253,6 +253,225 @@ select {
   line-height: 1.6;
 }
 
+.doc-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.doc-status {
+  display: flex;
+  gap: 8px;
+}
+
+.doc-actions {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.doc-card:hover .doc-actions {
+  opacity: 1;
+}
+
+.doc-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.doc-tag {
+  padding: 4px 10px;
+  background: rgba(63, 108, 206, 0.1);
+  color: var(--color-primary-600);
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.doc-meta {
+  display: flex;
+  gap: 16px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+}
+
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.doc-header .page-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 文档详情弹窗样式 */
+.doc-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.doc-detail-meta .doc-tag {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.doc-owner,
+.doc-update {
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--color-text-secondary);
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.doc-content {
+  margin-bottom: 24px;
+}
+
+.doc-content p {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.markdown-preview {
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 12px;
+  font-family: monospace;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--color-text-secondary);
+}
+
+/* 文档评论样式 */
+.doc-comments {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.doc-comments h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px 0;
+  font-size: 16px;
+}
+
+.comment-list {
+  margin-bottom: 16px;
+}
+
+.comment-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.comment-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.comment-content {
+  flex: 1;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.comment-author {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.comment-time {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.comment-input {
+  display: flex;
+  gap: 10px;
+}
+
+.comment-input .form-control {
+  flex: 1;
+}
+
+/* 版本历史样式 */
+.version-list {
+  padding: 8px 0;
+}
+
+.version-item {
+  padding: 16px;
+  margin-bottom: 12px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 12px;
+  border-left: 3px solid transparent;
+}
+
+.version-item.active {
+  border-left-color: var(--color-primary-600);
+  background: rgba(20, 104, 199, 0.06);
+}
+
+.version-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.version-tag {
+  padding: 4px 10px;
+  background: var(--color-primary-600);
+  color: white;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.version-date {
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
+.version-info,
+.version-changes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+}
+
+.version-actions {
+  margin-top: 12px;
+}
+
 .settings-layout {
   display: grid;
   grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
@@ -1987,21 +2206,21 @@ select {
 }
 
 .gantt-shell {
-  padding: 20px;
+  padding: 24px;
   border-radius: 28px;
 }
 
 .gantt-toolbar {
   display: flex;
   justify-content: space-between;
-  gap: 14px;
+  gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
 .gantt-layout {
   display: grid;
-  grid-template-columns: minmax(280px, 340px) minmax(800px, max-content);
+  grid-template-columns: minmax(320px, 380px) minmax(900px, max-content);
   gap: 0;
   border-radius: 24px;
   overflow: hidden;
@@ -2018,30 +2237,47 @@ select {
 
 .gantt-head-row,
 .gantt-item-row {
-  min-height: 56px;
+  min-height: 72px;
   display: grid;
   align-items: center;
 }
 
 .gantt-head-row {
-  border-bottom: 1px solid rgba(216, 221, 232, 0.8);
+  border-bottom: 2px solid rgba(216, 221, 232, 0.8);
   background: rgba(255, 255, 255, 0.84);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--color-text-secondary);
 }
 
 .gantt-side .gantt-head-row,
 .gantt-side .gantt-item-row {
-  grid-template-columns: 1fr 88px;
-  padding: 0 18px;
+  grid-template-columns: 1fr 100px 80px 56px;
+  padding: 0 20px;
+}
+
+.gantt-side .gantt-item-row > div:first-child {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.gantt-side .gantt-item-row > div:nth-child(2) {
+  font-size: 14px;
+  color: var(--color-text-secondary);
 }
 
 .gantt-stage .gantt-head-row,
 .gantt-stage .gantt-item-row {
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   width: fit-content;
   min-width: 100%;
+}
+
+.gantt-stage .gantt-head-row > div {
+  font-size: 14px;
+  text-align: center;
+  padding: 8px 0;
 }
 
 .gantt-item-row {
@@ -2070,18 +2306,18 @@ select {
 .gantt-bar,
 .gantt-baseline {
   position: absolute;
-  height: 14px;
+  height: 24px;
   border-radius: 999px;
 }
 
 .gantt-bar {
-  box-shadow: 0 8px 18px rgba(41, 72, 152, 0.18);
+  box-shadow: 0 10px 24px rgba(41, 72, 152, 0.22);
 }
 
 .gantt-baseline {
-  height: 10px;
-  opacity: 0.55;
-  border: 1px dashed rgba(65, 71, 84, 0.36);
+  height: 18px;
+  opacity: 0.6;
+  border: 2px dashed rgba(65, 71, 84, 0.36);
   background: rgba(173, 198, 255, 0.42);
 }
 
@@ -2124,7 +2360,7 @@ select {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.95);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -2135,6 +2371,120 @@ select {
   position: absolute;
   top: -18px;
   pointer-events: none;
+}
+
+.gantt-side .gantt-head-row,
+.gantt-side .gantt-item-row {
+  grid-template-columns: 1fr 88px 70px 48px;
+  padding: 0 18px;
+}
+
+.gantt-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.gantt-actions .icon-btn {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.gantt-item-row:hover .gantt-actions .icon-btn {
+  opacity: 1;
+}
+
+.milestone-badge,
+.critical-badge {
+  margin-right: 6px;
+  font-size: 14px;
+}
+
+.subtask-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subtask-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.gantt-task-modal .form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.gantt-task-modal .form-row .form-group {
+  flex: 1;
+}
+
+.gantt-task-modal .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 24px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.gantt-full-width {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.gantt-full-width .gantt-shell {
+  width: 100%;
+}
+
+.gantt-bottom-panels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1200px) {
+  .gantt-bottom-panels {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .gantt-bottom-panels .legend-panel {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .gantt-bottom-panels {
+    grid-template-columns: 1fr;
+  }
+  
+  .gantt-bottom-panels .legend-panel {
+    grid-column: span 1;
+  }
+}
+
+.gantt-bottom-panels .summary-panel,
+.gantt-bottom-panels .ai-panel,
+.gantt-bottom-panels .legend-panel {
+  min-height: 180px;
+}
+
+.gantt-bottom-panels .ai-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.gantt-bottom-panels .ai-panel .ai-actions {
+  margin-top: auto;
+  padding-top: 16px;
 }
 
 .progress-badge {

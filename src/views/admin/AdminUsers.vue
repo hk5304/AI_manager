@@ -284,6 +284,7 @@
                         <span class="material-symbols-outlined">badge</span>
                         <select v-model="createUserForm.role">
                           <option value="user">普通用户</option>
+                          <option value="pm">项目组长</option>
                           <option value="admin">管理员</option>
                         </select>
                       </div>
@@ -548,6 +549,7 @@ const sidebarNavItems = [
 const filterOptions = [
   { label: "全部", value: "all" },
   { label: "管理员", value: "admin" },
+  { label: "项目组长", value: "pm" },
   { label: "普通用户", value: "user" },
 ];
 
@@ -579,6 +581,21 @@ const users = ref([
     statusClass: "pill-success",
     joinDate: "2026-01-01",
     actions: [{ label: "编辑", active: false }],
+  },
+  {
+    id: "user-pm",
+    name: "王志强",
+    email: "wang@example.com",
+    department: "产品部",
+    roleKey: "pm",
+    roleLabel: "项目组长",
+    status: "正常",
+    statusClass: "pill-success",
+    joinDate: "2026-03-15",
+    actions: [
+      { label: "编辑", active: false },
+      { label: "停用", active: false },
+    ],
   },
   {
     id: "user-li",
